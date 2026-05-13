@@ -1,0 +1,22 @@
+package org.example.pageObject.frontoffice.manageOrganization;
+
+import org.example.pageObject.base.BasePage;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
+
+public class DashboardManageOrganizationPage extends BasePage {
+
+    public DashboardManageOrganizationPage(WebDriver driver) {
+        super(driver);
+        PageFactory.initElements(driver, this);
+    }
+
+    @FindBy(xpath = "//h2[normalize-space()='Manage Organization']")
+    private WebElement manageOrganizationHeader;
+
+    public boolean isManageOrganizationHeaderDisplayed(){
+        return isVisible(manageOrganizationHeader);
+    }
+}

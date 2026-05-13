@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Test End To End" parallel="false" thread-count="2">
+    <listeners>
+        <listener class-name="org.example.listener.Listeners"/>
+    </listeners>
+    <parameter name="nip" value="3003943"/>
+    <parameter name="username" value="SAMSUDIN"/>
+
+    <test verbose="2" preserve-order="true" name="SLA Setting">
+        <classes>
+<!--            <class name="org.example.test.backoffice.manageOrganization.slaSetting.AddSlaSettingTest">-->
+<!--                <methods>-->
+<!--&lt;!&ndash;&lt;!&ndash;                    <include name="addDuplicatePeriodName" />&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                    <include name="saveEmptySLASettingPeriod"/>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                    <include name="saveEmptyEffectiveDate"/>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                    <include name="saveEmptySLASettingPeriodAndEffectiveDate"/>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                    <include name="saveEmptySlaSetting"/>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                    <include name="saveSlaSettingStatusActive"/>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                    <include name="saveSlaSettingAsDraft"/>&ndash;&gt;&ndash;&gt;-->
+<!--                    <include name="saveSlaSettingStatusNotStarted"/>-->
+<!--                </methods>-->
+<!--            </class>-->
+<!--            <class name="org.example.test.backoffice.manageOrganization.slaSetting.EditSlaSettingTest">-->
+<!--                <methods>-->
+<!--                    <include name="editSlaSettingStatusDraft"/>-->
+<!--                    <include name="editSlaSettingStatusNotStarted"/>-->
+<!--                </methods>-->
+<!--            </class>-->
+<!--            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaSettingTest">-->
+<!--                <methods>-->
+<!--                    <include name="checkDetailSlaSettingActive"/>-->
+<!--                    <include name="checkDetailSlaSettingInActive"/>-->
+<!--                    <include name="deleteSlaSettingStatusNotStarted"/>-->
+<!--                    <include name="deleteSlaSettingStatusDraft"/>-->
+<!--                </methods>-->
+<!--            </class>-->
+<!--            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaDetailTest">-->
+<!--                <methods>-->
+<!--                    <include name="selectCopyFromPrevious"/>-->
+<!--                    <include name="editSlaDetail"/>-->
+<!--                    <include name="deleteSlaDetail"/>-->
+<!--                    <include name="addSlaDetail"/>-->
+<!--                </methods>-->
+<!--            </class>-->
+
+
+
+            <class name="org.example.test.backoffice.workflowEngine.approvalMatrix.AddApprovalMatrix">
+                <methods>
+
+                </methods>
+            </class>
+
+
+
+        </classes>
+    </test>
+
+</suite>
