@@ -22,12 +22,12 @@ import java.util.stream.Collectors;
 public class TableUtils {
 
     private static final Logger logger = LogManager.getLogger(TableUtils.class);
-    SlaSettingPage slaSettingPage;
-    DashboardSlaSettingPage dashboardSlaSettingPage;
+    private final SlaSettingPage slaSettingPage;
+    private final DashboardSlaSettingPage dashboardSlaSettingPage;
 
-    public TableUtils(WebDriver driver) {
-        slaSettingPage = new SlaSettingPage(driver);
-        dashboardSlaSettingPage = new DashboardSlaSettingPage(driver);
+    public TableUtils(SlaSettingPage slaSettingPage, DashboardSlaSettingPage dashboardSlaSettingPage) {
+        this.slaSettingPage = slaSettingPage;
+        this.dashboardSlaSettingPage = dashboardSlaSettingPage;
     }
 
     /**

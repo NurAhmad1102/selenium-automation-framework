@@ -5,9 +5,19 @@
         <listener class-name="org.example.listener.Listeners"/>
     </listeners>
 
+    <test name="Architecture Rules">
+        <classes>
+            <class name="org.example.ArchitectureTest"/>
+        </classes>
+    </test>
+
     <test verbose="2" name="SLA Setting">
         <classes>
-            <class name="org.example.test.frontoffice"></class>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationFlow1Test">
+                <methods>
+                    <include name="validateManageOrganizationPageIsDisplayed"/>
+                </methods>
+            </class>
         </classes>
     </test>
 

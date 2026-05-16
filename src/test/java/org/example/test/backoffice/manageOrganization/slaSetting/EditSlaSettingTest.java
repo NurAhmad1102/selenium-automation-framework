@@ -42,7 +42,7 @@ public class EditSlaSettingTest extends SlaSettingBaseTest {
         actionUtils().clearInputWithKeys(inputPeriodName);
         inputPeriodName.sendKeys(newSlaName);
         effDate.click();
-        actionUtils().setPickDateCalender(true);
+        slaSettingPage().pickEffectiveDate(true);
 
         validationEditResult(isDraft, slaName, newSlaName);
     }

@@ -34,9 +34,10 @@ public abstract class SlaSettingBaseTest extends BackOfficeBaseTest {
 
         goToSlaSetting(nip);
 
-        tableUtils.set(new TableUtils(DriverManager.getDriver()));
-        slaSettingHelper.set(new SlaSettingHelper(DriverManager.getDriver(), getMainPages()));
-        actionUtils.set(new ActionUtils(DriverManager.getDriver()));
+        ActionUtils currentActionUtils = new ActionUtils(DriverManager.getDriver());
+        tableUtils.set(new TableUtils(slaSettingPage(), dashboardSlaSettingPage()));
+        actionUtils.set(currentActionUtils);
+        slaSettingHelper.set(new SlaSettingHelper(getMainPages(), currentActionUtils));
     }
 
     protected void goToSlaSetting(String loginNip) {

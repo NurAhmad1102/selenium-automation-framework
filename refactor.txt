@@ -1,0 +1,414 @@
+REFACTOR PLAN - AUTOMATION TEST FRAMEWORK
+
+Tujuan:
+Merapikan konsistensi flow arsitektur automation framework agar sesuai dengan best practice:
+Test -> ModuleBaseTest -> PlatformBaseTest -> MainPagesFactory -> ModuleFactory -> PageObject.
+
+Scope awal:
+- Sinkronisasi README dengan kode aktual.
+- Perkuat rule ArchitectureTest untuk menjaga pemanggilan PageObject.
+- Rapikan struktur Front Office agar konsisten dengan pola Back Office.
+- Tidak mengubah behavior test case tanpa kebutuhan jelas.
+
+
+1. PRIORITAS TINGGI - KONSISTENSI ARSITEKTUR FRONT OFFICE
+
+1.1. Perbaiki FrontOfficeLoginPagesFactory
+- File:
+  src/main/java/org/example/factories/frontoffice/login/FrontOfficeLoginPagesFactory.java
+- Masalah:
+  Factory Front Office saat ini mengembalikan BackOfficeLoginPage.
+- Target:
+  Factory Front Office harus memakai FrontOfficeLoginPage.
+- Expected flow:
+  FrontOfficeBaseTest
+      -> FrontOfficeMainPagesFactory.login()
+      -> FrontOfficeLoginPagesFactory.getLoginPage()
+      -> FrontOfficeLoginPage
+- Catatan:
+  Cek dulu apakah method di FrontOfficeLoginPage sudah setara dengan method login yang dipakai test.
+
+1.2. Lengkapi factory chain untuk module Front Office Manage Organization
+- File target:
+  src/test/java/org/example/mainPagesFactory/FrontOfficeMainPagesFactory.java
+  src/main/java/org/example/factories/frontoffice/manageOrganization/ManageOrganizationFactory.java
+- Masalah:
+  ArchitectureTest dan README mengarah ke pola pages.manageOrganization(), tetapi FrontOfficeMainPagesFactory saat ini hanya punya login() dan sideMenu().
+- Target:
+  Tambahkan module factory Front Office agar akses PageObject tidak lewat constructor langsung.
+- Expected flow:
+  getFrontOfficePages()
+      .manageOrganization()
+      .getDashboardManageOrganizationPage()
+
+1.3. Rapikan ManageOrganizationBaseTest
+- File:
+  src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/ManageOrganizationBaseTest.java
+- Masalah:
+  init context belum melakukan login, navigasi, helper init, dan ActionUtils init secara lengkap.
+- Target:
+  Base test module bertanggung jawab untuk:
+  - Ambil account dari AccountAllocator.
+  - Login ke Front Office.
+  - Navigasi ke My Organization -> Manage Organization.
+  - Init helper/utils via ThreadLocal.
+  - Remove semua ThreadLocal di @AfterMethod(alwaysRun = true).
+- Expected accessors:
+  protected DashboardManageOrganizationPage dashboardManageOrganizationPage()
+  protected ManageOrganizationHelper manageOrganizationHelper()
+  protected String loginNip()
+  protected String username()
+
+1.4. Rapikan ManageOrganizationHelper
+- File:
+  src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/ManageOrganizationHelper.java
+- Masalah:
+  Field ManageOrganizationMenu tidak jelas sumbernya dan belum ada constructor.
+- Target:
+  Helper menerima WebDriver dan FrontOfficeMainPagesFactory, lalu mengambil PageObject via factory.
+- Best practice:
+  Helper tidak extends class apapun.
+  Helper tidak membuat PageObject dengan new.
+  Helper hanya merangkai aksi multi-step yang reusable.
+
+
+2. PRIORITAS TINGGI - PERKUAT ARCHITECTURE RULE
+
+2.1. Sesuaikan pesan rule dengan factory aktual
+- File:
+  src/test/java/org/example/ArchitectureTest.java
+- Masalah:
+  Komentar/contoh menyebut pages.manageOrganization().getDashboardPage(), tetapi factory aktual belum punya manageOrganization().
+- Target:
+  Setelah factory chain dibuat, update contoh agar sesuai nama method final.
+
+2.2. Tambah rule untuk Back Office test
+- File:
+  src/test/java/org/example/ArchitectureTest.java
+- Target:
+  Test class Back Office juga tidak boleh instantiate PageObject langsung.
+- Rule:
+  noClasses()
+      .that().resideInAPackage("org.example.test.backoffice..")
+      .should().callConstructorWhere(target package startsWith "org.example.pageObject.backoffice")
+
+2.3. Pertimbangkan rule untuk semua package test
+- Target:
+  Package test tidak boleh instantiate PageObject dari src/main/pageObject secara langsung.
+- Catatan:
+  Exception mungkin dibutuhkan untuk utility legacy seperti TableUtils/ActionUtils jika belum direfactor.
+  Jangan aktifkan rule terlalu luas sebelum utility tersebut dirapikan.
+
+2.4. Tambah rule factory-only constructor access
+- Target jangka menengah:
+  Constructor PageObject hanya boleh dipanggil dari package factory.
+- Rule konsep:
+  Classes outside org.example.factories.. should not call constructors of org.example.pageObject..
+- Catatan:
+  Perlu whitelist untuk PageObject internal/component jika ada komposisi yang valid.
+- Catatan tambahan:
+  Jangan langsung blok semua constructor di package org.example.pageObject.. tanpa klasifikasi.
+  Component kecil seperti SlaRowComponent saat ini di-instantiate di TableUtils dan lebih cocok diperlakukan sebagai component object/internal row wrapper, bukan full PageObject.
+  Sebelum rule factory-only diaktifkan penuh, tentukan salah satu pendekatan:
+  - Daftarkan component internal melalui factory khusus, atau
+  - Pindahkan component ke package ..components.. dan whitelist package tersebut di ArchitectureTest, atau
+  - Biarkan component di-instantiate oleh PageObject induk saja, lalu hilangkan pemanggilan dari util.
+
+
+3. PRIORITAS MENENGAH - SINKRONISASI README
+
+3.1. Perbaiki encoding karakter README
+- File:
+  README.md
+- Masalah:
+  Ada karakter rusak seperti "Â·" dan "â€”".
+- Target:
+  Pastikan file tersimpan UTF-8 dan karakter tampil normal.
+
+3.2. Sinkronisasi versi Java
+- File:
+  README.md
+  pom.xml
+- Masalah:
+  README menyebut Java 17, property Maven Java 17, tetapi compiler plugin source/target 9.
+- Target:
+  Pilih satu:
+  - Gunakan Java 17 penuh di Maven compiler plugin, atau
+  - Ubah README bila project memang harus Java 9.
+- Rekomendasi:
+  Samakan ke Java 17 karena README dan property project sudah mengarah ke Java 17.
+
+3.3. Update contoh Front Office flow
+- File:
+  README.md
+- Target:
+  Tambahkan contoh aktual:
+  getFrontOfficePages()
+      .manageOrganization()
+      .getDashboardManageOrganizationPage()
+- Catatan:
+  Lakukan setelah factory chain Front Office benar-benar ada.
+
+3.4. Tambahkan section Architecture Rules
+- File:
+  README.md
+- Isi:
+  - Tujuan ArchitectureTest.
+  - Contoh pemanggilan yang dilarang.
+  - Contoh pemanggilan yang benar.
+  - Cara menjalankan rule via mvn test.
+  - Scope rule: Front Office, Back Office, atau semua test package.
+
+
+4. PRIORITAS MENENGAH - CLEANUP UTILITY YANG MEMBUAT PAGEOBJECT LANGSUNG
+
+4.1. Review ActionUtils
+- File:
+  src/main/java/org/example/utils/actionUtils/ActionUtils.java
+- Masalah:
+  Ada indikasi ActionUtils membuat SlaSettingPage langsung.
+- Target:
+  ActionUtils sebaiknya tidak hardcode page module tertentu.
+- Opsi:
+  - Terima PageObject dari caller.
+  - Terima factory dari caller.
+  - Pisahkan utility umum Selenium dari helper module.
+- Catatan tambahan:
+  Sebelum refactor, SlaSettingHelper membuat new ActionUtils(driver) secara manual dan ActionUtils membuat new SlaSettingPage(driver), sehingga utility umum bergantung pada PageObject SLA.
+  Kondisi saat ini: ActionUtils sudah tidak membuat/menyimpan SlaSettingPage; logic kalender SLA dipindahkan ke SlaSettingPage.pickEffectiveDate(boolean), dan SlaSettingHelper menerima ActionUtils dari BaseTest.
+  Refactor yang disarankan:
+  - Pindahkan logic kalender SLA ke SlaSettingPage atau SlaSettingHelper, atau
+  - Jadikan ActionUtils utility murni yang menerima WebElement/By sebagai parameter, tanpa menyimpan PageObject module tertentu.
+
+4.2. Review TableUtils
+- File:
+  src/test/java/org/example/utils/tableUtils/TableUtils.java
+- Masalah:
+  Ada indikasi TableUtils membuat SlaSettingPage dan DashboardSlaSettingPage langsung.
+- Target:
+  TableUtils tidak bergantung ke module spesifik, atau dependency-nya disuntik dari BaseTest/helper.
+
+4.3. Pisahkan helper module dari utility umum
+- Target:
+  Logic khusus SLA tetap di SlaSettingHelper.
+  Utility umum hanya berisi operasi reusable lintas module.
+
+
+5. PRIORITAS RENDAH - PENAMAAN DAN STRUKTUR
+
+5.1. Konsistenkan nama package factory Front Office
+- Contoh saat ini:
+  org.example.factories.frontoffice.sideMenuFactory
+- Rekomendasi:
+  org.example.factories.frontoffice.sideMenu
+- Catatan:
+  Ini refactor package, blast radius lebih besar. Lakukan setelah flow utama stabil.
+
+5.2. Evaluasi lokasi MainPagesFactory
+- Saat ini:
+  src/test/java/org/example/mainPagesFactory
+- Pertimbangan:
+  Jika factory hanya dipakai test, lokasi ini masih dapat diterima.
+  Jika factory dianggap bagian framework reusable, bisa dipindah ke src/main.
+- Rekomendasi:
+  Jangan pindahkan dulu kecuali ada kebutuhan reuse di luar test.
+
+5.3. Konsistenkan nama method factory
+- Contoh:
+  login(), sideMenu(), manageOrganization()
+- Target:
+  Nama method pendek dan konsisten untuk root factory.
+  Nama getter eksplisit untuk PageObject di module factory.
+
+
+6. URUTAN EKSEKUSI YANG DISARANKAN
+
+Step 1:
+Perbaiki FrontOfficeLoginPagesFactory agar memakai FrontOfficeLoginPage.
+
+Step 2:
+Buat ManageOrganizationFactory untuk Front Office dan daftarkan di FrontOfficeMainPagesFactory.
+
+Step 3:
+Rapikan ManageOrganizationBaseTest agar login, navigasi, helper init, dan cleanup ThreadLocal lengkap.
+
+Step 4:
+Rapikan ManageOrganizationHelper agar semua PageObject diambil via FrontOfficeMainPagesFactory.
+
+Step 5:
+Update ArchitectureTest untuk Front Office sesuai factory chain aktual.
+
+Step 6:
+Tambah ArchitectureTest rule untuk Back Office.
+
+Step 7:
+Review dan refactor utility yang masih instantiate PageObject langsung.
+
+Step 8:
+Update README agar sesuai kode final.
+
+Step 9:
+Jalankan mvn test untuk memastikan architecture rule dan test suite tetap valid.
+
+
+7. DEFINITION OF DONE
+
+- Tidak ada test class yang membuat PageObject langsung dengan new.
+- Semua akses PageObject dari test dilakukan melalui BaseTest/helper accessor dan factory chain.
+- Front Office dan Back Office punya pola arsitektur yang konsisten.
+- ArchitectureTest menangkap pelanggaran direct constructor call minimal untuk Front Office dan Back Office test package.
+- README menggambarkan flow yang sama dengan kode aktual.
+- Maven compiler configuration konsisten dengan versi Java yang tertulis di README.
+- Test suite dan ArchitectureTest berhasil dijalankan.
+
+
+8. AI AGENT EXECUTION PROMPT
+
+Gunakan prompt ini jika pekerjaan dilanjutkan oleh AI agent lain:
+
+"Anda bekerja di repo D:\MyCave\Refactor\AutomationTest. Ikuti refactor.txt sebagai sumber rencana utama.
+Kerjakan refactor secara bertahap sesuai urutan Step 1 sampai Step 9.
+Jangan langsung melakukan refactor besar lintas banyak area.
+Untuk setiap step:
+1. Baca file terkait terlebih dahulu.
+2. Jelaskan asumsi singkat sebelum edit.
+3. Edit hanya file yang diperlukan untuk step tersebut.
+4. Jalankan verifikasi yang relevan jika memungkinkan.
+5. Update bagian PROGRESS TRACKER di refactor.txt setelah step selesai atau jika menemukan blocker.
+6. Jangan menghapus perubahan user yang tidak terkait.
+7. Jika test gagal karena masalah existing di luar scope, catat di HANDOFF NOTES dan lanjutkan hanya jika aman.
+
+Prioritas teknis:
+- Factory chain harus jadi sumber utama akses PageObject.
+- Test/BaseTest/Helper tidak boleh membuat PageObject dengan new.
+- Utility umum tidak boleh bergantung pada PageObject module spesifik.
+- ArchitectureTest digunakan sebagai guardrail sebelum mempertimbangkan access modifier constructor.
+- Jangan ubah access modifier constructor PageObject ke protected/package-private sampai direct instantiation dari test/util sudah bersih dan factory/package structure sudah siap."
+
+
+9. PROGRESS TRACKER
+
+Format status:
+[TODO] belum dikerjakan
+[IN PROGRESS] sedang dikerjakan
+[DONE] selesai dan sudah diverifikasi
+[BLOCKED] tidak bisa dilanjutkan tanpa keputusan/perbaikan lain
+[SKIPPED] sengaja dilewati dengan alasan
+
+Step 1 - Perbaiki FrontOfficeLoginPagesFactory memakai FrontOfficeLoginPage
+Status: [DONE]
+Files touched:
+- src/main/java/org/example/factories/frontoffice/login/FrontOfficeLoginPagesFactory.java
+- src/main/java/org/example/pageObject/frontoffice/login/FrontOfficeLoginPage.java
+Verification:
+- mvn test -Dtest=ArchitectureTest: PASS
+Notes:
+- FrontOfficeLoginPagesFactory sekarang memakai FrontOfficeLoginPage.
+- Password locator FrontOfficeLoginPage diarahkan ke input setelah label Password.
+
+Step 2 - Buat ManageOrganizationFactory Front Office dan daftarkan di FrontOfficeMainPagesFactory
+Status: [DONE]
+Files touched:
+- src/main/java/org/example/factories/frontoffice/manageOrganization/ManageOrganizationFactory.java
+- src/test/java/org/example/mainPagesFactory/FrontOfficeMainPagesFactory.java
+Verification:
+- mvn test -Dtest=ArchitectureTest: PASS
+Notes:
+- Factory chain final: getFrontOfficePages().manageOrganization().getDashboardManageOrganizationPage().
+
+Step 3 - Rapikan ManageOrganizationBaseTest
+Status: [DONE]
+Files touched:
+- src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/ManageOrganizationBaseTest.java
+Verification:
+- mvn test -Dtest=ArchitectureTest: PASS
+Notes:
+- Base test sudah login, navigasi via FrontOfficeMenu, validasi header Manage Organization, init helper/utils, dan cleanup ThreadLocal dengan alwaysRun = true.
+
+Step 4 - Rapikan ManageOrganizationHelper
+Status: [DONE]
+Files touched:
+- src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/ManageOrganizationHelper.java
+Verification:
+- mvn test -Dtest=ArchitectureTest: PASS
+Notes:
+- Helper menerima FrontOfficeMainPagesFactory dan mengambil DashboardManageOrganizationPage via factory chain.
+- Tidak membuat PageObject langsung.
+
+Step 5 - Update ArchitectureTest untuk Front Office
+Status: [DONE]
+Files touched:
+- src/test/java/org/example/ArchitectureTest.java
+Verification:
+- mvn test -Dtest=ArchitectureTest: PASS, Tests run: 2, Failures: 0
+Notes:
+- Pesan rule Front Office sudah memakai contoh factory chain aktual.
+
+Step 6 - Tambah ArchitectureTest rule untuk Back Office
+Status: [DONE]
+Files touched:
+- src/test/java/org/example/ArchitectureTest.java
+Verification:
+- mvn test -Dtest=ArchitectureTest: PASS, Tests run: 2, Failures: 0
+Notes:
+- Rule Back Office sudah melarang direct constructor call PageObject dari org.example.test.backoffice..
+
+Step 7 - Review dan refactor utility direct PageObject instantiation
+Status: [DONE]
+Files touched:
+- src/main/java/org/example/utils/actionUtils/ActionUtils.java
+- src/main/java/org/example/pageObject/backoffice/slaSettingMenu/SlaSetting/SlaSettingPage.java
+- src/test/java/org/example/utils/tableUtils/TableUtils.java
+- src/test/java/org/example/test/backoffice/manageOrganization/slaSetting/SlaSettingBaseTest.java
+- src/test/java/org/example/test/backoffice/manageOrganization/slaSetting/SlaSettingHelper.java
+- src/test/java/org/example/test/backoffice/manageOrganization/slaSetting/EditSlaSettingTest.java
+Verification:
+- mvn test -Dtest=ArchitectureTest: PASS
+Notes:
+- ActionUtils tidak lagi membuat atau menyimpan SlaSettingPage.
+- Logic kalender SLA dipindah ke SlaSettingPage.pickEffectiveDate(boolean).
+- SlaSettingHelper menerima ActionUtils dari SlaSettingBaseTest, bukan membuat sendiri.
+- TableUtils menerima SlaSettingPage dan DashboardSlaSettingPage dari caller.
+- SlaRowComponent masih di-instantiate di TableUtils sebagai component/internal row wrapper; jangan aktifkan factory-only global sebelum ada keputusan package/whitelist component.
+
+Step 8 - Update README sesuai kode final
+Status: [DONE]
+Files touched:
+- README.md
+Verification:
+- Manual review
+Notes:
+- README ditambah section Architecture Rules dan contoh factory chain Front Office Manage Organization.
+
+Step 9 - Jalankan mvn test
+Status: [DONE]
+Files touched:
+- N/A
+Verification:
+- mvn test -Dtest=ArchitectureTest: PASS
+- Manual full test by user: PASS
+- Log reference: D:\MyCave\Refactor\AutomationTest\logs\automation-test_2026-05-14_1.log
+Notes:
+- Previous agent-run mvn test was blocked by local Chrome startup/session creation in the agent environment.
+- User confirmed manual test runs successfully.
+
+
+10. HANDOFF NOTES
+
+Isi bagian ini setiap kali agent berhenti karena limit, blocker, atau selesai sebagian.
+
+Current state:
+- Step 1 sampai Step 9 selesai.
+- Full test sudah dikonfirmasi berjalan baik secara manual oleh user.
+- ArchitectureTest lulus: mvn test -Dtest=ArchitectureTest, Tests run: 2, Failures: 0.
+
+Known risks:
+- SlaRowComponent masih dibuat langsung di TableUtils sebagai component/internal wrapper; perlu keputusan package/whitelist sebelum rule factory-only global.
+- ActionUtils masih di-instantiate manual sebagai generic utility di beberapa BaseTest/Helper, tetapi tidak lagi membuat PageObject langsung.
+- Factory-only constructor access belum diaktifkan; gunakan ArchUnit test/backoffice + test/frontoffice rule sebagai guardrail saat ini.
+
+Last updated by:
+- AI agent
+
+Last updated date:
+- 2026-05-14

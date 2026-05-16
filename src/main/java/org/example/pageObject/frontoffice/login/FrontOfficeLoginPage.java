@@ -20,7 +20,7 @@ public class FrontOfficeLoginPage extends BasePage {
     @FindBy(name = "username")
     private WebElement usernameField;
 
-    @FindBy(xpath = "//label[contains(text(),'Password')]")
+    @FindBy(xpath = "//label[contains(normalize-space(),'Password')]/following::input[1]")
     private WebElement passwordField;
 
     @FindBy(xpath = "//button[normalize-space()='Sign In']")
@@ -39,7 +39,7 @@ public class FrontOfficeLoginPage extends BasePage {
     }
 
     public void clickSignInButton() {
-        signInButton.click();
+        click(signInButton);
     }
 
     public boolean isLogoutButtonVisible() {
