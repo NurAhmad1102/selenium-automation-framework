@@ -12,7 +12,6 @@ import org.example.pageObject.backoffice.slaSettingMenu.modal.addSlaDetailModal.
 import org.example.pageObject.backoffice.slaSettingMenu.modal.addSlaDetailModal.SlaDetailModal;
 import org.example.utils.actionUtils.ActionUtils;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 
@@ -29,8 +28,8 @@ public class SlaSettingHelper {
     ActionSelectorModal actionSelectorModal;
 
 
-    public SlaSettingHelper(WebDriver driver, MainPagesFactory mainPagesFactory){
-        actionUtils = new ActionUtils(driver);
+    public SlaSettingHelper(MainPagesFactory mainPagesFactory, ActionUtils actionUtils){
+        this.actionUtils = actionUtils;
         dashboardSlaSettingPage = mainPagesFactory.manageOrganization()
                 .getDashboardSlaSettingPageFactory()
                 .getDashboardSlaSettingPage();
@@ -53,7 +52,7 @@ public class SlaSettingHelper {
         slaSettingPage.isAddSlaSettingPage();
         slaSettingPage.setPeriodNameField().sendKeys(periodName);
         slaSettingPage.clickEffectiveDateField();
-        return actionUtils.setPickDateCalender(futureEffDate);
+        return slaSettingPage.pickEffectiveDate(futureEffDate);
     }
 
     public String createSlaSetting(String periodName, boolean futureDate, MultipleConfig config, List<String> actions){
@@ -66,7 +65,7 @@ public class SlaSettingHelper {
         logger.info("SLA Period Name...{}", periodName);
 
         slaSettingPage.clickEffectiveDateField();
-        String effectiveDate = actionUtils.setPickDateCalender(futureDate);
+        String effectiveDate = slaSettingPage.pickEffectiveDate(futureDate);
         logger.info("SLA Effective Date...{}", futureDate);
 
         addSlaDetailHelper(config.getSlaType(), config.getSlaDay(), actions); //Todo: Here changed
@@ -79,7 +78,7 @@ public class SlaSettingHelper {
 
         slaSettingPage.setPeriodNameField().sendKeys(periodName);
         slaSettingPage.clickEffectiveDateField();
-        String effectiveDate = actionUtils.setPickDateCalender(futureDate);
+        String effectiveDate = slaSettingPage.pickEffectiveDate(futureDate);
 
         addSlaDetailHelper(config.getSlaType(), config.getSlaDay(), action); //Todo: Here Changed
         return effectiveDate;

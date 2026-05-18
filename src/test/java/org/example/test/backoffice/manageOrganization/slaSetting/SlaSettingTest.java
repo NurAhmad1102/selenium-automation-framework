@@ -1,7 +1,6 @@
 package org.example.test.backoffice.manageOrganization.slaSetting;
 
 import org.example.model.SlaSettingModel;
-import org.example.pageObject.backoffice.slaSettingMenu.modal.deleteSlaSetting.DeleteSlaSettingModal;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 import org.testng.annotations.Test;

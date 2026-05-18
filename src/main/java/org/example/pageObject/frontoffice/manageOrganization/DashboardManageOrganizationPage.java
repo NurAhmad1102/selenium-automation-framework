@@ -16,7 +16,14 @@ public class DashboardManageOrganizationPage extends BasePage {
     @FindBy(xpath = "//h2[normalize-space()='Manage Organization']")
     private WebElement manageOrganizationHeader;
 
+    @FindBy(xpath = "//button[normalize-space()='Update Organization' or normalize-space()='Update']")
+    private WebElement updateOrganizationButton;
+
     public boolean isManageOrganizationHeaderDisplayed(){
         return isVisible(manageOrganizationHeader);
+    }
+
+    public void clickUpdateOrganizationButton() {
+        click(updateOrganizationButton);
     }
 }

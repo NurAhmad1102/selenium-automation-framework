@@ -16,10 +16,10 @@ public abstract class BackOfficeBaseTest extends BaseTest {
 
     @Override
     protected String getUrl() {
-        String excelUrl = AccountAllocator.getUrlBackOffice();
+        String excelUrl = AccountAllocator.getUrl("Backoffice_staging");
         if (excelUrl == null || excelUrl.isEmpty()) {
             throw new RuntimeException(
-                    "URL Back Office tidak ditemukan! Pastikan URL terisi di Excel atau di data.json sebagai fallback.");
+                    "URL Backoffice tidak ditemukan! Pastikan interface 'Backoffice' terisi di sheet URL.");
         }
         return excelUrl;
     }

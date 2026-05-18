@@ -18,12 +18,18 @@ public class AccountAllocator {
     private static final Map<String, AtomicInteger> roleCounters = new HashMap<>();
     private static final ThreadLocal<UserloginConfig> currentAccount = new ThreadLocal<>();
 
+    // Separated URL concern
+    private static final Map<String, String> interfaceUrls = new HashMap<>();
+
     static {
         String filePath = "src/test/java/resources/data/Data Userlogin.xlsx";
-        List<UserloginConfig> allAccounts = ExcelReader.getLoginData(filePath);
+        ExcelReader.LoginData loginData = ExcelReader.readExcel(filePath);
+
+        // Load URLs
+        interfaceUrls.putAll(loginData.getUrls());
 
         // Group by role
-        roleAccountPool.putAll(allAccounts.stream()
+        roleAccountPool.putAll(loginData.getAccounts().stream()
                 .collect(Collectors.groupingBy(UserloginConfig::getRole)));
 
         // Initialize counters
@@ -31,8 +37,8 @@ public class AccountAllocator {
             roleCounters.put(role, new AtomicInteger(0));
         }
 
-        logger.info("Account pool initialized with roles: {}. Total accounts: {}",
-                roleAccountPool.keySet(), allAccounts.size());
+        logger.info("Account pool initialized with roles: {}. Total accounts: {}. URLs loaded: {}",
+                roleAccountPool.keySet(), loginData.getAccounts().size(), interfaceUrls.keySet());
     }
 
     /**
@@ -78,12 +84,22 @@ public class AccountAllocator {
         return currentAccount.get() != null ? currentAccount.get().getPassword() : null;
     }
 
-    public static String getUrlBackOffice() {
-        return currentAccount.get() != null ? currentAccount.get().getUrlBackOffice() : null;
+    public static String getUrl(String interfaceType) {
+        if (interfaceType == null) return null;
+        return interfaceUrls.getOrDefault(interfaceType.trim().toLowerCase(),
+                currentAccount.get() != null ? 
+                    (interfaceType.equalsIgnoreCase("backoffice") ? currentAccount.get().getUrlBackOffice() : currentAccount.get().getUrlFrontOffice())
+                    : null);
     }
 
+    @Deprecated
+    public static String getUrlBackOffice() {
+        return getUrl("backoffice");
+    }
+
+    @Deprecated
     public static String getUrlFrontOffice() {
-        return currentAccount.get() != null ? currentAccount.get().getUrlFrontOffice() : null;
+        return getUrl("frontoffice");
     }
 
     public static void releaseAccount() {
