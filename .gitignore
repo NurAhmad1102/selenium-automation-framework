@@ -52,6 +52,9 @@ reports/
 target/surefire-reports/
 target/failsafe-reports/
 
+### Documentation ###
+Documentations/
+
 ### Windows ###
 Thumbs.db
 ehthumbs.db
