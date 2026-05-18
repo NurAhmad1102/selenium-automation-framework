@@ -1,11 +1,11 @@
 package org.example.factories.frontoffice.login;
 
-import org.example.pageObject.backoffice.login.BackOfficeLoginPage;
+import org.example.pageObject.frontoffice.login.FrontOfficeLoginPage;
 import org.openqa.selenium.WebDriver;
 
 public class FrontOfficeLoginPagesFactory {
     private WebDriver driver;
-    private BackOfficeLoginPage backOfficeLoginPage;
+    private FrontOfficeLoginPage frontOfficeLoginPage;
 
     public FrontOfficeLoginPagesFactory(WebDriver driver){
         this.driver = driver;
@@ -18,10 +18,10 @@ public class FrontOfficeLoginPagesFactory {
      *
      * @return
      */
-    public BackOfficeLoginPage getLoginPage(){
-        if(backOfficeLoginPage == null){
-            backOfficeLoginPage = new BackOfficeLoginPage(driver);
+    public FrontOfficeLoginPage getLoginPage(){
+        if(frontOfficeLoginPage == null){
+            frontOfficeLoginPage = new FrontOfficeLoginPage(driver);
         }
-        return backOfficeLoginPage;
+        return frontOfficeLoginPage;
     }
 }

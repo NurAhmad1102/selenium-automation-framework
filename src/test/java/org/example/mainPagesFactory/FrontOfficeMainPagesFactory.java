@@ -2,6 +2,7 @@ package org.example.mainPagesFactory;
 
 import org.example.drivers.DriverManager;
 import org.example.factories.frontoffice.login.FrontOfficeLoginPagesFactory;
+import org.example.factories.frontoffice.manageOrganization.ManageOrganizationFactory;
 import org.example.factories.frontoffice.sideMenuFactory.FrontOfficeSideMenuFactory;
 import org.openqa.selenium.WebDriver;
 
@@ -10,6 +11,7 @@ public class FrontOfficeMainPagesFactory {
 
     private FrontOfficeLoginPagesFactory frontOfficeLoginPagesFactory;
     private FrontOfficeSideMenuFactory frontOfficeSideMenuFactory;
+    private ManageOrganizationFactory manageOrganizationFactory;
 
     public FrontOfficeMainPagesFactory(WebDriver driver) {
         this.driver = driver;
@@ -29,6 +31,13 @@ public class FrontOfficeMainPagesFactory {
             frontOfficeSideMenuFactory = new FrontOfficeSideMenuFactory(driver);
         }
         return frontOfficeSideMenuFactory;
+    }
+
+    public ManageOrganizationFactory manageOrganization() {
+        if (manageOrganizationFactory == null) {
+            manageOrganizationFactory = new ManageOrganizationFactory(driver);
+        }
+        return manageOrganizationFactory;
     }
 
 

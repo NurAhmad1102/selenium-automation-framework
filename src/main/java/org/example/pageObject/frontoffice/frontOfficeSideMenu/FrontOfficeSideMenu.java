@@ -8,8 +8,14 @@ import org.openqa.selenium.support.PageFactory;
 
 import org.example.enums.frontoffice.FrontOfficeMenu;
 import org.openqa.selenium.By;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class FrontOfficeSideMenu extends BasePage {
+
+    private static WebDriverWait wait;
 
     public FrontOfficeSideMenu(WebDriver driver) {
         super(driver);
@@ -22,7 +28,8 @@ public class FrontOfficeSideMenu extends BasePage {
      */
     public void expandMainMenu(FrontOfficeMenu menu) {
         By locator = By.xpath(String.format("//a[.//span[normalize-space()='%s']]", menu.getLabel()));
-        WebElement menuElement = driver.findElement(locator);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement menuElement = wait.until(ExpectedConditions.elementToBeClickable(locator));
         click(menuElement);
     }
 
@@ -32,7 +39,7 @@ public class FrontOfficeSideMenu extends BasePage {
      */
     public void clickSubMenu(FrontOfficeMenu subMenu) {
         By locator = By.xpath(String.format("//*[contains(text(), '%s')]", subMenu.getLabel()));
-        WebElement subMenuElement = driver.findElement(locator);
+        WebElement subMenuElement = wait.until(ExpectedConditions.elementToBeClickable(locator));
         click(subMenuElement);
     }
 }
