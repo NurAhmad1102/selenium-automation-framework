@@ -4,6 +4,8 @@ import org.example.base.FrontOfficeBaseTest;
 import org.example.drivers.DriverManager;
 import org.example.enums.frontoffice.FrontOfficeMenu;
 import org.example.pageObject.frontoffice.manageOrganization.DashboardManageOrganizationPage;
+import org.example.pageObject.frontoffice.manageOrganization.FilterUpdateOrganizationPage;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.example.utils.TestDataFactory;
 import org.example.utils.account.AccountAllocator;
 import org.example.utils.actionUtils.ActionUtils;
@@ -15,6 +17,7 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
     private final ThreadLocal<String> loginNip = new ThreadLocal<>();
     private final ThreadLocal<String> username = new ThreadLocal<>();
     private final ThreadLocal<ManageOrganizationHelper> manageOrganizationHelper = new ThreadLocal<>();
+    private final ThreadLocal<SetOrganizationHelper> setOrganizationHelper = new ThreadLocal<>();
     private final ThreadLocal<ActionUtils> actionUtils = new ThreadLocal<>();
 
     @BeforeMethod
@@ -29,6 +32,7 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
         goToManageOrganization(nip);
 
         manageOrganizationHelper.set(new ManageOrganizationHelper(getFrontOfficePages()));
+        setOrganizationHelper.set(new SetOrganizationHelper(getFrontOfficePages()));
         actionUtils.set(new ActionUtils(DriverManager.getDriver()));
     }
 
@@ -58,6 +62,7 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
         loginNip.remove();
         username.remove();
         manageOrganizationHelper.remove();
+        setOrganizationHelper.remove();
         actionUtils.remove();
     }
 
@@ -65,8 +70,20 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
         return getFrontOfficePages().manageOrganization().getDashboardManageOrganizationPage();
     }
 
+    protected FilterUpdateOrganizationPage filterUpdateOrganizationPage() {
+        return getFrontOfficePages().manageOrganization().getFilterUpdateOrganizationPage();
+    }
+
+    protected SetOrganizationPage setOrganizationFlow1Page() {
+        return getFrontOfficePages().manageOrganization().getSetOrganizationFlow1();
+    }
+
     protected ManageOrganizationHelper manageOrganizationHelper() {
         return manageOrganizationHelper.get();
+    }
+
+    protected SetOrganizationHelper setOrganizationHelper() {
+        return setOrganizationHelper.get();
     }
 
     protected String loginNip() {

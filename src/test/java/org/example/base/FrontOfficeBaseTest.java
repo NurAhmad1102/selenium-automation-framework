@@ -14,16 +14,16 @@ public abstract class FrontOfficeBaseTest extends BaseTest {
 
     @Override
     protected String getUrl() {
-        String excelUrl = AccountAllocator.getUrlFrontOffice();
+        String excelUrl = AccountAllocator.getUrl("Frontoffice_staging");
         if (excelUrl == null || excelUrl.isEmpty()) {
-            throw new RuntimeException("URL Front Office tidak ditemukan! Pastikan URL terisi di Excel atau di data.json sebagai fallback.");
+            throw new RuntimeException("URL Frontoffice tidak ditemukan! Pastikan interface 'Frontoffice' terisi di sheet URL.");
         }
         return excelUrl;
     }
 
     @Override
     protected String getRole() {
-        return "User";
+        return "HR OD";
     }
 
     @Override

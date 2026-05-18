@@ -1,6 +1,6 @@
-﻿# Panduan Arsitektur Automation Test Framework
+# Panduan Arsitektur Automation Test Framework
 
-> Stack: Java 17 Â· Selenium 4 Â· TestNG Â· Maven Â· ExtentReports Â· Log4j2 Â· Apache POI
+> Stack: Java 17, Selenium 4, TestNG, Maven, ExtentReports, Log4j2, Apache POI
 
 ---
 
@@ -12,7 +12,8 @@
 4. [Penggunaan Enum FrontOfficeMenu](#4-penggunaan-enum-frontofficemenu)
 5. [Struktur Direktori](#5-struktur-direktori)
 6. [Architecture Rules](#6-architecture-rules)
-7. [Informasi Tambahan](#7-informasi-tambahan)
+7. [Scalability & Maintenance](#7-scalability--maintenance-best-practice)
+8. [Informasi Tambahan](#8-informasi-tambahan)
 
 ---
 
@@ -525,6 +526,52 @@ public class MenuAFlow1 extends MenuABaseTest {
 | Navigasi | Via `FrontOfficeMenu` enum | Via hardcode xpath di SideMenu |
 | Root factory | `getFrontOfficePages()` | `getMainPages()` |
 
+#### A. PageObject sebagai Shortcut (di BaseTest)
+
+Di dalam `ManageOrganizationBaseTest`, Anda menyediakan method accessor seperti:
+
+- `dashboardManageOrganizationPage()`
+- `filterUpdateOrganizationPage()`
+
+#### Fungsinya sebagai Shortcut
+
+Sesuai dengan analisis sebelumnya, method ini di level `BaseTest` memang berfungsi sebagai "jalan pintas" bagi test class untuk melakukan hal-hal sederhana tanpa harus lewat helper, seperti:
+
+- **Simple Verification**  
+  `Assert.assertTrue(dashboardManageOrganizationPage().isSomeElementVisible())`
+
+- **Quick Check**  
+  Pengecekan status elemen sebelum/sesudah langkah utama.
+
+- **Minimal Interaction**  
+  Jika test hanya membutuhkan satu klik sederhana yang tidak memiliki logika bisnis kompleks.
+
+---
+
+#### B. Helper sebagai Handler Steps (di ManageOrganizationHelper)
+
+Sedangkan untuk `ManageOrganizationHelper`, Anda telah menggunakannya untuk membungkus alur yang lebih kompleks (multi-steps), contohnya:
+
+- `navigateToUpdateOrganization()`  
+  Meng-handle klik sekaligus melakukan verifikasi transisi halaman.
+
+- `performFilterOrganization(String requestType)`  
+  Meng-handle pengisian form filter yang mungkin melibatkan banyak elemen.
+
+---
+
+#### Kesimpulan Arsitektur **Separation of Concerns**:
+
+- **Class Test**  
+  Fokus pada skenario dan assertion.
+
+- **Shortcut BaseTest**  
+  Memberikan fleksibilitas akses cepat ke `PageObject` untuk hal-hal non-bisnis (biasanya hanya untuk verifikasi UI sederhana).
+
+- **Helper**  
+  Menjadi engine yang menjalankan langkah-langkah prosedural/bisnis yang reusable.
+
+
 ### Checklist Penambahan Module
 
 ```
@@ -757,7 +804,58 @@ mvn test -Dtest=ArchitectureTest
 
 ---
 
-## 7. Informasi Tambahan
+## 7. Scalability & Maintenance (Best Practice)
+
+Seiring bertambahnya jumlah Page Object (PO), framework harus tetap menjaga pemisahan tanggung jawab antara Test, BaseTest, Helper, Factory, dan Page Object.
+
+### A. Avoid "Fat BaseTest"
+Jangan memasukkan semua PO sebagai field permanen di `XxxBaseTest`. Gunakan aturan berikut:
+
+1. **BaseTest hanya untuk setup dan shortcut tipis**: `XxxBaseTest` boleh menyediakan accessor singkat seperti `dashboardManageOrganizationPage()` atau `filterUpdateOrganizationPage()`, tetapi object tetap dibuat melalui factory.
+2. **Helper untuk flow lintas halaman**: rangkaian aksi seperti `Dashboard -> Update Organization -> Filter -> Generate Preview` harus dibungkus di `XxxHelper`, sehingga Test layer tetap fokus pada intent dan assertion.
+3. **Page Object untuk aksi satu halaman**: locator, klik, input, dan pemilihan dropdown tetap berada di Page Object masing-masing.
+4. **Factory sebagai satu pintu pembuatan PO**: jangan instantiate Page Object langsung di Test atau Helper. Selalu akses melalui factory chain.
+
+### B. Fluent Interface (Page Chaining)
+Jika aksi pada satu Page Object mengarah ke halaman lain dan factory tersedia pada level Helper, biarkan Page Object menjalankan klik, lalu Helper mengambil halaman berikutnya dari factory. Ini menjaga Page Object tetap sederhana dan tidak bergantung pada factory.
+
+```java
+// Di DashboardManageOrganizationPage
+public void clickUpdateOrganizationButton() {
+    click(updateOrganizationButton);
+}
+
+// Di ManageOrganizationHelper
+public void navigateToUpdateOrganization() {
+    dashboardManageOrganizationPage.clickUpdateOrganizationButton();
+    if (!filterUpdateOrganizationPage.isUpdateOrganizationHeaderDisplayed()) {
+        throw new RuntimeException("Failed to navigate to Filter Update Organization Page");
+    }
+}
+```
+
+### C. Parallel Safety
+Pastikan semua factory dan helper selalu diakses melalui `ThreadLocal` atau di-instantiate di dalam `@BeforeMethod`. Jangan pernah menggunakan `static` field untuk Page Object atau WebDriver.
+
+Contoh pola aman:
+
+```java
+private final ThreadLocal<ManageOrganizationHelper> manageOrganizationHelper = new ThreadLocal<>();
+
+@BeforeMethod
+public void initManageOrganizationContext() {
+    manageOrganizationHelper.set(new ManageOrganizationHelper(getFrontOfficePages()));
+}
+
+@AfterMethod(alwaysRun = true)
+public void cleanManageOrganizationContext() {
+    manageOrganizationHelper.remove();
+}
+```
+
+---
+
+## 8. Informasi Tambahan
 
 ### Thread Safety dan Parallel Execution
 

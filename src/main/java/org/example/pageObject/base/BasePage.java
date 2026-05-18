@@ -11,7 +11,7 @@ import java.time.Duration;
 public class BasePage {
 
     protected WebDriver driver;
-    private WebDriverWait wait;
+    protected WebDriverWait wait;
     protected final Logger logger = LogManager.getLogger(getClass());
 
     public BasePage(WebDriver driver){
@@ -25,9 +25,13 @@ public class BasePage {
     }
 
     protected void click(WebElement element){
-//        String text = element.getText();
         logger.info("Click for: {}", getElementDescription(element));
         wait.until(ExpectedConditions.elementToBeClickable(element)).click();
+    }
+
+    protected void click(By locator){
+        logger.info("Click for locator: {}", locator);
+        wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
     }
 
     protected void typeText(WebElement element, String text){
@@ -37,6 +41,10 @@ public class BasePage {
         logger.debug("Typing into element: {}", displayText);
         wait.until(ExpectedConditions.visibilityOf(element)).clear();
         element.sendKeys(text);
+    }
+
+    protected String getAttributeValue(WebElement element, String attribute){
+        return element.getAttribute(attribute);
     }
 
 //    protected String getText(WebElement element){

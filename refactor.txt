@@ -392,6 +392,123 @@ Notes:
 - Previous agent-run mvn test was blocked by local Chrome startup/session creation in the agent environment.
 - User confirmed manual test runs successfully.
 
+Step 10 - Refactor pembacaan Excel (Sheet ACM & URL)
+Status: [DONE]
+Files touched:
+- src/test/java/org/example/utils/ExcelReader.java
+- src/test/java/org/example/utils/account/AccountAllocator.java
+Verification:
+- mvn clean compile: PASS
+- Manual code review of callers: PASS
+Notes:
+- ExcelReader mendukung multi-sheet (ACM, URL) dengan sheet name constants.
+- AccountAllocator memisahkan concern URL ke static map global.
+- Backward compatibility tetap terjaga via fallback logic.
+
+Step 11 - Parameterized getUrl(interfaceType)
+Status: [DONE]
+Files touched:
+- src/test/java/org/example/utils/account/AccountAllocator.java
+- src/test/java/org/example/base/BackOfficeBaseTest.java
+- src/test/java/org/example/base/FrontOfficeBaseTest.java
+- src/test/java/org/example/utils/TestDataFactory.java
+Verification:
+- mvn clean compile: PASS
+Notes:
+- Pemanggilan URL diseragamkan menggunakan parameter string (e.g., "Backoffice", "Frontoffice").
+- Menghapus ketergantungan langsung ke field URL di UserloginConfig pada class TestDataFactory.
+
+Step 12 - Refactor Dropdown Selection di FilterUpdateOrganizationPage
+Status: [DONE]
+Files touched:
+- src/main/java/org/example/pageObject/frontoffice/manageOrganization/FilterUpdateOrganizationPage.java
+- src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/ManageOrganizationHelper.java
+Verification:
+- mvn clean compile: PASS
+Notes:
+- Memecah method generic selectDropdownOption menjadi explicit methods (selectDirectorate, selectRequestType, dll).
+- Menggunakan private helper selectFromSearchableDropdown untuk standarisasi logic search & click pada dropdown.
+- Meningkatkan keterbacaan di level Helper dengan menghilangkan generic string parameters untuk type dropdown.
+
+Step 13 - Refactor Redundant WebDriverWait
+Status: [DONE]
+Files touched:
+- src/main/java/org/example/pageObject/base/BasePage.java
+- src/main/java/org/example/pageObject/frontoffice/manageOrganization/SetOrganizationFlow1.java
+- src/main/java/org/example/pageObject/frontoffice/manageOrganization/FilterUpdateOrganizationPage.java
+- (Dan class lain yang memiliki inisialisasi wait redundan)
+Verification:
+- mvn clean compile: PASS
+Notes:
+- Mengubah akses modifier 'wait' di BasePage menjadi protected.
+- Menghapus inisialisasi WebDriverWait lokal di subclass agar menggunakan instance tunggal dari parent.
+- Menghindari shadowing variable dan inkonsistensi timeout di level framework.
+
+Step 14 - Logger Best Practice untuk Eksekusi Paralel
+Status: [DONE]
+Files touched:
+- src/main/java/org/example/pageObject/base/BasePage.java
+- src/test/java/org/example/listener/Listeners.java
+Verification:
+- mvn clean compile: PASS
+Notes:
+- Mengintegrasikan Log4j2 ThreadContext (MDC) ke dalam TestNG Listeners.
+- Setiap baris log kini otomatis menyertakan nama test method yang sedang berjalan (testMethod).
+- ThreadContext dibersihkan (removed) setelah test selesai (Success/Failure/Skipped) untuk mencegah kebocoran konteks antar thread.
+- Tetap mempertahankan logger instansiasi (getClass()) di BasePage untuk akurasi nama class pada log aksi.
+
+Step 15 - Refactor Modal Header Check
+Status: [DONE]
+Files touched:
+- src/main/java/org/example/pageObject/frontoffice/manageOrganization/setOrganizationFlow1/modal/BaseFormModal.java
+- src/test/java/org/example/pageObject/frontoffice/manageOrganization/setOrganizationFlow1/modal/FormAddBase.java
+Verification:
+- mvn clean compile: PASS
+Notes:
+- Mengganti isFormHeaderDisplayed(String) dengan isModalHeaderDisplayed() yang memanfaatkan field formTitle.
+- Menghilangkan redundansi wait (double wait) untuk efisiensi waktu eksekusi.
+- Mengimplementasikan Safe Check (try-catch) agar method mengembalikan boolean (false) alih-alih melempar TimeoutException saat header tidak ditemukan.
+
+Step 16 - Implementasi Modal Factory untuk Organization Flow
+Status: [DONE]
+Files touched:
+- src/main/java/org/example/factories/frontoffice/manageOrganization/SetOrganizationModalFactory.java
+- src/main/java/org/example/factories/frontoffice/manageOrganization/ManageOrganizationFactory.java
+Verification:
+- mvn clean compile: PASS
+Notes:
+- Membuat SetOrganizationModalFactory untuk mengelompokkan Page Objects yang bersifat modal (Add, Move, Merge, Split).
+- Menerapkan pola "Inner Factory" agar ManageOrganizationFactory tetap bersih dan terorganisir.
+- Mempermudah akses modal di level Helper/Test melalui syntax: pages.manageOrganization().modals().getAddFormModal().
+
+Step 17 - Spesialisasi Helper (Manage vs Set Organization)
+Status: [DONE]
+Files touched:
+- src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/ManageOrganizationHelper.java
+- src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/SetOrganizationHelper.java
+- src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/ManageOrganizationBaseTest.java
+- src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/SetOrganization/AddOrganizationTest.java
+Verification:
+- mvn clean compile: PASS
+Notes:
+- Memecah ManageOrganizationHelper menjadi dua helper spesifik: ManageOrganizationHelper (Navigasi/Filter) dan SetOrganizationHelper (Aksi Flow).
+- Menerapkan Single Responsibility Principle untuk menghindari "God Object" helper.
+- Mengupdate visibility method ke public agar dapat diakses oleh class Test di package berbeda secara legal.
+- Tetap menjaga Parallel Safety melalui ThreadLocal di level BaseTest.
+
+Step 18 - Fix Architecture Violation (TableUtils vs Model)
+Status: [DONE]
+Files touched:
+- src/main/java/org/example/model/SlaDetailModel.java (Moved)
+- src/main/java/org/example/model/SlaSettingModel.java (Moved)
+- (6 files updated for imports: TableUtils, AssertionUtils, and 4 SLA tests)
+Verification:
+- mvn test -Dtest=ArchitectureTest: PASS (3/3 rules)
+Notes:
+- Memindahkan class Model (SlaDetailModel & SlaSettingModel) keluar dari package pageObject ke package org.example.model.
+- Menyelesaikan pelanggaran aturan "utilityClassesShouldNotAccessPageObjectsDirectly" karena Utility (TableUtils) kini mengakses Model, bukan PageObject secara langsung.
+- Mengikuti prinsip Clean Architecture di mana Data Model harus terpisah dari Page Object Actions.
+
 
 10. HANDOFF NOTES
 

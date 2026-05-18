@@ -6,6 +6,7 @@ import org.example.config.slaSettingStructure.SingleConfig;
 import org.example.config.slaSettingStructure.SlaConfig;
 import org.example.config.slaSettingStructure.alertConfirmation.ConfirmationDetailConfig;
 import org.example.config.slaSettingStructure.slaPreviousSetting.SlaExistingConfig;
+import org.example.utils.account.AccountAllocator;
 import org.example.utils.actionUtils.JsonReader;
 
 import java.util.ArrayList;
@@ -20,11 +21,11 @@ public class TestDataFactory{
     }
 
     public static String getBackOfficeUrl(){
-        return config.getUserlogin().getUrlBackOffice();
+        return AccountAllocator.getUrl("Backoffice");
     }
 
     public static String getFrontOfficeUrl(){
-        return config.getUserlogin().getUrlFrontOffice();
+        return AccountAllocator.getUrl("Frontoffice");
     }
 
 //    rest for nip, username kalo butuh
