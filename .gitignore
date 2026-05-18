@@ -64,6 +64,7 @@ Desktop.ini
 ### Others ###
 context.txt
 refactor.txt
+test_output.txt
 note.txt
 mvn_output.txt
 Test Results - D__Automation_Refactor_AutomationTest_src_test_java_resources_testng_testng_xml.html
