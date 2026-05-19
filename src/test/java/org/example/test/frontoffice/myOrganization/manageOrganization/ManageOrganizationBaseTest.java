@@ -6,6 +6,7 @@ import org.example.enums.frontoffice.FrontOfficeMenu;
 import org.example.pageObject.frontoffice.manageOrganization.DashboardManageOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.FilterUpdateOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.AddJobPositionModal;
 import org.example.utils.TestDataFactory;
 import org.example.utils.account.AccountAllocator;
 import org.example.utils.actionUtils.ActionUtils;
@@ -75,7 +76,11 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
     }
 
     protected SetOrganizationPage setOrganizationFlow1Page() {
-        return getFrontOfficePages().manageOrganization().getSetOrganizationFlow1();
+        return getFrontOfficePages().manageOrganization().getSetOrganizationFlow1Page();
+    }
+
+    protected AddJobPositionModal addJobPositionModal() {
+        return getFrontOfficePages().manageOrganization().modals().getAddJobPositionModal();
     }
 
     protected ManageOrganizationHelper manageOrganizationHelper() {

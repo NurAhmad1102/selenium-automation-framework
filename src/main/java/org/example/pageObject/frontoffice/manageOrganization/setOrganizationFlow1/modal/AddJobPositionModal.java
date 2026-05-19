@@ -1,10 +1,13 @@
 package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal;
 
-import org.example.pageObject.base.BasePage;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AddJobPositionModal extends BaseFormModal {
     public AddJobPositionModal(WebDriver driver) {
@@ -24,8 +27,35 @@ public class AddJobPositionModal extends BaseFormModal {
     @FindBy(xpath = "//div[./label[contains(normalize-space(), 'RC Code / Cost Center')]]//input")
     private WebElement getRCCode;
 
+    @FindBy(xpath = "//button[normalize-space()='Add']")
+    private WebElement addButton;
 
+// =========================
+    public List<JobSectionComponent> getJobSections() {
 
+        List<WebElement> sections = driver.findElements(
+                By.xpath("//span[contains(.,'Job & Position')]/ancestor::div[contains(@class,'border rounded-lg')]")
+        );
 
+        List<JobSectionComponent> jobs = new ArrayList<>();
+
+        for (WebElement section : sections) {
+            jobs.add(new JobSectionComponent(driver, section));
+        }
+
+        return jobs;
+    }
+
+    public JobSectionComponent getJobSection(int index) {
+        return getJobSections().get(index);
+    }
+
+    public void clickAddJobButton() {
+        click(driver.findElement(By.xpath("//button[normalize-space()='+ Add Job']")));
+    }
+
+    public void clickAddButton(){
+        click(addButton);
+    }
 
 }

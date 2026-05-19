@@ -39,7 +39,7 @@ public class ManageOrganizationFactory {
         return filterUpdateOrganizationPage;
     }
 
-    public SetOrganizationPage getSetOrganizationFlow1() {
+    public SetOrganizationPage getSetOrganizationFlow1Page() {
         if (setOrganizationPage == null) {
             setOrganizationPage = new SetOrganizationPage(driver);
         }

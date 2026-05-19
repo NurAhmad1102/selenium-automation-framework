@@ -5,17 +5,24 @@ import org.apache.logging.log4j.Logger;
 import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.AddFormModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.AddJobPositionModal;
 
 public class SetOrganizationHelper {
     private final Logger logger = LogManager.getLogger(getClass());
     private final SetOrganizationPage setOrganizationPage;
-    
-    // Default values from original helper
-    private final String sub_directorate = "1022 Audit - Enablers ID";
+    private final AddFormModal addFormModal;
+    private final AddJobPositionModal addJobPositionModal;
 
     public SetOrganizationHelper(FrontOfficeMainPagesFactory mainPagesFactory) {
         this.setOrganizationPage = mainPagesFactory.manageOrganization()
-                .getSetOrganizationFlow1();
+                .getSetOrganizationFlow1Page();
+        this.addFormModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getAddFormModal();
+        this.addJobPositionModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getAddJobPositionModal();
     }
 
     private void clickOrganizationNode(String nodeName) {
@@ -29,9 +36,45 @@ public class SetOrganizationHelper {
         setOrganizationPage.selectMenuActionFlow1(action);
     }
 
-    public void addNewOrganization(String newOrganizationName) {
-        logger.info("Step: Adding New Organization: {}", newOrganizationName);
-        clickKebabButtonOfNode(sub_directorate, OrgMenuAction.ADD_NEW);
-        // Additional logic for filling the form can be added here
+//    PERFORM ACTION
+    public void fillJobPosition(
+            int indexJobPositionSection,
+            int indexPositionSection,
+            String jobName,
+            String positionNamingType,
+            String location,
+            String parentPosition,
+            String fteNumbers,
+            boolean isDottedMatrix
+            ){
+
+
+        logger.info("Step: Filling Job Position in the form");
+        // Implement the logic to fill job position in the form
+        var jobSection = addJobPositionModal.getJobSection(indexJobPositionSection);
+        logger.info("Step: Filling Job & Position {}", indexJobPositionSection);
+        logger.info("Step: Select Job Name {}", jobName);
+        jobSection.selectJobName(jobName);
+
+        var positionSection = jobSection.getPosition(indexPositionSection);
+        logger.info("Step: Select Naming Type {}", positionNamingType);
+        positionSection.selectPositionNamingType(positionNamingType);
+
+        positionSection.selectLocation(location);
+        positionSection.selectParentPositionName(parentPosition);
+        positionSection.setFTE(fteNumbers);
+        positionSection.selectDottedMatrix(isDottedMatrix);
+        addJobPositionModal.clickAddButton();
     }
+
+//    ADD NEW ORG
+    public void addNewOrganization(String parentOrganization ,String newOrganizationName, String rcCode) {
+        logger.info("Step: Adding New Organization: {}", newOrganizationName);
+        clickKebabButtonOfNode(parentOrganization, OrgMenuAction.ADD_NEW);
+        addFormModal.setOrgNewName(newOrganizationName);
+        addFormModal.clickRCCodeDropdown(rcCode);
+        addFormModal.clickNext();
+    }
+
+
 }

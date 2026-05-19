@@ -9,6 +9,7 @@ public class SetOrganizationModalFactory {
     private MoveFormModal moveFormModal;
     private MergeFormModal mergeFormModal;
     private SplitFormModal splitFormModal;
+    private AddJobPositionModal addJobPositionModal;
 
     public SetOrganizationModalFactory(WebDriver driver) {
         this.driver = driver;
@@ -40,5 +41,12 @@ public class SetOrganizationModalFactory {
             splitFormModal = new SplitFormModal(driver);
         }
         return splitFormModal;
+    }
+
+    public AddJobPositionModal getAddJobPositionModal() {
+        if (addJobPositionModal == null) {
+            addJobPositionModal = new AddJobPositionModal(driver);
+        }
+        return addJobPositionModal;
     }
 }
