@@ -19,7 +19,7 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     }
 
     @Test
-    public void addNewOrganizationTest() throws InterruptedException {
+    public void addNewOrganizationTest() {
         logger.info("Starting test: addNewOrganization");
 
         manageOrganizationHelper().goToFlow1();
@@ -34,8 +34,6 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().verifySuccessAndContinue("Added", "Selected organization has been successfully added");
 
         Assert.assertTrue(setOrganizationHelper().isNodeOrganization(data.getNewOrganizationName()));
-
-        Thread.sleep(2000);
     }
 
 }

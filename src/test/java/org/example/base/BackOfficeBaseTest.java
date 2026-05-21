@@ -7,6 +7,7 @@ import org.example.factories.backoffice.workflowEngine.WorkflowEngineFactory;
 import org.example.drivers.DriverManager;
 import org.example.mainPagesFactory.MainPagesFactory;
 import org.example.utils.account.AccountAllocator;
+import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
@@ -39,12 +40,12 @@ public abstract class BackOfficeBaseTest extends BaseTest {
 
     @Override
     @AfterMethod(alwaysRun = true)
-    public void tearDown() {
+    public void tearDown(ITestResult result) {
         try {
             mainPages.remove();
             logger.info("Back Office page factory instance removed successfully");
         } finally {
-            super.tearDown();
+            super.tearDown(result);
         }
     }
 
