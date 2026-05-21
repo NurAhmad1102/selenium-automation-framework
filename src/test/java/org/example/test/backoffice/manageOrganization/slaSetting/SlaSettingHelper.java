@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.example.config.slaSettingStructure.MultipleConfig;
 import org.example.config.slaSettingStructure.SingleConfig;
 import org.example.config.slaSettingStructure.SlaConfig;
-import org.example.mainPagesFactory.MainPagesFactory;
+import org.example.mainPagesFactory.BackOfficeMainPagesFactory;
 import org.example.pageObject.backoffice.slaSettingMenu.SlaSetting.SlaSettingPage;
 import org.example.pageObject.backoffice.slaSettingMenu.DashboardSlaSettingPage;
 import org.example.pageObject.backoffice.slaSettingMenu.modal.addSlaDetailModal.ActionSelectorModal;
@@ -28,19 +28,19 @@ public class SlaSettingHelper {
     ActionSelectorModal actionSelectorModal;
 
 
-    public SlaSettingHelper(MainPagesFactory mainPagesFactory, ActionUtils actionUtils){
+    public SlaSettingHelper(BackOfficeMainPagesFactory backOfficeMainPagesFactory, ActionUtils actionUtils){
         this.actionUtils = actionUtils;
-        dashboardSlaSettingPage = mainPagesFactory.manageOrganization()
+        dashboardSlaSettingPage = backOfficeMainPagesFactory.manageOrganization()
                 .getDashboardSlaSettingPageFactory()
                 .getDashboardSlaSettingPage();
-        slaSettingPage = mainPagesFactory.manageOrganization()
+        slaSettingPage = backOfficeMainPagesFactory.manageOrganization()
                 .getSlaSettingFactory()
                 .getSlaSettingPage();
-        slaDetailModal = mainPagesFactory.manageOrganization()
+        slaDetailModal = backOfficeMainPagesFactory.manageOrganization()
                 .getModalFactory()
                 .getAddSlaDetailModalFactory()
                 .getSlaDetailModal();
-        actionSelectorModal = mainPagesFactory.manageOrganization()
+        actionSelectorModal = backOfficeMainPagesFactory.manageOrganization()
                 .getModalFactory()
                 .getAddSlaDetailModalFactory()
                 .getActionSelectorModal();
@@ -68,7 +68,7 @@ public class SlaSettingHelper {
         String effectiveDate = slaSettingPage.pickEffectiveDate(futureDate);
         logger.info("SLA Effective Date...{}", futureDate);
 
-        addSlaDetailHelper(config.getSlaType(), config.getSlaDay(), actions); //Todo: Here changed
+        addSlaDetailHelper(config.getSlaType(), config.getSlaDay(), actions);
         return effectiveDate;
     }
 
@@ -80,7 +80,7 @@ public class SlaSettingHelper {
         slaSettingPage.clickEffectiveDateField();
         String effectiveDate = slaSettingPage.pickEffectiveDate(futureDate);
 
-        addSlaDetailHelper(config.getSlaType(), config.getSlaDay(), action); //Todo: Here Changed
+        addSlaDetailHelper(config.getSlaType(), config.getSlaDay(), action);
         return effectiveDate;
     }
 

@@ -1,11 +1,9 @@
 package org.example.base;
 
 import org.example.factories.backoffice.login.BackOfficeLoginPagesFactory;
-import org.example.factories.backoffice.manageOrganization.ManageOrganizationFactory;
 import org.example.factories.backoffice.sideMenu.SideMenuFactory;
-import org.example.factories.backoffice.workflowEngine.WorkflowEngineFactory;
 import org.example.drivers.DriverManager;
-import org.example.mainPagesFactory.MainPagesFactory;
+import org.example.mainPagesFactory.BackOfficeMainPagesFactory;
 import org.example.utils.account.AccountAllocator;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
@@ -13,7 +11,7 @@ import org.testng.annotations.BeforeMethod;
 
 public abstract class BackOfficeBaseTest extends BaseTest {
 
-    private final ThreadLocal<MainPagesFactory> mainPages = new ThreadLocal<>();
+    private final ThreadLocal<BackOfficeMainPagesFactory> mainPages = new ThreadLocal<>();
 
     @Override
     protected String getUrl() {
@@ -35,7 +33,7 @@ public abstract class BackOfficeBaseTest extends BaseTest {
     public void setUp(org.testng.ITestResult result) {
         super.setUp(result);
         logger.info("Initializing Back Office page factories");
-        mainPages.set(new MainPagesFactory(DriverManager.getDriver()));
+        mainPages.set(new BackOfficeMainPagesFactory(DriverManager.getDriver()));
     }
 
     @Override
@@ -62,8 +60,8 @@ public abstract class BackOfficeBaseTest extends BaseTest {
 
 
     //
-    protected MainPagesFactory getMainPages() {
-        MainPagesFactory pages = mainPages.get();
+    protected BackOfficeMainPagesFactory getMainPages() {
+        BackOfficeMainPagesFactory pages = mainPages.get();
         if (pages == null) {
             throw new IllegalStateException(
                     "Back Office page factories are not initialized. Ensure setUp() runs before accessing factories.");

@@ -2,7 +2,7 @@ package org.example.test.backoffice.workflowEngine.approvalMatrix;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.mainPagesFactory.MainPagesFactory;
+import org.example.mainPagesFactory.BackOfficeMainPagesFactory;
 import org.example.utils.actionUtils.ActionUtils;
 import org.openqa.selenium.WebDriver;
 
@@ -12,7 +12,7 @@ public class ApprovalMatrixHelper {
     ActionUtils actionUtils;
 
 
-    public ApprovalMatrixHelper(WebDriver driver, MainPagesFactory mainPagesFactory){
+    public ApprovalMatrixHelper(WebDriver driver, BackOfficeMainPagesFactory backOfficeMainPagesFactory){
         actionUtils = new ActionUtils(driver);
     }
 
