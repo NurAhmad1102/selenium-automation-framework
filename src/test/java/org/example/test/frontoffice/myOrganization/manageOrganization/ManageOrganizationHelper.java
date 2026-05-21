@@ -15,7 +15,7 @@ public class ManageOrganizationHelper {
     private final FilterUpdateOrganizationPage filterUpdateOrganizationPage;
     private final SetOrganizationPage setOrganizationPage;
 
-//    TODO: ganti data ini nanti
+//    TODO: ganti data ini nanti, selama dev biarkan dulu
     String directorate = "O522 Network & Digital Banking ID";
     String sub_directorate = "1222 Branch Transformation & Network Planning ID";
 
