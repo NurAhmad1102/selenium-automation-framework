@@ -9,6 +9,9 @@ public class SetOrganizationModalFactory {
     private MoveFormModal moveFormModal;
     private MergeFormModal mergeFormModal;
     private SplitFormModal splitFormModal;
+    private AddJobPositionModal addJobPositionModal;
+    private ConfirmationActionModal confirmationActionModal;
+    private SuccessModal successModal;
 
     public SetOrganizationModalFactory(WebDriver driver) {
         this.driver = driver;
@@ -40,5 +43,26 @@ public class SetOrganizationModalFactory {
             splitFormModal = new SplitFormModal(driver);
         }
         return splitFormModal;
+    }
+
+    public AddJobPositionModal getAddJobPositionModal() {
+        if (addJobPositionModal == null) {
+            addJobPositionModal = new AddJobPositionModal(driver);
+        }
+        return addJobPositionModal;
+    }
+
+    public ConfirmationActionModal getConfirmationActionModal() {
+        if (confirmationActionModal == null) {
+            confirmationActionModal = new ConfirmationActionModal(driver);
+        }
+        return confirmationActionModal;
+    }
+
+    public SuccessModal getSuccessModal() {
+        if (successModal == null) {
+            successModal = new SuccessModal(driver);
+        }
+        return successModal;
     }
 }

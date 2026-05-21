@@ -16,25 +16,16 @@ public class BaseFormModal extends BasePage {
         this.formTitle = formTitle;
     }
 
-    @FindBy(xpath = "//div[./label[normalize-space()='New Organization Name']]//input")
+    @FindBy(xpath = "//label[contains(normalize-space(.), 'New Organization Name')]/following-sibling::input")
     private WebElement newOrgNameField;
 
-    @FindBy(xpath = "//div[./label[normalize-space()='RC Code/Cost Center']]//button[@role='combobox']")
+    @FindBy(xpath = "//button[@role='combobox']")
     private WebElement selectRCCodeDropdown;
 
     public String setOrgNewName(String newName) {
-        logger.info("Step: Setting New Name to: {}", newName);
+        logger.info("Step: Setting New Organization Name to: {}", newName);
         typeText(newOrgNameField, newName);
         return newName;
-    }
-
-    protected void selectDropdownModal(WebElement eleDropdown,String value) {
-        logger.info("Step: Open Dropdown: {}", value);
-        click(eleDropdown);
-
-        String xpath = String.format("//option[@value='%s'] | //button[normalize-space()='%s'] | //li[normalize-space()='%s']",
-                value, value, value);
-        click(driver.findElement(By.xpath(xpath)));
     }
 
     protected By getModalContainer(){
@@ -59,7 +50,7 @@ public class BaseFormModal extends BasePage {
     public boolean isModalHeaderDisplayed() {
         try {
             String xpath = String.format("//h2[normalize-space()='%s']", this.formTitle);
-            return isVisible(driver.findElement(By.xpath(xpath)));
+            return isVisible(By.xpath(xpath));
         } catch (Exception e) {
             return false;
         }

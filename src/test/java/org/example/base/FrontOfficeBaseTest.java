@@ -5,6 +5,7 @@ import org.example.factories.frontoffice.login.FrontOfficeLoginPagesFactory;
 import org.example.factories.frontoffice.sideMenuFactory.FrontOfficeSideMenuFactory;
 import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.utils.account.AccountAllocator;
+import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
@@ -36,12 +37,12 @@ public abstract class FrontOfficeBaseTest extends BaseTest {
 
     @Override
     @AfterMethod(alwaysRun = true)
-    public void tearDown() {
+    public void tearDown(ITestResult result) {
         try {
             mainPages.remove();
             logger.info("Front Office page factory instance removed successfully");
         } finally {
-            super.tearDown();
+            super.tearDown(result);
         }
     }
 

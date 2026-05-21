@@ -3,9 +3,13 @@ package org.example.test.frontoffice.myOrganization.manageOrganization;
 import org.example.base.FrontOfficeBaseTest;
 import org.example.drivers.DriverManager;
 import org.example.enums.frontoffice.FrontOfficeMenu;
+import org.example.factories.frontoffice.manageOrganization.SetOrganizationModalFactory;
 import org.example.pageObject.frontoffice.manageOrganization.DashboardManageOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.FilterUpdateOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.AddJobPositionModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ConfirmationActionModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.SuccessModal;
 import org.example.utils.TestDataFactory;
 import org.example.utils.account.AccountAllocator;
 import org.example.utils.actionUtils.ActionUtils;
@@ -75,7 +79,11 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
     }
 
     protected SetOrganizationPage setOrganizationFlow1Page() {
-        return getFrontOfficePages().manageOrganization().getSetOrganizationFlow1();
+        return getFrontOfficePages().manageOrganization().getSetOrganizationFlow1Page();
+    }
+
+    protected SetOrganizationModalFactory setOrganizationModals() {
+        return getFrontOfficePages().manageOrganization().modals();
     }
 
     protected ManageOrganizationHelper manageOrganizationHelper() {
