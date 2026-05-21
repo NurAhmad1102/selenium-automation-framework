@@ -20,6 +20,10 @@ public class Listeners extends SeleniumUtils implements ITestListener {
     private static ThreadLocal<ExtentTest> test = new ThreadLocal<>();
     ExtentReports extent = ExtentReportNg.getReportObject();
 
+    public static ExtentTest getExtentTest() {
+        return test.get();
+    }
+
     @Override
     public void onTestStart(ITestResult result) {
         String methodName = result.getMethod().getMethodName();

@@ -21,16 +21,18 @@ public class ActionUtils extends BasePage {
      *
      * @param textSearch
      */
-    public void selectElementInDropdownByText(String textSearch){
+    public void selectElementInDropdownByText(String textSearch) {
         logger.info("Open Dropdown and Search for...{}", textSearch);
 
-        if(textSearch == null || textSearch.trim().isEmpty()){
+        if (textSearch == null || textSearch.trim().isEmpty()) {
             logger.error("Dropdown: Keyword parameter empty");
+            return;
         }
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        By optionLocator = By.xpath("//div[@class='ant-select-item-option-content' and normalize-space()='" + textSearch + "']");
 
-        // wait dropdown ke buka (gak hidden)
+        // Wait for dropdown to be visible
         wait.until(ExpectedConditions.invisibilityOfElementLocated(
                 By.xpath("//div[contains(@class,'ant-select-dropdown-hidden')]")
         ));
@@ -40,24 +42,26 @@ public class ActionUtils extends BasePage {
         int scrollCount = 0;
         boolean optionFound = false;
 
-        while (!optionFound && scrollCount < maxScrollAttempts) {
+        while (scrollCount < maxScrollAttempts) {
             try {
-                WebElement option = driver.findElement(By.xpath("//div[@class='ant-select-item-option-content' and text()='" + textSearch + "']"));
-
-                // pake JS click kalo visibility gak guna
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", option);
-                optionFound = true;
-            } catch (NoSuchElementException e) {
-                actions.sendKeys(Keys.DOWN).perform();
-                scrollCount++;
-
-                try {
-                    Thread.sleep(300);
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                    logger.error("Interrupted while searching dropdown option: {}", textSearch, ex);
-                    throw new RuntimeException("Interrupted while searching dropdown option: " + textSearch, ex);
+                WebElement option = driver.findElement(optionLocator);
+                if (option.isDisplayed()) {
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", option);
+                    optionFound = true;
+                    break;
                 }
+            } catch (NoSuchElementException e) {
+                // Ignore and scroll
+            }
+
+            actions.sendKeys(Keys.DOWN).perform();
+            scrollCount++;
+            
+            // Short wait for scroll to take effect
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -84,8 +88,13 @@ public class ActionUtils extends BasePage {
         }
     }
 
+    public String capitalizeFirstLetter(String action) {
+        if (action == null || action.isEmpty()) {
+            return action;
+        }
 
-
+        return action.substring(0, 1).toUpperCase() + action.substring(1).toLowerCase();
+    }
 
 
 

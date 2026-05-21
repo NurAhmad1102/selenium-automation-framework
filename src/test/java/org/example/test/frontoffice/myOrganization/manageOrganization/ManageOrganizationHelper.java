@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.DashboardManageOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.FilterUpdateOrganizationPage;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 
 import java.time.LocalDate;
@@ -16,8 +15,9 @@ public class ManageOrganizationHelper {
     private final FilterUpdateOrganizationPage filterUpdateOrganizationPage;
     private final SetOrganizationPage setOrganizationPage;
 
-    String directorate = "Corporate Assurance ID";
-    String sub_directorate = "1022 Audit - Enablers ID";
+//    TODO: ganti data ini nanti, selama dev biarkan dulu
+    String directorate = "O522 Network & Digital Banking ID";
+    String sub_directorate = "1222 Branch Transformation & Network Planning ID";
 
     protected ManageOrganizationHelper(FrontOfficeMainPagesFactory mainPagesFactory) {
         this.dashboardManageOrganizationPage = mainPagesFactory.manageOrganization()
@@ -25,7 +25,7 @@ public class ManageOrganizationHelper {
         this.filterUpdateOrganizationPage = mainPagesFactory.manageOrganization()
                 .getFilterUpdateOrganizationPage();
         this.setOrganizationPage = mainPagesFactory.manageOrganization()
-                .getSetOrganizationFlow1();
+                .getSetOrganizationFlow1Page();
     }
 
     protected boolean isManageOrganizationPageDisplayed() {

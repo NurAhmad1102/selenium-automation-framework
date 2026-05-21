@@ -1,13 +1,12 @@
 package org.example.mainPagesFactory;
 
-import org.example.drivers.DriverManager;
 import org.example.factories.backoffice.login.BackOfficeLoginPagesFactory;
 import org.example.factories.backoffice.manageOrganization.ManageOrganizationFactory;
 import org.example.factories.backoffice.sideMenu.SideMenuFactory;
 import org.example.factories.backoffice.workflowEngine.WorkflowEngineFactory;
 import org.openqa.selenium.WebDriver;
 
-public class MainPagesFactory {
+public class BackOfficeMainPagesFactory {
     private final WebDriver driver;
 
     private BackOfficeLoginPagesFactory loginPagesFactory;
@@ -15,7 +14,7 @@ public class MainPagesFactory {
     private SideMenuFactory sideMenuFactory;
     private WorkflowEngineFactory workflowEngineFactory;
 
-    public MainPagesFactory(WebDriver driver) {
+    public BackOfficeMainPagesFactory(WebDriver driver) {
         this.driver = driver;
     }
 

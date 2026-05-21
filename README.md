@@ -13,7 +13,8 @@
 5. [Struktur Direktori](#5-struktur-direktori)
 6. [Architecture Rules](#6-architecture-rules)
 7. [Scalability & Maintenance](#7-scalability--maintenance-best-practice)
-8. [Informasi Tambahan](#8-informasi-tambahan)
+8. [Network Monitoring (CDP)](#8-network-monitoring-cdp)
+9. [Informasi Tambahan](#9-informasi-tambahan)
 
 ---
 
@@ -135,8 +136,8 @@ public class ManageOrganizationHelper {
     private final DashboardManageOrganizationPage dashboardManageOrganizationPage;
 
     // Constructor menerima factory, bukan driver langsung
-    public ManageOrganizationHelper(FrontOfficeMainPagesFactory mainPagesFactory) {
-        this.dashboardManageOrganizationPage = mainPagesFactory
+    public ManageOrganizationHelper(FrontOfficeMainPagesFactory backOfficeMainPagesFactory) {
+        this.dashboardManageOrganizationPage = backOfficeMainPagesFactory
                 .manageOrganization()
                 .getDashboardManageOrganizationPage();
     }
@@ -202,7 +203,7 @@ Rule ini dijaga oleh `ArchitectureTest`. Jika test class melakukan `new XxxPage(
 | 4 | `BaseTest` | `src/test/.../base/` | Setup/teardown WebDriver dan account |
 | 5 | `DriverManager` | `src/test/.../drivers/` | ThreadLocal WebDriver holder |
 | 6 | `AccountAllocator` | `src/test/.../utils/account/` | Alokasi akun per thread |
-| 7 | `FrontOfficeMainPagesFactory` | `src/test/.../mainPagesFactory/` | Root factory Front Office |
+| 7 | `FrontOfficeMainPagesFactory` | `src/test/.../backOfficeMainPagesFactory/` | Root factory Front Office |
 | 8 | `ModuleFactory` | `src/main/.../factories/` | Factory per modul (lazy init) |
 | 9 | `XxxPage` | `src/main/.../pageObject/` | Locator dan interaksi UI |
 | 10 | `BasePage` | `src/main/.../pageObject/base/` | Wrapper Selenium + wait + log |
@@ -303,7 +304,7 @@ public class MenuAFactory {
 
 ### Langkah 3 ”Daftarkan di FrontOfficeMainPagesFactory"
 
-File: `src/test/java/org/example/mainPagesFactory/FrontOfficeMainPagesFactory.java`
+File: `src/test/java/org/example/backOfficeMainPagesFactory/FrontOfficeMainPagesFactory.java`
 
 ```java
 import org.example.factories.frontoffice.menuA.MenuAFactory;
@@ -350,7 +351,7 @@ package org.example.test.frontoffice.menuA;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
+import org.example.backOfficeMainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.menuA.DashboardMenuAPage;
 
 public class MenuAHelper {
@@ -358,8 +359,8 @@ public class MenuAHelper {
     private final DashboardMenuAPage dashboardMenuAPage;
 
     // Terima FrontOfficeMainPagesFactory, bukan WebDriver langsung
-    public MenuAHelper(FrontOfficeMainPagesFactory mainPagesFactory) {
-        this.dashboardMenuAPage = mainPagesFactory.menuA().getDashboardMenuAPage();
+    public MenuAHelper(FrontOfficeMainPagesFactory backOfficeMainPagesFactory) {
+        this.dashboardMenuAPage = backOfficeMainPagesFactory.menuA().getDashboardMenuAPage();
     }
 
     public boolean isMenuAPageDisplayed() {
@@ -736,7 +737,7 @@ src/
     |   +-- FrontOfficeBaseTest.java       <- Init FrontOfficeMainPagesFactory
     +-- drivers/
     |   +-- DriverManager.java             <- ThreadLocal<WebDriver>
-    +-- mainPagesFactory/
+    +-- backOfficeMainPagesFactory/
     |   +-- MainPagesFactory.java              <- Root factory Back Office
     |   +-- FrontOfficeMainPagesFactory.java   <- Root factory Front Office
     +-- test/
@@ -855,7 +856,27 @@ public void cleanManageOrganizationContext() {
 
 ---
 
-## 8. Informasi Tambahan
+## 8. Network Monitoring (CDP)
+
+Framework ini dilengkapi dengan fitur **Network Monitoring** menggunakan *Chrome DevTools Protocol (CDP)*. Fitur ini secara otomatis memantau lalu lintas jaringan selama tes berjalan dan mencatat kegagalan API ke dalam laporan.
+
+### Fitur Utama
+- **Auto-Capture Status 5xx**: Setiap respon HTTP dengan status code >= 500 akan ditangkap secara otomatis.
+- **Detailed Logging**: Mencatat URL, Status Code, Status Text, dan Mime Type.
+- **Response Body Capture**: Mencoba mengambil *response body* (JSON/Text) dari API yang gagal untuk memudahkan debugging.
+- **ExtentReports Integration**: Error jaringan akan muncul langsung di dalam laporan tes pada bagian log detail.
+
+### Cara Kerja
+`NetworkMonitor` diinisialisasi di dalam `BaseTest` pada setiap `@BeforeMethod`. Listener akan mendengarkan event `Network.responseReceived` dan menyimpan detail error ke dalam antrean asinkron. Jika tes gagal, detail error tersebut akan di-*flush* ke `ExtentTest`.
+
+### Troubleshooting
+Jika log tidak muncul di laporan:
+1. Pastikan browser yang digunakan adalah berbasis Chromium (Chrome/Edge).
+2. Periksa konsol IDE untuk log yang diawali dengan `[DEBUG-Network]`.
+
+---
+
+## 9. Informasi Tambahan
 
 ### Thread Safety dan Parallel Execution
 
