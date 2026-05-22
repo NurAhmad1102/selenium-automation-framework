@@ -48,6 +48,7 @@ public abstract class BaseTest {
             NetworkMonitor monitor = new NetworkMonitor(localDriver);
             monitor.startMonitoring();
             networkMonitor.set(monitor);
+            NetworkMonitor.setCurrentMonitor(monitor);
             logger.info("Network monitoring started via CDP");
         } catch (Exception e) {
             logger.error("Failed to start network monitoring", e);
@@ -68,11 +69,12 @@ public abstract class BaseTest {
         logger.info("Tear down started");
         try {
             if (networkMonitor.get() != null) {
-                if (result.getStatus() == ITestResult.FAILURE) {
+                if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
                     networkMonitor.get().flushServerErrorsToReport(Listeners.getExtentTest());
                 }
                 networkMonitor.get().stopMonitoring();
                 networkMonitor.remove();
+                NetworkMonitor.removeCurrentMonitor();
             }
             if (DriverManager.getDriver() != null) {
                 DriverManager.quitDriver();

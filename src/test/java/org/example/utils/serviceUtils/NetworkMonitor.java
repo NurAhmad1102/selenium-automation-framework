@@ -7,10 +7,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.HasDevTools;
-import org.openqa.selenium.devtools.v139.network.Network;
-import org.openqa.selenium.devtools.v139.network.model.RequestId;
-import org.openqa.selenium.devtools.v139.network.model.Response;
+import org.openqa.selenium.devtools.v148.network.Network;
+import org.openqa.selenium.devtools.v148.network.model.RequestId;
+import org.openqa.selenium.devtools.v148.network.model.Response;
 
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
@@ -20,6 +23,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class NetworkMonitor {
 
     private static final Logger logger = LogManager.getLogger(NetworkMonitor.class);
+    private static final ThreadLocal<NetworkMonitor> currentMonitor = new ThreadLocal<>();
 
     private final DevTools devTools;
     private final Map<RequestId, NetworkError> pendingServerErrors = new ConcurrentHashMap<>();
@@ -29,9 +33,26 @@ public class NetworkMonitor {
         this.devTools = driver.getDevTools();
     }
 
+    public static NetworkMonitor getCurrentMonitor() {
+        return currentMonitor.get();
+    }
+
+    public static void setCurrentMonitor(NetworkMonitor monitor) {
+        currentMonitor.set(monitor);
+    }
+
+    public static void removeCurrentMonitor() {
+        currentMonitor.remove();
+    }
+
     public void startMonitoring() {
         devTools.createSession();
-        devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+        devTools.send(Network.enable(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()));
 
         devTools.addListener(Network.responseReceived(), responseReceived -> {
             Response response = responseReceived.getResponse();
@@ -89,6 +110,7 @@ public class NetworkMonitor {
         NetworkError error;
         while ((error = serverErrors.poll()) != null) {
             currentTest.info("<b>API Error Captured During Failed Test (HTTP " + error.statusCode + ")</b>");
+            currentTest.info("<b>Name:</b> " + error.name);
             currentTest.info("<b>URL:</b> " + error.url);
             currentTest.info("<b>Status:</b> " + error.statusCode + " " + error.statusText);
 
@@ -97,7 +119,7 @@ public class NetworkMonitor {
             }
 
             if (error.responseBody != null && !error.responseBody.isEmpty()) {
-                currentTest.info("<b>Response Body:</b>");
+                currentTest.info("<b>Response:</b>");
                 currentTest.info(MarkupHelper.createCodeBlock(error.responseBody, CodeLanguage.JSON));
             } else if (error.bodyCaptureError != null && !error.bodyCaptureError.isEmpty()) {
                 currentTest.info("<i>Could not capture response body: " + error.bodyCaptureError + "</i>");
@@ -116,6 +138,7 @@ public class NetworkMonitor {
 
     private static class NetworkError {
         private final RequestId requestId;
+        private final String name;
         private final String url;
         private final int statusCode;
         private final String statusText;
@@ -125,6 +148,7 @@ public class NetworkMonitor {
 
         private NetworkError(RequestId requestId, String url, int statusCode, String statusText, String mimeType) {
             this.requestId = requestId;
+            this.name = deriveNameFromUrl(url);
             this.url = url;
             this.statusCode = statusCode;
             this.statusText = statusText;
@@ -137,6 +161,55 @@ public class NetworkMonitor {
 
         private void setBodyCaptureError(String bodyCaptureError) {
             this.bodyCaptureError = bodyCaptureError;
+        }
+
+        private static String deriveNameFromUrl(String url) {
+            if (url == null || url.isEmpty()) {
+                return "Unknown";
+            }
+
+            try {
+                String path = URI.create(url).getPath();
+                if (path == null || path.isEmpty()) {
+                    return "Unknown";
+                }
+
+                String[] segments = path.split("/");
+                for (int index = segments.length - 1; index >= 0; index--) {
+                    String segment = segments[index];
+                    if (segment == null || segment.isBlank() || segment.matches("\\d+")) {
+                        continue;
+                    }
+                    return toTitleCase(URLDecoder.decode(segment, StandardCharsets.UTF_8));
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to derive API name from URL {}: {}", url, e.getMessage());
+            }
+
+            return "Unknown";
+        }
+
+        private static String toTitleCase(String value) {
+            String normalized = value.replaceAll("[_-]+", " ").trim();
+            if (normalized.isEmpty()) {
+                return "Unknown";
+            }
+
+            String[] words = normalized.split("\\s+");
+            StringBuilder result = new StringBuilder();
+            for (String word : words) {
+                if (word.isEmpty()) {
+                    continue;
+                }
+                if (result.length() > 0) {
+                    result.append(' ');
+                }
+                result.append(Character.toUpperCase(word.charAt(0)));
+                if (word.length() > 1) {
+                    result.append(word.substring(1).toLowerCase());
+                }
+            }
+            return result.length() == 0 ? "Unknown" : result.toString();
         }
     }
 }

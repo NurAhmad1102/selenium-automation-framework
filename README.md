@@ -858,21 +858,98 @@ public void cleanManageOrganizationContext() {
 
 ## 8. Network Monitoring (CDP)
 
-Framework ini dilengkapi dengan fitur **Network Monitoring** menggunakan *Chrome DevTools Protocol (CDP)*. Fitur ini secara otomatis memantau lalu lintas jaringan selama tes berjalan dan mencatat kegagalan API ke dalam laporan.
+Framework ini dilengkapi dengan `NetworkMonitor`, utilitas berbasis **Chrome DevTools Protocol (CDP)** untuk menangkap response HTTP server error selama test Selenium berjalan.
+
+Tujuan utama fitur ini adalah membantu investigasi saat test UI gagal. HTTP 5xx **tidak otomatis membuat test gagal**. Response 5xx hanya menjadi informasi tambahan di `reports/index.html` jika test tersebut memang sudah failed karena assertion, exception, timeout, atau penyebab UI lain.
 
 ### Fitur Utama
-- **Auto-Capture Status 5xx**: Setiap respon HTTP dengan status code >= 500 akan ditangkap secara otomatis.
-- **Detailed Logging**: Mencatat URL, Status Code, Status Text, dan Mime Type.
-- **Response Body Capture**: Mencoba mengambil *response body* (JSON/Text) dari API yang gagal untuk memudahkan debugging.
-- **ExtentReports Integration**: Error jaringan akan muncul langsung di dalam laporan tes pada bagian log detail.
+
+- **Auto-capture HTTP 5xx**: Menangkap setiap response dengan status code `>= 500`.
+- **Failure-only reporting**: Data network hanya ditulis ke ExtentReports ketika test gagal.
+- **Non-blocking behavior**: Status 500 tidak mengubah status TestNG menjadi failed.
+- **Response detail**: Menulis URL, status code, status text, mime type, dan response body jika berhasil diambil.
+- **Thread-safe buffer**: Event CDP disimpan di buffer per test, lalu di-flush ke report dari lifecycle TestNG.
 
 ### Cara Kerja
-`NetworkMonitor` diinisialisasi di dalam `BaseTest` pada setiap `@BeforeMethod`. Listener akan mendengarkan event `Network.responseReceived` dan menyimpan detail error ke dalam antrean asinkron. Jika tes gagal, detail error tersebut akan di-*flush* ke `ExtentTest`.
+
+1. `BaseTest.setUp()` membuat `ChromeDriver`.
+2. `NetworkMonitor` dibuat dan menjalankan CDP session sebelum `driver.get(targetUrl)`.
+3. Listener CDP mendengarkan event:
+   - `Network.responseReceived()` untuk mendeteksi status `>= 500`.
+   - `Network.loadingFinished()` untuk mengambil response body.
+   - `Network.loadingFailed()` untuk mencatat request yang gagal selesai.
+4. Response 5xx disimpan dulu di buffer internal `NetworkMonitor`.
+5. Ketika test gagal, `Listeners.onTestFailure()` mengambil monitor aktif dan memanggil `flushServerErrorsToReport(...)`.
+6. Detail response 5xx muncul di `reports/index.html` sebagai info tambahan pada test yang failed.
+
+Contoh output di ExtentReports:
+
+```text
+API Error Captured During Failed Test (HTTP 500)
+URL: https://example/api/organization-preview
+Status: 500 Internal Server Error
+Mime Type: application/json
+Response Body:
+{ ... }
+```
+
+### Penggunaan
+
+Tidak perlu memanggil `NetworkMonitor` dari test class. Semua test yang extend chain base berikut otomatis memakai network monitoring:
+
+```text
+Test class
+  -> ManageOrganizationBaseTest / SlaSettingBaseTest / module base
+  -> FrontOfficeBaseTest / BackOfficeBaseTest
+  -> BaseTest
+```
+
+Contoh test tetap fokus pada flow dan assertion:
+
+```java
+@Test
+public void validateGeneratePreviewTest() {
+    manageOrganizationHelper().navigateToUpdateOrganization();
+    manageOrganizationHelper().setFilterUpdateOrganizationPage(true);
+    Assert.assertTrue(
+            filterUpdateOrganizationPage().isOrganizationTreeDisplayed(),
+            "Organization Tree is not generated");
+}
+```
+
+Jika test di atas gagal dan selama flow ada API response `500`, detail API akan otomatis ditempel ke test tersebut di `reports/index.html`.
+
+### Dependency CDP
+
+CDP Selenium harus match dengan major version Chrome yang digunakan. Project ini memakai:
+
+```xml
+<selenium.version>4.44.0</selenium.version>
+
+<dependency>
+  <groupId>org.seleniumhq.selenium</groupId>
+  <artifactId>selenium-devtools-v148</artifactId>
+  <version>${selenium.version}</version>
+</dependency>
+```
+
+Saat Chrome major version berubah, misalnya dari `148` ke `149`, dependency `selenium-devtools-v148` dan import package di `NetworkMonitor` perlu disesuaikan ke versi CDP yang tersedia dari Selenium.
 
 ### Troubleshooting
-Jika log tidak muncul di laporan:
-1. Pastikan browser yang digunakan adalah berbasis Chromium (Chrome/Edge).
-2. Periksa konsol IDE untuk log yang diawali dengan `[DEBUG-Network]`.
+
+Jika response 500 tidak muncul di report:
+
+1. Pastikan test benar-benar failed. Jika test pass, response 5xx tidak ditulis ke ExtentReports.
+2. Cek `logs/automation-test.log` untuk log:
+
+```text
+Network monitoring started via CDP
+Detected HTTP 500 for URL: ...
+```
+
+3. Jika muncul error `no-op implementation of the CDP`, berarti versi Chrome tidak cocok dengan dependency `selenium-devtools-vNN`.
+4. Pastikan test berjalan melalui base class project (`BaseTest`) agar monitor otomatis aktif.
+5. Pastikan report yang dibuka adalah report run terbaru: `reports/index.html`.
 
 ---
 
@@ -932,7 +1009,7 @@ mvn test -Dtest=ArchitectureTest
 
 | Library | Versi | Kegunaan |
 |---------|-------|----------|
-| Selenium | 4.35.0 | Browser automation |
+| Selenium | 4.44.0 | Browser automation + Chrome DevTools Protocol v148 |
 | TestNG | 7.10.2 | Test framework dan parallelism |
 | ExtentReports | 5.0.9 | HTML test report |
 | Log4j2 | 2.24.3 | Logging |
