@@ -15,6 +15,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
 import java.time.Duration;
+import java.time.Instant;
 
 public abstract class BaseTest {
 
@@ -70,7 +71,9 @@ public abstract class BaseTest {
         try {
             if (networkMonitor.get() != null) {
                 if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
-                    networkMonitor.get().flushServerErrorsToReport(Listeners.getExtentTest());
+                    networkMonitor.get().flushServerErrorsToReport(
+                            Listeners.getExtentTest(),
+                            getTestEndInstant(result));
                 }
                 networkMonitor.get().stopMonitoring();
                 networkMonitor.remove();
@@ -86,5 +89,13 @@ public abstract class BaseTest {
             AccountAllocator.releaseAccount();
             ThreadContext.clearAll();
         }
+    }
+
+    private Instant getTestEndInstant(ITestResult result) {
+        long endMillis = result.getEndMillis();
+        if (endMillis <= 0) {
+            endMillis = System.currentTimeMillis();
+        }
+        return Instant.ofEpochMilli(endMillis);
     }
 }

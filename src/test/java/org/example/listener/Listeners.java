@@ -8,7 +8,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.example.drivers.DriverManager;
 import org.example.utils.ExtentReportNg;
-import org.example.utils.serviceUtils.NetworkMonitor;
 import org.example.utils.serviceUtils.SeleniumUtils;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
@@ -50,10 +49,6 @@ public class Listeners extends SeleniumUtils implements ITestListener {
     public void onTestFailure(ITestResult result) {
         if (test.get() != null) {
             test.get().fail(result.getThrowable());
-            NetworkMonitor monitor = NetworkMonitor.getCurrentMonitor();
-            if (monitor != null) {
-                monitor.flushServerErrorsToReport(test.get());
-            }
         }
 
         WebDriver driver = DriverManager.getDriver();
