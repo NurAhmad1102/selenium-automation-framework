@@ -9,24 +9,33 @@ import org.apache.logging.log4j.ThreadContext;
 import org.example.drivers.DriverManager;
 import org.example.utils.ExtentReportNg;
 import org.example.utils.serviceUtils.SeleniumUtils;
+import org.example.utils.DiagnosticCollector;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
+import java.util.List;
+
 public class Listeners extends SeleniumUtils implements ITestListener {
 
     private static final Logger logger = LogManager.getLogger(Listeners.class);
-    private static ThreadLocal<ExtentTest> test = new ThreadLocal<>();
-    ExtentReports extent = ExtentReportNg.getReportObject();
+    private static final ThreadLocal<ExtentTest> test = new ThreadLocal<>();
+    private static final ThreadLocal<String> currentTestMethod = new ThreadLocal<>();
+    private static final ExtentReports extent = ExtentReportNg.getReportObject();
 
     public static ExtentTest getExtentTest() {
         return test.get();
     }
 
-    @Override
-    public void onTestStart(ITestResult result) {
+    public static void startTest(ITestResult result) {
         String methodName = result.getMethod().getMethodName();
+        if (test.get() != null && methodName.equals(currentTestMethod.get())) {
+            return;
+        }
+
+        ThreadContext.clearAll();
+        DiagnosticCollector.clear();
         ThreadContext.put("testMethod", methodName);
 
         String testDesc = result.getMethod().getDescription();
@@ -35,6 +44,19 @@ public class Listeners extends SeleniumUtils implements ITestListener {
         test.set(extent.createTest(
                 testName,
                 "<b>Description:</b><br>" + testDesc));
+        currentTestMethod.set(methodName);
+    }
+
+    public static void clearCurrentTest() {
+        test.remove();
+        currentTestMethod.remove();
+        ThreadContext.clearAll();
+        DiagnosticCollector.clear();
+    }
+
+    @Override
+    public void onTestStart(ITestResult result) {
+        startTest(result);
     }
 
     @Override
@@ -42,13 +64,19 @@ public class Listeners extends SeleniumUtils implements ITestListener {
         if (test.get() != null) {
             test.get().log(Status.PASS, "Test Passed");
         }
-        ThreadContext.remove("testMethod");
+        clearCurrentTestIfNotManagedByBaseTest(result);
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
         if (test.get() != null) {
             test.get().fail(result.getThrowable());
+            
+            // Log collected diagnostics as FAIL
+            List<String> diagnostics = DiagnosticCollector.getAndClear();
+            for (String diagnostic : diagnostics) {
+                test.get().log(Status.FAIL, "<b>Potential Cause:</b> " + diagnostic);
+            }
         }
 
         WebDriver driver = DriverManager.getDriver();
@@ -68,7 +96,7 @@ public class Listeners extends SeleniumUtils implements ITestListener {
             logger.warn("Driver is null, screenshot cannot be captured for failed test: {}",
                     result.getMethod().getMethodName());
         }
-        ThreadContext.remove("testMethod");
+        clearCurrentTestIfNotManagedByBaseTest(result);
     }
 
     @Override
@@ -81,7 +109,7 @@ public class Listeners extends SeleniumUtils implements ITestListener {
                 test.get().skip(skipReason);
             }
         }
-        ThreadContext.remove("testMethod");
+        clearCurrentTestIfNotManagedByBaseTest(result);
     }
 
     @Override
@@ -99,5 +127,11 @@ public class Listeners extends SeleniumUtils implements ITestListener {
     @Override
     public void onFinish(ITestContext context) {
         extent.flush();
+    }
+
+    private void clearCurrentTestIfNotManagedByBaseTest(ITestResult result) {
+        if (!Boolean.TRUE.equals(result.getAttribute("extentManagedByBaseTest"))) {
+            clearCurrentTest();
+        }
     }
 }

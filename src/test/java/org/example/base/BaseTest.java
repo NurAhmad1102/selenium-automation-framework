@@ -28,6 +28,8 @@ public abstract class BaseTest {
 
     @BeforeMethod
     public void setUp(org.testng.ITestResult result) {
+        result.setAttribute("extentManagedByBaseTest", true);
+        Listeners.startTest(result);
         String testName = result.getMethod().getMethodName();
         ThreadContext.put("testMethod", testName);
         AccountAllocator.allocateAccount(testName, getRole());
@@ -70,14 +72,19 @@ public abstract class BaseTest {
         logger.info("Tear down started");
         try {
             if (networkMonitor.get() != null) {
-                if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
-                    networkMonitor.get().flushServerErrorsToReport(
-                            Listeners.getExtentTest(),
-                            getTestEndInstant(result));
+                try {
+                    if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
+                        networkMonitor.get().flushServerErrorsToReport(
+                                Listeners.getExtentTest(),
+                                getTestEndInstant(result));
+                    }
+                } catch (Exception e) {
+                    logger.error("Error flushing network errors to report", e);
+                } finally {
+                    networkMonitor.get().stopMonitoring();
+                    networkMonitor.remove();
+                    NetworkMonitor.removeCurrentMonitor();
                 }
-                networkMonitor.get().stopMonitoring();
-                networkMonitor.remove();
-                NetworkMonitor.removeCurrentMonitor();
             }
             if (DriverManager.getDriver() != null) {
                 DriverManager.quitDriver();
@@ -88,6 +95,7 @@ public abstract class BaseTest {
         } finally {
             AccountAllocator.releaseAccount();
             ThreadContext.clearAll();
+            Listeners.clearCurrentTest();
         }
     }
 

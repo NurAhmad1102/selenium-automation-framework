@@ -136,7 +136,13 @@ public class NetworkMonitor {
         });
 
         devTools.addListener(Network.loadingFinished(), loadingFinished -> {
-            requestMetadataById.remove(requestIdKey(loadingFinished.getRequestId()));
+            String key = requestIdKey(loadingFinished.getRequestId());
+            requestMetadataById.remove(key);
+            PendingBodyCapture pending = pendingBodyCaptureById.get(key);
+            if (pending != null) {
+                captureResponseBody(pending.requestId, pending.apiError);
+                pendingBodyCaptureById.remove(key);
+            }
         });
     }
 
@@ -186,14 +192,27 @@ public class NetworkMonitor {
     }
 
     public void stopMonitoring() {
+        if (!monitoringStarted.get()) {
+            return;
+        }
         try {
-            if (monitoringStarted.get()) {
+            try {
                 capturePendingResponseBodies();
-                devTools.send(Network.disable());
-                devTools.close();
+            } catch (Exception e) {
+                logger.debug("Failed to capture pending response bodies during stop: {}", e.getMessage());
             }
-        } catch (Exception e) {
-            logger.debug("Failed to stop network monitoring cleanly: {}", e.getMessage());
+
+            try {
+                devTools.send(Network.disable());
+            } catch (Exception e) {
+                logger.debug("Failed to disable network domain: {}", e.getMessage());
+            }
+
+            try {
+                devTools.close();
+            } catch (Exception e) {
+                logger.debug("Failed to close DevTools session: {}", e.getMessage());
+            }
         } finally {
             requestMetadataById.clear();
             latestRequestMetadataByUrl.clear();
@@ -205,25 +224,29 @@ public class NetworkMonitor {
 
     private void capturePendingResponseBodies() {
         pendingBodyCaptureById.forEach((requestIdKey, pendingBodyCapture) -> {
-            ApiError apiError = pendingBodyCapture.apiError;
-            if (apiError.hasResponseBody()) {
-                pendingBodyCaptureById.remove(requestIdKey);
-                return;
-            }
-
             try {
-                String body = devTools.send(Network.getResponseBody(pendingBodyCapture.requestId)).getBody();
-                apiError.setResponseBody(limitBodyLength(body));
-            } catch (Exception e) {
-                apiError.setBodyCaptureError(e.getMessage());
-                logger.warn("Failed to capture response body for {} {}: {}",
-                        apiError.getMethod(),
-                        apiError.getNormalizedUrl(),
-                        e.getMessage());
+                captureResponseBody(pendingBodyCapture.requestId, pendingBodyCapture.apiError);
             } finally {
                 pendingBodyCaptureById.remove(requestIdKey);
             }
         });
+    }
+
+    private void captureResponseBody(RequestId requestId, ApiError apiError) {
+        if (apiError.hasResponseBody()) {
+            return;
+        }
+
+        try {
+            String body = devTools.send(Network.getResponseBody(requestId)).getBody();
+            apiError.setResponseBody(limitBodyLength(body));
+        } catch (Exception e) {
+            apiError.setBodyCaptureError(e.getMessage());
+            logger.warn("Failed to capture response body for {} {}: {}",
+                    apiError.getMethod(),
+                    apiError.getNormalizedUrl(),
+                    e.getMessage());
+        }
     }
 
     private static String requestIdKey(RequestId requestId) {
@@ -238,7 +261,7 @@ public class NetworkMonitor {
     }
 
     private static boolean shouldCapture(String method, int statusCode, ResourceType resourceType) {
-        if (statusCode < 500) {
+        if (statusCode < 400) {
             return false;
         }
 
@@ -258,9 +281,10 @@ public class NetworkMonitor {
             return "";
         }
 
+        String baseUrl;
         try {
             URI uri = URI.create(url);
-            return new URI(
+            baseUrl = new URI(
                     uri.getScheme(),
                     uri.getAuthority(),
                     uri.getPath(),
@@ -268,8 +292,17 @@ public class NetworkMonitor {
                     null).toString();
         } catch (Exception e) {
             int queryIndex = url.indexOf('?');
-            return queryIndex >= 0 ? url.substring(0, queryIndex) : url;
+            baseUrl = queryIndex >= 0 ? url.substring(0, queryIndex) : url;
         }
+
+        try {
+            baseUrl = baseUrl.replaceAll("(?<=/)[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(?=/|$)", "{uuid}");
+            baseUrl = baseUrl.replaceAll("(?<=/)\\d+(?=/|$)", "{id}");
+        } catch (Exception e) {
+            logger.debug("Failed to normalize URL path segments: {}", e.getMessage());
+        }
+
+        return baseUrl;
     }
 
     private static String limitBodyLength(String body) {

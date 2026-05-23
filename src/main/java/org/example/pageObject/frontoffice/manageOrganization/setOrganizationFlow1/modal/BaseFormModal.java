@@ -56,6 +56,14 @@ public class BaseFormModal extends BasePage {
         }
     }
 
+    public boolean isInlineErrorMessageDisplayed(String expectedMessage) {
+        try {
+            String xpath = String.format( "//p[normalize-space(text())='%s']", expectedMessage);
+            return isVisible(By.xpath(xpath));
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
 
 }

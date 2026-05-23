@@ -105,4 +105,12 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
     protected ActionUtils actionUtils() {
         return actionUtils.get();
     }
+
+
+    //    TODO: ganti data ini nanti, selama dev biarkan dulu
+    protected String duplicateOrganizationName = "Special Asset ID";
+    protected String duplicatePositionName = "Head of Foreclosed Asset & Business Planning";
+
+    protected String duplicateOrganizationMessage = "Organization name already exists";
+    protected String duplicatePositionMessage = "Position name already exists";
 }
