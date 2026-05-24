@@ -51,7 +51,7 @@ public class SlaSettingTest extends SlaSettingBaseTest {
         logger.info("Finished test: checkDetailSlaSettingInActive");
     }
 
-    @Test(groups = {"Delete"}, description = "Delete Sla Setting status Draft")
+    @Test(groups = {"Delete"}, description = "Delete Sla Setting status Draft", dependsOnMethods = {"saveSlaSettingAsDraft"})
     public void deleteSlaSettingStatusDraft(){
         logger.info("Starting test: deleteSlaSettingStatusDraft");
 

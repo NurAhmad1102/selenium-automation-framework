@@ -2,7 +2,7 @@ package org.example.pageObject.base;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.utils.DiagnosticCollector;
+import org.example.utils.report.core.ReportAPI;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -14,6 +14,7 @@ public class BasePage {
 
     protected WebDriver driver;
     protected WebDriverWait wait;
+    protected final int DEFAULT_TIMEOUT = 10;
     protected final Logger logger = LogManager.getLogger(getClass());
 
     public BasePage(WebDriver driver){
@@ -23,13 +24,24 @@ public class BasePage {
         }
 
         this.driver = driver;
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT));
     }
 
     protected void click(WebElement element){
+        String description = getElementDescription(element);
         try {
-            logger.debug("Clicking element: {}", getElementDescription(element));
-            wait.until(ExpectedConditions.elementToBeClickable(element)).click();
+            logger.debug("Clicking element: {}", description);
+            // Ensure element is stable and clickable
+            wait.until(ExpectedConditions.elementToBeClickable(element));
+            
+            try {
+                element.click();
+            } catch (Exception e) {
+                logger.warn("Standard click failed for [{}], attempting Javascript click. Reason: {}", description, e.getMessage());
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+            }
+            
+            ReportAPI.step("Action: Click element [" + description + "]");
         } catch (Exception e) {
             handleActionFailure("click", element, e);
         }
@@ -38,7 +50,20 @@ public class BasePage {
     protected void click(By locator){
         try {
             logger.debug("Clicking locator: {}", locator);
-            wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
+            WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
+            
+            // Stabilization wait to handle async UI state changes (False Clicks)
+            try { Thread.sleep(500); }
+            catch (InterruptedException ignored) {}
+
+            try {
+                element.click();
+            } catch (Exception e) {
+                logger.warn("Standard click failed for locator [{}], attempting Javascript click.", locator);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+            }
+
+            ReportAPI.step("Action: Click locator [" + locator + "]");
         } catch (Exception e) {
             handleActionFailure("click", locator, e);
         }
@@ -53,6 +78,7 @@ public class BasePage {
             logger.debug("Typing '{}' into element: {}", displayText, description);
             wait.until(ExpectedConditions.visibilityOf(element)).clear();
             element.sendKeys(text);
+            ReportAPI.step("Action: Type text into element [" + description + "]");
         } catch (Exception e) {
             handleActionFailure("type text", element, e);
         }
@@ -60,7 +86,9 @@ public class BasePage {
 
     protected String getAttributeValue(WebElement element, String attribute){
         try {
-            return element.getAttribute(attribute);
+            String value = element.getAttribute(attribute);
+            ReportAPI.step("Action: Get attribute [" + attribute + "] from element [" + getElementDescription(element) + "]");
+            return value;
         } catch (Exception e) {
             handleActionFailure("get attribute '" + attribute + "' from", element, e);
             return null;
@@ -73,7 +101,7 @@ public class BasePage {
         } catch (TimeoutException | NoSuchElementException | StaleElementReferenceException e) {
             String msg = "Element not visible: " + getElementDescription(element);
             logger.debug(msg);
-            DiagnosticCollector.addDiagnostic(msg);
+            ReportAPI.elementError("visibility check", element.toString(), e);
             return false;
         }
     }
@@ -85,7 +113,7 @@ public class BasePage {
         } catch (TimeoutException e) {
             String msg = "Locator not visible: " + locator;
             logger.debug(msg);
-            DiagnosticCollector.addDiagnostic(msg);
+            ReportAPI.elementError("visibility check", "Locator: " + locator, e);
             return false;
         }
     }
@@ -97,8 +125,11 @@ public class BasePage {
         String errorMessage = String.format("Failed to %s element [%s].<br><b>Locator Detail:</b> %s<br><b>Reason:</b> %s", 
                 action, description, locatorInfo, e.getMessage());
         
-        // Log4j2 Bridge will automatically push this to ExtentReports as FAIL because it's logger.error
+        // Log to Log4j2
         logger.error(errorMessage);
+        
+        // Log to Structured Element Logs tab
+        ReportAPI.elementError(action, locatorInfo, e);
         
         throw new RuntimeException(errorMessage, e);
     }
@@ -132,6 +163,9 @@ public class BasePage {
         logger.info("Step: Open Dropdown and select: {}", option);
         click(element);
 
+        // Wait a bit for dropdown to potentially stabilize
+        try { Thread.sleep(200); } catch (InterruptedException ignored) {}
+
         if(isSearchableDropdown()){
             selectSearchableDropdown(option);
         } else {
@@ -144,52 +178,45 @@ public class BasePage {
     }
 
     private void selectSearchableDropdown(String value) {
-        WebElement searchInput = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath("//div[@role='listbox']//input[@type='text']")
-                )
-        );
+        By searchInputLocator = By.xpath("//div[@role='listbox']//input[@type='text']");
+        
+        // Wait for search input to be visible and fresh
+        WebElement searchInput = wait.until(ExpectedConditions.visibilityOfElementLocated(searchInputLocator));
 
-        searchInput.clear();
+        // Use typeText directly with the locator or fresh element to benefit from its internal wait/retry
         typeText(searchInput, value);
 
         selectOption(value);
     }
 
     private void selectOption(String value) {
-
-        By optionLocator = By.xpath(String.format("""
-                //div[@role='option']
-                [contains(normalize-space(.), '%s')]
-                """, value));
-
+        By optionLocator = By.xpath(String.format("//div[@role='option'][contains(normalize-space(.), '%s')]", value));
+        
         wait.until(ExpectedConditions.presenceOfElementLocated(optionLocator));
-
         List<WebElement> options = driver.findElements(optionLocator);
-
         WebElement target = null;
 
         for (WebElement opt : options) {
-            if (opt.isDisplayed()) {
-                target = opt;
-                break;
+            try {
+                if (opt.isDisplayed()) {
+                    target = opt;
+                    break;
+                }
+            } catch (StaleElementReferenceException ignored) {
+                // If stale, we'll try to re-locate below
             }
         }
 
         if (target == null) {
+            try {
+                WebElement listbox = driver.findElement(By.xpath("//div[@role='listbox']"));
+                ((JavascriptExecutor) driver).executeScript(
+                        "arguments[0].scrollTop = arguments[0].scrollHeight;",
+                        listbox
+                );
+            } catch (Exception ignored) {}
 
-            WebElement listbox = driver.findElement(
-                    By.xpath("//div[@role='listbox']")
-            );
-
-            ((JavascriptExecutor) driver).executeScript(
-                    "arguments[0].scrollTop = arguments[0].scrollHeight;",
-                    listbox
-            );
-
-            target = wait.until(
-                    ExpectedConditions.elementToBeClickable(optionLocator)
-            );
+            target = wait.until(ExpectedConditions.elementToBeClickable(optionLocator));
         }
 
         click(target);
@@ -197,9 +224,15 @@ public class BasePage {
 
 
     private boolean isSearchableDropdown(){
-        return !driver.findElements(
-                By.xpath("//div[@role='listbox']//input[@type='text']")
-        ).isEmpty();
+        By searchInputLocator = By.xpath("//div[@role='listbox']//input[@type='text']");
+        try {
+            // Give it a small window to appear if it's dynamic
+            new WebDriverWait(driver, Duration.ofMillis(500))
+                    .until(ExpectedConditions.presenceOfElementLocated(searchInputLocator));
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
 }

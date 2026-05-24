@@ -1,9 +1,7 @@
-package org.example.utils;
+package org.example.utils.extentReportUtils;
 
-import com.aventstack.extentreports.ExtentTest;
-import com.aventstack.extentreports.Status;
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.Core;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
@@ -12,7 +10,7 @@ import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginElement;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
-import org.example.listener.Listeners;
+import org.example.utils.report.core.ReportAPI;
 
 import java.io.Serializable;
 
@@ -37,20 +35,14 @@ public class ExtentReportAppender extends AbstractAppender {
 
     @Override
     public void append(LogEvent event) {
-        // Validation: Verify if the log event belongs to the current active test
         String eventTestMethod = event.getContextData().getValue("testMethod");
-        ExtentTest currentExtentTest = Listeners.getExtentTest();
-        
-        if (currentExtentTest == null) {
+        String activeTestMethod = ThreadContext.get("testMethod");
+
+        if (!ReportAPI.isTestActive()) {
             return;
         }
 
-        // Logic: Only log to Extent if we are sure the log belongs to THIS specific test execution
-        // This prevents log bleeding between tests running in sequence on the same thread
-        String activeTestMethod = org.apache.logging.log4j.ThreadContext.get("testMethod");
-        
-        if (eventTestMethod == null || !eventTestMethod.equals(activeTestMethod)) {
-            // Log belongs to a previous test or is out of sync
+        if (eventTestMethod != null && activeTestMethod != null && !eventTestMethod.equals(activeTestMethod)) {
             return;
         }
 
@@ -58,11 +50,11 @@ public class ExtentReportAppender extends AbstractAppender {
         String message = event.getMessage().getFormattedMessage();
 
         if (level.isMoreSpecificThan(Level.ERROR)) {
-            currentExtentTest.log(Status.FAIL, message);
+            ReportAPI.fail(message, event.getThrown());
         } else if (level.isMoreSpecificThan(Level.WARN)) {
-            currentExtentTest.log(Status.WARNING, message);
+            ReportAPI.step("WARN: " + message);
         } else if (level.isMoreSpecificThan(Level.INFO)) {
-            currentExtentTest.info(message);
+            ReportAPI.step(message);
         }
     }
 }

@@ -4,9 +4,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.example.drivers.DriverManager;
-import org.example.listener.Listeners;
 import org.example.utils.account.AccountAllocator;
+import org.example.utils.report.core.ReportAPI;
 import org.example.utils.serviceUtils.NetworkMonitor;
+import org.example.utils.serviceUtils.SeleniumUtils;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -21,6 +22,7 @@ public abstract class BaseTest {
 
     protected final Logger logger = LogManager.getLogger(getClass());
     private ThreadLocal<NetworkMonitor> networkMonitor = new ThreadLocal<>();
+    private final SeleniumUtils seleniumUtils = new SeleniumUtils();
 
     protected abstract String getUrl();
 
@@ -28,18 +30,20 @@ public abstract class BaseTest {
 
     @BeforeMethod
     public void setUp(org.testng.ITestResult result) {
-        result.setAttribute("extentManagedByBaseTest", true);
-        Listeners.startTest(result);
+        result.setAttribute("reportManagedByBaseTest", true);
         String testName = result.getMethod().getMethodName();
-        ThreadContext.put("testMethod", testName);
+        // Lifecycle is managed by Listeners, but we can add steps here
+        ReportAPI.step("Setting up test environment for: " + testName);
+        
         AccountAllocator.allocateAccount(testName, getRole());
 
         logger.info("Setting Up WebDriver for test: {}", testName);
         ChromeOptions options = new ChromeOptions();
         options.setAcceptInsecureCerts(true);
         options.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
-        options.setPageLoadStrategy(org.openqa.selenium.PageLoadStrategy.EAGER); // gak perlu nuggun image/asset Gd
+//        options.setPageLoadStrategy(org.openqa.selenium.PageLoadStrategy.EAGER);
 //        options.addArguments("--headless=new", "--disable-gpu", "--window-size=1920,1080");
+        options.addArguments("--force-device-scale-factor=0.90");
 
         ChromeDriver localDriver = new ChromeDriver(options);
         DriverManager.setDriver(localDriver);
@@ -74,18 +78,18 @@ public abstract class BaseTest {
             if (networkMonitor.get() != null) {
                 try {
                     if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
-                        networkMonitor.get().flushServerErrorsToReport(
-                                Listeners.getExtentTest(),
-                                getTestEndInstant(result));
+                        // Flush only the relevant server error before the test failure.
+                        networkMonitor.get().flushServerErrorsToReport(null, getTestEndInstant(result));
                     }
                 } catch (Exception e) {
-                    logger.error("Error flushing network errors to report", e);
+                    logger.error("Error flushing network errors", e);
                 } finally {
                     networkMonitor.get().stopMonitoring();
                     networkMonitor.remove();
                     NetworkMonitor.removeCurrentMonitor();
                 }
             }
+            finalizeReport(result);
             if (DriverManager.getDriver() != null) {
                 DriverManager.quitDriver();
                 logger.info("Driver quit successfully");
@@ -95,7 +99,42 @@ public abstract class BaseTest {
         } finally {
             AccountAllocator.releaseAccount();
             ThreadContext.clearAll();
-            Listeners.clearCurrentTest();
+        }
+    }
+
+    private void finalizeReport(ITestResult result) {
+        if (Boolean.TRUE.equals(result.getAttribute("reportFinalized"))) {
+            return;
+        }
+
+        if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
+            ReportAPI.fail("Test Execution Failed", result.getThrowable());
+            attachFailureScreenshot(result);
+        } else if (result.getStatus() == ITestResult.SKIP) {
+            Throwable throwable = result.getThrowable();
+            ReportAPI.step("Test Skipped: " + (throwable != null ? throwable.getMessage() : "No reason provided"));
+        } else {
+            ReportAPI.pass("Test Execution Finished Successfully");
+        }
+
+        ReportAPI.flush();
+        result.setAttribute("reportFinalized", true);
+    }
+
+    private void attachFailureScreenshot(ITestResult result) {
+        WebDriver driver = DriverManager.getDriver();
+        if (driver == null) {
+            logger.warn("Driver is null, screenshot cannot be captured for failed test: {}",
+                    result.getMethod().getMethodName());
+            return;
+        }
+
+        try {
+            String screenshotPath = seleniumUtils.getScreenShotPath(result.getMethod().getMethodName(), driver);
+            ReportAPI.addScreenshot(screenshotPath);
+        } catch (Exception e) {
+            logger.error("Failed to capture screenshot for failed test: {}",
+                    result.getMethod().getMethodName(), e);
         }
     }
 

@@ -8,11 +8,11 @@
     </Properties>
 
     <Appenders>
-        <Console name="console" target="SYSTEM_OUT">
+        <Console name="console" target="SYSTEM_OUT" immediateFlush="true">
             <PatternLayout pattern="${consolePattern}" />
         </Console>
 
-        <RollingFile name="rollingFile" fileName="${logPath}/${rollingFileName}.log" filePattern="${logPath}/${rollingFileName}_%d{yyyy-MM-dd}_%i.log">
+        <RollingFile name="rollingFile" fileName="${logPath}/${rollingFileName}.log" filePattern="${logPath}/${rollingFileName}_%d{yyyy-MM-dd}_%i.log" immediateFlush="true">
             <PatternLayout pattern="${filePattern}" />
             <Policies>
                 <OnStartupTriggeringPolicy />

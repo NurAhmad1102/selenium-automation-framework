@@ -3,6 +3,7 @@ import java.io.File;
 
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+import org.example.utils.report.implementations.extent.ExtentUIInjector;
 
 public class ExtentReportNg {
 
@@ -17,6 +18,10 @@ public class ExtentReportNg {
                     reporter.config().enableOfflineMode(true);
                     reporter.config().setReportName("Test Automation");
                     reporter.config().setDocumentTitle("Test Result");
+                    
+                    // Inject Custom UI
+                    reporter.config().setCss(ExtentUIInjector.getCustomCss());
+                    reporter.config().setJs(ExtentUIInjector.getCustomJs());
 
                     extent = new ExtentReports();
                     extent.attachReporter(reporter);

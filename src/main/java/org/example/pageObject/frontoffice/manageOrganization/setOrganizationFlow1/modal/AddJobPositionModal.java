@@ -5,6 +5,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.pagefactory.AjaxElementLocatorFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,7 @@ public class AddJobPositionModal extends BaseFormModal {
     @FindBy(xpath = "//div[./label[contains(normalize-space(), 'RC Code / Cost Center')]]//input")
     private WebElement getRCCode;
 
-    @FindBy(xpath = "//button[normalize-space()='Add']")
-    private WebElement addButton;
+    private final By addButton = By.xpath("//div[@role='dialog']//button[normalize-space(text())='Add']");
 
 // =========================
     public List<JobSectionComponent> getJobSections() {
@@ -39,8 +39,8 @@ public class AddJobPositionModal extends BaseFormModal {
 
         List<JobSectionComponent> jobs = new ArrayList<>();
 
-        for (WebElement section : sections) {
-            jobs.add(new JobSectionComponent(driver, section));
+        for (int i = 0; i < sections.size(); i++) {
+            jobs.add(new JobSectionComponent(driver, sections.get(i), i));
         }
 
         return jobs;

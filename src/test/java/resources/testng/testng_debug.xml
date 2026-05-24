@@ -12,14 +12,18 @@
     </test>
 
     <test verbose="2" preserve-order="true" name="SLA Setting">
-        <classes>
-            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaDetailTest">
-                <methods>
-                    <include name="deleteSlaDetail"/>
-                    <include name="addSlaDetail"/>
-                </methods>
-            </class>
-        </classes>
+<!--        <classes>-->
+<!--            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaDetailTest">-->
+<!--                <methods>-->
+<!--                    <include name="deleteSlaDetail"/>-->
+<!--                    <include name="addSlaDetail"/>-->
+<!--                </methods>-->
+<!--            </class>-->
+<!--        </classes>-->
+        <packages>
+            <package name="org.example.test.backoffice.manageOrganization.slaSetting"/>
+            <package name="org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization"></package>
+        </packages>
     </test>
 
 </suite>

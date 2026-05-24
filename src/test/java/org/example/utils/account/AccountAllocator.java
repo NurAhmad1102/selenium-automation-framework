@@ -9,17 +9,18 @@ import org.testng.ITestContext;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class AccountAllocator {
     private static final Logger logger = LogManager.getLogger(AccountAllocator.class);
-    private static final Map<String, List<UserloginConfig>> roleAccountPool = new HashMap<>();
-    private static final Map<String, AtomicInteger> roleCounters = new HashMap<>();
+    private static final Map<String, List<UserloginConfig>> roleAccountPool = new ConcurrentHashMap<>();
+    private static final Map<String, AtomicInteger> roleCounters = new ConcurrentHashMap<>();
     private static final ThreadLocal<UserloginConfig> currentAccount = new ThreadLocal<>();
 
     // Separated URL concern
-    private static final Map<String, String> interfaceUrls = new HashMap<>();
+    private static final Map<String, String> interfaceUrls = new ConcurrentHashMap<>();
 
     static {
         String filePath = "src/test/java/resources/data/Data Userlogin.xlsx";

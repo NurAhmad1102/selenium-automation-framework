@@ -1,10 +1,9 @@
 package org.example.utils.serviceUtils;
 
 import com.aventstack.extentreports.ExtentTest;
-import com.aventstack.extentreports.markuputils.CodeLanguage;
-import com.aventstack.extentreports.markuputils.MarkupHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.example.utils.report.core.ReportAPI;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.HasDevTools;
 import org.openqa.selenium.devtools.v148.network.Network;
@@ -151,44 +150,25 @@ public class NetworkMonitor {
     }
 
     public void flushServerErrorsToReport(ExtentTest currentTest, Instant capturedBefore) {
-        if (currentTest == null) {
-            logger.warn("ExtentTest is null. Network errors cannot be written to ExtentReports.");
-            return;
-        }
-
         capturePendingResponseBodies();
 
-        Optional<ApiError> latestError = apiErrorsByKey.values().stream()
+        apiErrorsByKey.values().stream()
                 .filter(error -> capturedBefore == null || !error.getLastSeenTimestamp().isAfter(capturedBefore))
-                .max(Comparator.comparing(ApiError::getLastSeenTimestamp));
-
-        latestError.ifPresent(error -> {
-            currentTest.info("<b>" + error.getName() + " API - HTTP "
-                    + error.getStatusCode() + " - occurred " + error.getRetryCount() + " times</b>");
-            currentTest.info("<b>Name:</b> " + error.getName());
-            currentTest.info("<b>Method:</b> " + error.getMethod());
-            currentTest.info("<b>URL:</b> " + error.getNormalizedUrl());
-            currentTest.info("<b>Status:</b> " + error.getStatusCode() + " " + error.getStatusText());
-            currentTest.info("<b>Timestamp:</b> " + error.getTimestamp());
-
-            if (error.getMimeType() != null && !error.getMimeType().isEmpty()) {
-                currentTest.info("<b>Mime Type:</b> " + error.getMimeType());
-            }
-
-            if (error.getRequestPayload() != null && !error.getRequestPayload().isEmpty()) {
-                currentTest.info("<b>Request Payload:</b>");
-                currentTest.info(MarkupHelper.createCodeBlock(error.getRequestPayload(), CodeLanguage.JSON));
-            }
-
-            if (error.hasResponseBody()) {
-                currentTest.info("<b>Response:</b>");
-                currentTest.info(MarkupHelper.createCodeBlock(error.getResponseBody(), CodeLanguage.JSON));
-            } else if (error.getBodyCaptureError() != null && !error.getBodyCaptureError().isEmpty()) {
-                currentTest.info("<i>Could not capture response body: " + error.getBodyCaptureError() + "</i>");
-            } else {
-                currentTest.info("<i>Response body is empty.</i>");
-            }
-        });
+                .max(Comparator.comparing(ApiError::getLastSeenTimestamp))
+                .ifPresent(error -> {
+                    ReportAPI.network(
+                            error.getName(),
+                            error.getMethod(),
+                            error.getNormalizedUrl(),
+                            error.getStatusCode(),
+                            error.getStatusText(),
+                            error.getMimeType(),
+                            error.getRetryCount(),
+                            error.getRequestPayload(),
+                            error.getResponseBody() != null ? error.getResponseBody() : error.getBodyCaptureError(),
+                            error.getLastSeenTimestamp()
+                    );
+                });
     }
 
     public void stopMonitoring() {

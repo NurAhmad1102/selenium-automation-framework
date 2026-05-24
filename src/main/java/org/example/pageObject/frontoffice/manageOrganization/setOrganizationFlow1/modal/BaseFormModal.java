@@ -6,6 +6,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.pagefactory.AjaxElementLocatorFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class BaseFormModal extends BasePage {
     protected String formTitle;
@@ -16,15 +18,14 @@ public class BaseFormModal extends BasePage {
         this.formTitle = formTitle;
     }
 
-    @FindBy(xpath = "//label[contains(normalize-space(.), 'New Organization Name')]/following-sibling::input")
-    private WebElement newOrgNameField;
-
-    @FindBy(xpath = "//button[@role='combobox']")
-    private WebElement selectRCCodeDropdown;
+//    TODO CEK WEBELEMENT APA MASIH PERLU AATAU PAKAI MEHTOD HELPER ISVISIVLE
+    private final By newOrgNameField = By.xpath("//label[contains(normalize-space(.), 'New Organization Name')]/following-sibling::input");
+    private final By selectRCCodeDropdown = By.xpath("//button[@role='combobox']");
 
     public String setOrgNewName(String newName) {
         logger.info("Step: Setting New Organization Name to: {}", newName);
-        typeText(newOrgNameField, newName);
+        WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(newOrgNameField));
+        typeText(element, newName);
         return newName;
     }
 
@@ -34,17 +35,18 @@ public class BaseFormModal extends BasePage {
 
     public void clickCancelButton(){
         String xpath = String.format("//div[@role='dialog' and .//h2[text()='%s']]//button[text()='Cancel']", formTitle);
-        click(driver.findElement(By.xpath(xpath)));
+        click(By.xpath(xpath));
     }
 
     public void clickNext(){
         String xpath = String.format("//div[@role='dialog' and .//h2[text()='%s']]//button[text()='Next']", formTitle);
-        click(driver.findElement(By.xpath(xpath)));
+        click(By.xpath(xpath));
     }
 
     public void clickRCCodeDropdown(String value){
         logger.info("Step: Click RC Code Dropdown and select: {}", value);
-        selectDropdownModal(selectRCCodeDropdown,value);
+        WebElement element = wait.until(ExpectedConditions.elementToBeClickable(selectRCCodeDropdown));
+        selectDropdownModal(element, value);
     }
 
     public boolean isModalHeaderDisplayed() {
