@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" monitorInterval="30">
+<Configuration status="WARN" monitorInterval="30" packages="org.example.utils">
     <Properties>
         <Property name="logPath">${sys:user.dir}/logs</Property>
         <Property name="rollingFileName">automation-test</Property>
@@ -8,11 +8,11 @@
     </Properties>
 
     <Appenders>
-        <Console name="console" target="SYSTEM_OUT">
+        <Console name="console" target="SYSTEM_OUT" immediateFlush="true">
             <PatternLayout pattern="${consolePattern}" />
         </Console>
 
-        <RollingFile name="rollingFile" fileName="${logPath}/${rollingFileName}.log" filePattern="${logPath}/${rollingFileName}_%d{yyyy-MM-dd}_%i.log">
+        <RollingFile name="rollingFile" fileName="${logPath}/${rollingFileName}.log" filePattern="${logPath}/${rollingFileName}_%d{yyyy-MM-dd}_%i.log" immediateFlush="true">
             <PatternLayout pattern="${filePattern}" />
             <Policies>
                 <OnStartupTriggeringPolicy />
@@ -26,17 +26,23 @@
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingFile>
+
+        <ExtentReportAppender name="extent">
+            <PatternLayout pattern="%msg%n" />
+        </ExtentReportAppender>
     </Appenders>
 
     <Loggers>
         <Logger name="org.example" level="DEBUG" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="rollingFile" />
+            <AppenderRef ref="extent" />
         </Logger>
 
         <Logger name="org.openqa.selenium" level="WARN" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="rollingFile" />
+            <AppenderRef ref="extent" />
         </Logger>
 
         <Logger name="org.apache" level="WARN" additivity="false">
@@ -47,6 +53,7 @@
         <Root level="INFO" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="rollingFile" />
+            <AppenderRef ref="extent" />
         </Root>
     </Loggers>
 </Configuration>

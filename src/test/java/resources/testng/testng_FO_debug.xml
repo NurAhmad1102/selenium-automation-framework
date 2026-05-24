@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="Test End To End" parallel="false" thread-count="0">
+<suite name="Test End To End" parallel="false" thread-count="2">
     <listeners>
         <listener class-name="org.example.listener.Listeners"/>
     </listeners>
@@ -22,6 +22,8 @@
                 <methods>
 <!--                    <include name="validateManageOrganizationPageIsDisplayed"/>-->
                     <include name="addNewOrganizationTest"/>
+                    <include name="addOrganizationWithExistingOrganizationNameTest"/>
+                    <include name="addOrganizationWithExistingPositionNameTest"/>
                 </methods>
             </class>
         </classes>

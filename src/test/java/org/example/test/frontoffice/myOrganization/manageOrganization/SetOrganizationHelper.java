@@ -72,6 +72,11 @@ public class SetOrganizationHelper {
         return setOrganizationPage.isNodeOrganizationDisplayed(orgName);
     }
 
+    public boolean isInlineErrorMessageDisplayed(String orgName) {
+        logger.info("Step: Validation inline error message: Get Inline Error Message: {}", orgName);
+        return addFormModal.isInlineErrorMessageDisplayed(orgName);
+    }
+
 //    PERFORM ACTION
     public void fillJobPosition(OrganizationTestData data) {
         logger.info("Phase: --- Filling Job & Position Details ---");

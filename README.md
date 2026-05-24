@@ -1,4 +1,4 @@
-# Panduan Arsitektur Automation Test Framework
+﻿# Panduan Arsitektur Automation Test Framework
 
 > Stack: Java 17, Selenium 4, TestNG, Maven, ExtentReports, Log4j2, Apache POI
 
@@ -11,10 +11,18 @@
 3. [Cara Menambah Module Baru](#3-cara-menambah-module-baru)
 4. [Penggunaan Enum FrontOfficeMenu](#4-penggunaan-enum-frontofficemenu)
 5. [Struktur Direktori](#5-struktur-direktori)
-6. [Architecture Rules](#6-architecture-rules)
+6. [Architecture Rules (ArchUnit)](#6-architecture-rules-archunit)
 7. [Scalability & Maintenance](#7-scalability--maintenance-best-practice)
 8. [Network Monitoring (CDP)](#8-network-monitoring-cdp)
-9. [Informasi Tambahan](#9-informasi-tambahan)
+9. [Enhanced Error Logging & CustomAssert](#9-enhanced-error-logging--customassert)
+10. [Account Allocator & Excel Data](#10-account-allocator--excel-data)
+11. [Log4j2 Bridge (ExtentReportAppender)](#11-log4j2-bridge-extentreportappender)
+12. [Informasi Tambahan](#12-informasi-tambahan)
+8. [Network Monitoring (CDP)](#8-network-monitoring-cdp)
+9. [Enhanced Error Logging & CustomAssert](#9-enhanced-error-logging--customassert)
+10. [Account Allocator & Excel Data](#10-account-allocator--excel-data)
+11. [Log4j2 Bridge (ExtentReportAppender)](#11-log4j2-bridge-extentreportappender)
+12. [Informasi Tambahan](#12-informasi-tambahan)
 
 ---
 
@@ -26,19 +34,21 @@ Framework ini menggunakan pola **Page Object Model (POM)** dikombinasikan dengan
 +------------------------------------------------------------------+
 |                        LAYER DIAGRAM                             |
 +------------------------------------------------------------------+
-|  [TEST LAYER]      XxxFlow / XxxTest                             |
+|  [TEST LAYER]      XxxTest                                       |
 |                         |                                        |
-|  [BASE TEST]       XxxBaseTest                                   |
-|                    BackOffice/FrontOfficeBaseTest                 |
+|  [BASE TEST]       XxxBaseTest (BackOffice / FrontOffice)        |
 |                    BaseTest                                      |
 |                         |                                        |
-|  [FACTORY LAYER]   MainPagesFactory / FrontOfficeMainPagesFactory|
+|  [FACTORY LAYER]   BackOfficeMainPagesFactory                    |
+|                    FrontOfficeMainPagesFactory                   |
 |                    ModuleFactory (e.g. ManageOrganizationFactory)|
 |                                                                  |
 |  [PAGE OBJECT]     XxxPage extends BasePage                      |
 |                                                                  |
 |  [INFRA]           DriverManager (ThreadLocal<WebDriver>)        |
-|                    AccountAllocator (ThreadLocal<UserConfig>)    |
+|                    AccountAllocator (ThreadLocal<UserloginConfig>)|
+|                    NetworkMonitor (CDP)                          |
+|                    ReportAPI (Logging & Reporting)               |
 +------------------------------------------------------------------+
 ```
 
@@ -46,24 +56,70 @@ Framework ini menggunakan pola **Page Object Model (POM)** dikombinasikan dengan
 
 ## 2. Flow Pemanggilan: Test ke PageObject
 
-Acuan: `ManageOrganizationFlow1.java` (Front Office) dan `SlaSettingTest.java` (Back Office).
-
-### Diagram Lengkap ”Front Office"
+### Diagram Back Office
 
 ```
-ManageOrganizationFlow1.java
+SlaSettingTest.java
+        |
+        | extends
+        v
+SlaSettingBaseTest.java  (abstract)
+        | @BeforeMethod: login + navigasi ke SLA Setting
+        |
+        | extends
+        v
+BackOfficeBaseTest.java
+        | (setUp() -> new BackOfficeMainPagesFactory(driver))
+        | (menyediakan: getMainPages())
+        | extends
+        v
+BaseTest.java
+        | @BeforeMethod setUp():
+        |   AccountAllocator.allocateAccount(testName, role)
+        |   new ChromeDriver(options)
+        |   DriverManager.setDriver(driver)
+        |   NetworkMonitor.startMonitoring()
+        |   driver.get(targetUrl)
+        |
+        | @AfterMethod tearDown():
+        |   NetworkMonitor.flushServerErrorsToReport()
+        |   finalizeReport()  -> ReportAPI.flush()
+        |   DriverManager.quitDriver()
+        |   AccountAllocator.releaseAccount()
+        |
+        v
+BackOfficeMainPagesFactory.java
+        | (lazy init semua module factory)
+        |-- login()              -> BackOfficeLoginPagesFactory
+        |-- sideMenu()           -> SideMenuFactory
+        |-- manageOrganization() -> ManageOrganizationFactory (BO)
+        +-- workflowEngine()     -> WorkflowEngineFactory
+                |
+                v
+        ManageOrganizationFactory (BO)
+                +-- getSlaSettingPage()
+                        |
+                        v
+                SlaSettingPage.java (extends BasePage)
+                        | @FindBy locators
+                        | action methods
+                        v
+                BasePage.java
+                        click(), typeText(), isVisible()
+                        selectDropdownModal(), getAttributeValue()
+                        WebDriverWait (10 detik)
+                        Logger (Log4j2)
+```
+
+### Diagram Front Office
+
+```
+ManageOrganizationTest.java
         |
         | extends
         v
 ManageOrganizationBaseTest.java  (abstract)
-        | @BeforeMethod initManageOrganizationContext():
-        |   goToManageOrganization(nip)  <- login + navigasi via enum
-        |   manageOrganizationHelper.set(new ManageOrganizationHelper(getFrontOfficePages()))
-        |   actionUtils.set(new ActionUtils(driver))
-        |
-        | shortcut accessor:
-        |   dashboardManageOrganizationPage()
-        |   manageOrganizationHelper()
+        | @BeforeMethod: login + navigasi via FrontOfficeMenu enum
         |
         | extends
         v
@@ -73,870 +129,363 @@ FrontOfficeBaseTest.java
         | extends
         v
 BaseTest.java
-        | @BeforeMethod setUp():
-        |   AccountAllocator.allocateAccount(testName, role)
-        |   new ChromeDriver(options)
-        |   DriverManager.setDriver(driver)
-        |
-        | @AfterMethod tearDown():
-        |   DriverManager.quitDriver()
-        |   AccountAllocator.releaseAccount()
         |
         v
 FrontOfficeMainPagesFactory.java
-        | (lazy init semua module factory)
-        |-- login()           -> FrontOfficeLoginPagesFactory
-        |-- sideMenu()        -> FrontOfficeSideMenuFactory
+        |-- login()              -> FrontOfficeLoginPagesFactory
+        |-- sideMenu()           -> FrontOfficeSideMenuFactory
+        |-- dashboard()          -> FrontOfficeDashboardFactory
         +-- manageOrganization() -> ManageOrganizationFactory (FO)
-                |
-                v
-        ManageOrganizationFactory (FO)
-                +-- getDashboardManageOrganizationPage()
-                        |
-                        v
-                DashboardManageOrganizationPage.java (extends BasePage)
-                        | @FindBy locators
-                        | action methods
-                        v
-                BasePage.java
-                        click(), typeText(), isVisible()
-                        WebDriverWait (10 detik)
-                        Logger (Log4j2)
 ```
-
-### Cara Test Class Memanggil PageObject
-
-Di `ManageOrganizationFlow1.java`, Test class **tidak pernah menyentuh factory chain secara langsung**. Semua akses PageObject dilakukan melalui:
-
-1. **`manageOrganizationHelper()`** ” untuk aksi multi-langkah yang sudah dibungkus di Helper
-2. **`dashboardManageOrganizationPage()`** ” shortcut accessor dari BaseTest untuk akses langsung ke PageObject
-
-```java
-// ManageOrganizationFlow1.java ” contoh nyata
-public class ManageOrganizationFlow1 extends ManageOrganizationBaseTest {
-
-    @Test(groups = {"Manage Organization"}, description = "Validate Manage Organization page is displayed")
-    public void validateManageOrganizationPageIsDisplayed() {
-        logger.info("Starting test: validateManageOrganizationPageIsDisplayed");
-
-        // Akses via Helper ” Helper yang pegang factory chain
-        Assert.assertTrue(
-                manageOrganizationHelper().isManageOrganizationPageDisplayed(),
-                "Expected Manage Organization page to be displayed, but it was not."
-        );
-
-        logger.info("Finished test: validateManageOrganizationPageIsDisplayed");
-    }
-}
-```
-
-```java
-// ManageOrganizationHelper.java ” Helper menerima FrontOfficeMainPagesFactory
-public class ManageOrganizationHelper {
-    private final DashboardManageOrganizationPage dashboardManageOrganizationPage;
-
-    // Constructor menerima factory, bukan driver langsung
-    public ManageOrganizationHelper(FrontOfficeMainPagesFactory backOfficeMainPagesFactory) {
-        this.dashboardManageOrganizationPage = backOfficeMainPagesFactory
-                .manageOrganization()
-                .getDashboardManageOrganizationPage();
-    }
-
-    public boolean isManageOrganizationPageDisplayed() {
-        return dashboardManageOrganizationPage.isManageOrganizationHeaderDisplayed();
-    }
-}
-```
-
-```java
-// ManageOrganizationBaseTest.java ” init Helper dengan getFrontOfficePages()
-manageOrganizationHelper.set(new ManageOrganizationHelper(getFrontOfficePages()));
-```
-
-### Navigasi ke Halaman Modul (goToXxx)
-
-Navigasi di Front Office menggunakan `FrontOfficeMenu` enum, bukan hardcode string:
-
-```java
-// Di ManageOrganizationBaseTest.goToManageOrganization()
-getFrontOfficePages().login().getLoginPage().setUsernameField(loginNip);
-getFrontOfficePages().login().getLoginPage().setPasswordField(password);
-getFrontOfficePages().login().getLoginPage().clickSignInButton();
-
-// Navigasi via enum ” type-safe, tidak hardcode string
-getFrontOfficePages().sideMenu().getFrontOfficeSideMenu()
-        .expandMainMenu(FrontOfficeMenu.MY_ORGANIZATION);
-getFrontOfficePages().sideMenu().getFrontOfficeSideMenu()
-        .clickSubMenu(FrontOfficeMenu.MANAGE_ORGANIZATION);
-```
-
-### Aturan Akses PageObject
-
-Test class tidak boleh membuat PageObject langsung dengan constructor.
-
-```java
-// SALAH ” jangan lakukan ini di Test class
-new DashboardManageOrganizationPage(driver);
-new SlaSettingPage(driver);
-```
-
-```java
-// BENAR ” akses via Helper (pola utama di Flow1)
-manageOrganizationHelper().isManageOrganizationPageDisplayed();
-
-// BENAR ” akses via shortcut accessor dari BaseTest
-dashboardManageOrganizationPage().isManageOrganizationHeaderDisplayed();
-
-// BENAR ” factory chain, hanya di layer BaseTest atau Helper
-getFrontOfficePages().manageOrganization().getDashboardManageOrganizationPage();
-```
-
-Rule ini dijaga oleh `ArchitectureTest`. Jika test class melakukan `new XxxPage(driver)`, architecture test akan gagal.
-
-### Ringkasan Kelas yang Dilalui
-
-| Urutan | Kelas | Lokasi | Peran |
-|--------|-------|--------|-------|
-| 1 | `XxxFlow / XxxTest` | `src/test/.../test/` | Berisi @Test method dan assertion |
-| 2 | `XxxBaseTest` | `src/test/.../test/` | Setup konteks modul, init Helper, shortcut accessor |
-| 3 | `FrontOffice/BackOfficeBaseTest` | `src/test/.../base/` | Init MainPagesFactory, set URL dan role |
-| 4 | `BaseTest` | `src/test/.../base/` | Setup/teardown WebDriver dan account |
-| 5 | `DriverManager` | `src/test/.../drivers/` | ThreadLocal WebDriver holder |
-| 6 | `AccountAllocator` | `src/test/.../utils/account/` | Alokasi akun per thread |
-| 7 | `FrontOfficeMainPagesFactory` | `src/test/.../backOfficeMainPagesFactory/` | Root factory Front Office |
-| 8 | `ModuleFactory` | `src/main/.../factories/` | Factory per modul (lazy init) |
-| 9 | `XxxPage` | `src/main/.../pageObject/` | Locator dan interaksi UI |
-| 10 | `BasePage` | `src/main/.../pageObject/base/` | Wrapper Selenium + wait + log |
 
 ---
 
 ## 3. Cara Menambah Module Baru
 
-Contoh kasus: menambah menu **"Menu A"** di **Front Office**.
+Contoh: menambah module **"Payroll"** di Back Office.
 
-Setiap modul menghasilkan **3 class di sisi test**: Helper, BaseTest, dan Flow/Test class.
-
-### Diagram Alur Penambahan (Bottom-Up)
-
-```
-[1] Buat PageObject
-        |
-        v
-[2] Buat ModuleFactory
-        |
-        v
-[3] Daftarkan di FrontOfficeMainPagesFactory (atau MainPagesFactory)
-        |
-        v
-[4] Tambah navigasi di SideMenu PageObject
-        |
-        v
-[5] Buat Helper Class
-        |
-        v
-[6] Buat ModuleBaseTest
-        |
-        v
-[7] Buat Flow / Test Class
-```
-
----
-
-### Langkah 1 ”Buat PageObject"
-
-Lokasi: `src/main/java/org/example/pageObject/frontoffice/menuA/`
+**1. Buat Page Object**
 
 ```java
-package org.example.pageObject.frontoffice.menuA;
+// src/main/java/org/example/pageObject/backoffice/payrollMenu/PayrollPage.java
+public class PayrollPage extends BasePage {
+    @FindBy(id = "payroll-table")
+    private WebElement payrollTable;
 
-import org.example.pageObject.base.BasePage;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.PageFactory;
+    public PayrollPage(WebDriver driver) { super(driver); }
 
-public class DashboardMenuAPage extends BasePage {
-
-    @FindBy(xpath = "//h1[contains(text(),'Menu A')]")
-    private WebElement headerMenuA;
-
-    public DashboardMenuAPage(WebDriver driver) {
-        super(driver);
-        PageFactory.initElements(driver, this);
-    }
-
-    public boolean isMenuAHeaderDisplayed() {
-        return isVisible(headerMenuA);
+    public boolean isPayrollTableVisible() {
+        return isVisible(payrollTable);
     }
 }
 ```
 
----
-
-### Langkah 2 ”Buat ModuleFactory"
-
-Lokasi: `src/main/java/org/example/factories/frontoffice/menuA/`
+**2. Buat Factory**
 
 ```java
-package org.example.factories.frontoffice.menuA;
-
-import org.example.pageObject.frontoffice.menuA.DashboardMenuAPage;
-import org.openqa.selenium.WebDriver;
-
-public class MenuAFactory {
+public class PayrollFactory {
     private final WebDriver driver;
-    private DashboardMenuAPage dashboardMenuAPage;
+    private PayrollPage payrollPage;
 
-    public MenuAFactory(WebDriver driver) {
-        this.driver = driver;
-    }
+    public PayrollFactory(WebDriver driver) { this.driver = driver; }
 
-    public DashboardMenuAPage getDashboardMenuAPage() {
-        if (dashboardMenuAPage == null) {
-            dashboardMenuAPage = new DashboardMenuAPage(driver);
-        }
-        return dashboardMenuAPage;
+    public PayrollPage getPayrollPage() {
+        if (payrollPage == null) payrollPage = new PayrollPage(driver);
+        return payrollPage;
     }
 }
 ```
 
----
-
-### Langkah 3 ”Daftarkan di FrontOfficeMainPagesFactory"
-
-File: `src/test/java/org/example/backOfficeMainPagesFactory/FrontOfficeMainPagesFactory.java`
+**3. Daftarkan di BackOfficeMainPagesFactory**
 
 ```java
-import org.example.factories.frontoffice.menuA.MenuAFactory;
-
-public class FrontOfficeMainPagesFactory {
-    // ... field yang sudah ada ...
-    private MenuAFactory menuAFactory;  // <- TAMBAH INI
-
-    // ... method yang sudah ada ...
-
-    public MenuAFactory menuA() {       // <- TAMBAH INI
-        if (menuAFactory == null) {
-            menuAFactory = new MenuAFactory(driver);
-        }
-        return menuAFactory;
-    }
+public PayrollFactory payroll() {
+    if (payrollFactory == null) payrollFactory = new PayrollFactory(driver);
+    return payrollFactory;
 }
 ```
 
----
-
-### Langkah 4 ”Tambah Entry di FrontOfficeMenu Enum"
-
-File: `src/main/java/org/example/enums/frontoffice/FrontOfficeMenu.java`
-
-```java
-// Tambahkan entry baru sesuai label di UI
-MENU_A("Menu A"),
-MENU_A_SUB("Sub Menu A");
-```
-
-Navigasi di `FrontOfficeSideMenu` otomatis bekerja karena XPath dibangun dari label enum.
-
----
-
-### Langkah 5 ”Buat Helper Class"
-
-Helper menerima `FrontOfficeMainPagesFactory` (bukan `WebDriver`) lewat constructor, lalu mengambil PageObject dari factory chain. Ini pola yang sama dengan `ManageOrganizationHelper.java`.
-
-Lokasi: `src/test/java/org/example/test/frontoffice/menuA/`
-
-```java
-package org.example.test.frontoffice.menuA;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.example.backOfficeMainPagesFactory.FrontOfficeMainPagesFactory;
-import org.example.pageObject.frontoffice.menuA.DashboardMenuAPage;
-
-public class MenuAHelper {
-    private final Logger logger = LogManager.getLogger(getClass());
-    private final DashboardMenuAPage dashboardMenuAPage;
-
-    // Terima FrontOfficeMainPagesFactory, bukan WebDriver langsung
-    public MenuAHelper(FrontOfficeMainPagesFactory backOfficeMainPagesFactory) {
-        this.dashboardMenuAPage = backOfficeMainPagesFactory.menuA().getDashboardMenuAPage();
-    }
-
-    public boolean isMenuAPageDisplayed() {
-        logger.info("Validate Menu A page is displayed");
-        return dashboardMenuAPage.isMenuAHeaderDisplayed();
-    }
-}
-```
-
----
-
-### Langkah 6 ”Buat ModuleBaseTest"
-
-Pola sama dengan `ManageOrganizationBaseTest.java`: login, navigasi via enum, init Helper dengan `getFrontOfficePages()`, shortcut accessor ke PageObject.
-
-```java
-package org.example.test.frontoffice.menuA;
-
-import org.example.base.FrontOfficeBaseTest;
-import org.example.drivers.DriverManager;
-import org.example.enums.frontoffice.FrontOfficeMenu;
-import org.example.pageObject.frontoffice.menuA.DashboardMenuAPage;
-import org.example.utils.TestDataFactory;
-import org.example.utils.account.AccountAllocator;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-
-public abstract class MenuABaseTest extends FrontOfficeBaseTest {
-
-    private final ThreadLocal<String> loginNip = new ThreadLocal<>();
-    private final ThreadLocal<MenuAHelper> menuAHelper = new ThreadLocal<>();
-
-    @BeforeMethod
-    public void initMenuAContext(org.testng.ITestResult result) {
-        String nip = AccountAllocator.getNip();
-        loginNip.set(nip);
-
-        goToMenuA(nip);
-
-        // Helper menerima getFrontOfficePages(), bukan driver
-        menuAHelper.set(new MenuAHelper(getFrontOfficePages()));
-    }
-
-    protected void goToMenuA(String loginNip) {
-        logger.info("Login untuk user: {}", loginNip);
-        String password = AccountAllocator.getPassword();
-        if (password == null || password.isEmpty()) {
-            password = TestDataFactory.getPassword();
-        }
-
-        getFrontOfficePages().login().getLoginPage().setUsernameField(loginNip);
-        getFrontOfficePages().login().getLoginPage().setPasswordField(password);
-        getFrontOfficePages().login().getLoginPage().clickSignInButton();
-
-        // Navigasi via enum ” type-safe
-        getFrontOfficePages().sideMenu().getFrontOfficeSideMenu()
-                .expandMainMenu(FrontOfficeMenu.MENU_A);
-        getFrontOfficePages().sideMenu().getFrontOfficeSideMenu()
-                .clickSubMenu(FrontOfficeMenu.MENU_A_SUB);
-
-        if (!dashboardMenuAPage().isMenuAHeaderDisplayed()) {
-            throw new RuntimeException("Menu A page header not visible");
-        }
-        logger.info("Berhasil masuk ke Menu A");
-    }
-
-    @AfterMethod(alwaysRun = true)
-    public void cleanMenuAContext() {
-        loginNip.remove();
-        menuAHelper.remove();
-    }
-
-    // Shortcut accessor ke PageObject
-    protected DashboardMenuAPage dashboardMenuAPage() {
-        return getFrontOfficePages().menuA().getDashboardMenuAPage();
-    }
-
-    // Shortcut accessor ke Helper
-    protected MenuAHelper menuAHelper() {
-        return menuAHelper.get();
-    }
-
-    protected String loginNip() {
-        return loginNip.get();
-    }
-}
-```
-
----
-
-### Langkah 7 ”Buat Flow / Test Class"
-
-Test class hanya berisi `@Test` methods dan `Assert`. Akses PageObject selalu melalui Helper atau shortcut accessor dari BaseTest ” tidak pernah langsung ke factory chain.
-
-Pola ini sama persis dengan `ManageOrganizationFlow1.java`.
-
-```java
-package org.example.test.frontoffice.menuA;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-public class MenuAFlow1 extends MenuABaseTest {
-
-    @Test(groups = {"Menu A"}, description = "Validate Menu A page is displayed")
-    public void validateMenuAPageIsDisplayed() {
-        logger.info("Starting test: validateMenuAPageIsDisplayed");
-
-        // Akses via Helper ” pola utama
-        Assert.assertTrue(
-                menuAHelper().isMenuAPageDisplayed(),
-                "Expected Menu A page to be displayed, but it was not."
-        );
-
-        logger.info("Finished test: validateMenuAPageIsDisplayed");
-    }
-
-    @Test(groups = {"Menu A"}, description = "Validate header text")
-    public void validateMenuAHeader() {
-        logger.info("Starting test: validateMenuAHeader");
-
-        // Akses via shortcut accessor dari BaseTest ” untuk aksi sederhana
-        Assert.assertTrue(
-                dashboardMenuAPage().isMenuAHeaderDisplayed(),
-                "Menu A header not displayed"
-        );
-
-        logger.info("Finished test: validateMenuAHeader");
-    }
-}
-```
-
----
-
-### Ringkasan Peran Ketiga Class di Sisi Test
-
-```
-+--------------------+--------------------------------------------------+
-| Class              | Peran                                            |
-+--------------------+--------------------------------------------------+
-| MenuAHelper        | Merangkai aksi multi-langkah yang reusable.      |
-|                    | Tidak ada @Test, tidak extends apapun.           |
-|                    | Menerima FrontOfficeMainPagesFactory via          |
-|                    | constructor (bukan WebDriver langsung).          |
-+--------------------+--------------------------------------------------+
-| MenuABaseTest      | Setup/teardown konteks modul (@Before/@After).   |
-| (abstract)         | Init Helper dengan getFrontOfficePages().        |
-|                    | Navigasi via FrontOfficeMenu enum.               |
-|                    | Menyediakan shortcut accessor ke PageObject.     |
-+--------------------+--------------------------------------------------+
-| MenuAFlow1         | Hanya berisi @Test methods dan Assert.           |
-|                    | Extends MenuABaseTest.                           |
-|                    | Akses PageObject via Helper atau accessor.       |
-|                    | Tidak ada factory chain, tidak ada new XxxPage.  |
-+--------------------+--------------------------------------------------+
-```
-
-### Perbedaan Helper Front Office vs Back Office
-
-| Aspek | Front Office | Back Office |
-|-------|-------------|-------------|
-| Constructor Helper | `FrontOfficeMainPagesFactory` | `MainPagesFactory` + dependency utility dari BaseTest jika dibutuhkan |
-| Contoh nyata | `ManageOrganizationHelper` | `SlaSettingHelper` |
-| Navigasi | Via `FrontOfficeMenu` enum | Via hardcode xpath di SideMenu |
-| Root factory | `getFrontOfficePages()` | `getMainPages()` |
-
-#### A. PageObject sebagai Shortcut (di BaseTest)
-
-Di dalam `ManageOrganizationBaseTest`, Anda menyediakan method accessor seperti:
-
-- `dashboardManageOrganizationPage()`
-- `filterUpdateOrganizationPage()`
-
-#### Fungsinya sebagai Shortcut
-
-Sesuai dengan analisis sebelumnya, method ini di level `BaseTest` memang berfungsi sebagai "jalan pintas" bagi test class untuk melakukan hal-hal sederhana tanpa harus lewat helper, seperti:
-
-- **Simple Verification**  
-  `Assert.assertTrue(dashboardManageOrganizationPage().isSomeElementVisible())`
-
-- **Quick Check**  
-  Pengecekan status elemen sebelum/sesudah langkah utama.
-
-- **Minimal Interaction**  
-  Jika test hanya membutuhkan satu klik sederhana yang tidak memiliki logika bisnis kompleks.
-
----
-
-#### B. Helper sebagai Handler Steps (di ManageOrganizationHelper)
-
-Sedangkan untuk `ManageOrganizationHelper`, Anda telah menggunakannya untuk membungkus alur yang lebih kompleks (multi-steps), contohnya:
-
-- `navigateToUpdateOrganization()`  
-  Meng-handle klik sekaligus melakukan verifikasi transisi halaman.
-
-- `performFilterOrganization(String requestType)`  
-  Meng-handle pengisian form filter yang mungkin melibatkan banyak elemen.
-
----
-
-#### Kesimpulan Arsitektur **Separation of Concerns**:
-
-- **Class Test**  
-  Fokus pada skenario dan assertion.
-
-- **Shortcut BaseTest**  
-  Memberikan fleksibilitas akses cepat ke `PageObject` untuk hal-hal non-bisnis (biasanya hanya untuk verifikasi UI sederhana).
-
-- **Helper**  
-  Menjadi engine yang menjalankan langkah-langkah prosedural/bisnis yang reusable.
-
-
-### Checklist Penambahan Module
-
-```
-[ ] 1. PageObject dibuat di src/main/.../pageObject/<platform>/<namaModul>/
-[ ] 2. Factory dibuat di src/main/.../factories/<platform>/<namaModul>/
-[ ] 3. Factory didaftarkan di FrontOfficeMainPagesFactory (atau MainPagesFactory)
-[ ] 4. Entry enum ditambahkan di FrontOfficeMenu (untuk Front Office)
-       atau locator + method ditambahkan di BackOfficeSideMenu (untuk Back Office)
-[ ] 5. Helper dibuat - constructor menerima root factory dan dependency dari BaseTest, bukan membuat PageObject sendiri
-[ ] 6. XxxBaseTest dibuat: login, navigasi via enum, init Helper, shortcut accessor
-[ ] 7. XxxFlow/XxxTest dibuat ” hanya @Test + Assert, akses via Helper atau accessor
-[ ] 8. Pastikan tidak ada new XxxPage(driver) di Test/Helper
-[ ] 9. Jalankan ArchitectureTest: mvn test -Dtest=ArchitectureTest
-```
+**4. Buat Test Class** yang extend `BackOfficeBaseTest`, lalu daftarkan di `testng.xml`.
 
 ---
 
 ## 4. Penggunaan Enum FrontOfficeMenu
 
-### Lokasi File
-
-```
-src/main/java/org/example/enums/frontoffice/FrontOfficeMenu.java
-```
-
-### Isi Enum
+`FrontOfficeMenu` digunakan untuk navigasi menu di Front Office secara type-safe, menghindari hardcoded string.
 
 ```java
-public enum FrontOfficeMenu {
-    // Main Menus
-    DASHBOARD("Dashboard"),
-    BENEFITS("Benefits"),
-    SELF_SERVICE("Self Service"),
-    MY_ORGANIZATION("My Organization"),
-    HYLEARN("HyLearn"),
-    PERFORMANCE_MANAGEMENT("Performance Management"),
-    HIRING_ONBOARDING("Hiring & Onboarding"),
-    MPP_MONITORING("MPP Monitoring"),
-    FEEDBACK_SURVEY("Feedback & Survey"),
-
-    // Sub Menus (My Organization)
-    ORGANIZATION_STRUCTURE("Organization Structure"),
-    JOB_DESCRIPTION_COMPETENCIES("Job Description & Competencies"),
-    EMPLOYEE_TRANSFER("Employee Transfer"),
-    MANAGE_ORGANIZATION("Manage Organization"),
-    ORGANIZATION_CHANGES_APPROVAL("Organization Changes Approval");
-
-    private final String label;
-
-    FrontOfficeMenu(String label) { this.label = label; }
-
-    public String getLabel() { return label; }
-}
+sideMenuPage.navigateTo(FrontOfficeMenu.MY_ORGANIZATION);
 ```
 
-### Bagaimana Cara Kerjanya
-
-```
-goToManageOrganization() di BaseTest
-    |
-    | memanggil dengan enum value
-    v
-getFrontOfficePages().sideMenu().getFrontOfficeSideMenu()
-    .expandMainMenu(FrontOfficeMenu.MY_ORGANIZATION)
-    |
-    | enum.getLabel() -> "My Organization"
-    v
-XPath: //a[.//span[normalize-space()='My Organization']]
-    |
-    v
-Selenium klik elemen di browser
-```
-
-### Di Mana Enum Ini Digunakan
-
-Didefinisikan di:
-```
-src/main/java/org/example/enums/frontoffice/FrontOfficeMenu.java
-```
-
-Dikonsumsi di (PageObject):
-```
-src/main/java/org/example/pageObject/frontoffice/frontOfficeSideMenu/FrontOfficeSideMenu.java
-```
-
-```java
-public void expandMainMenu(FrontOfficeMenu menu) {
-    By locator = By.xpath(
-        String.format("//a[.//span[normalize-space()='%s']]", menu.getLabel())
-    );
-    click(driver.findElement(locator));
-}
-
-public void clickSubMenu(FrontOfficeMenu subMenu) {
-    By locator = By.xpath(
-        String.format("//*[contains(text(), '%s')]", subMenu.getLabel())
-    );
-    click(driver.findElement(locator));
-}
-```
-
-Dipanggil dari (BaseTest):
-```
-src/test/java/org/example/test/frontoffice/.../ManageOrganizationBaseTest.java
-```
-
-```java
-// Di dalam goToManageOrganization()
-getFrontOfficePages().sideMenu().getFrontOfficeSideMenu()
-        .expandMainMenu(FrontOfficeMenu.MY_ORGANIZATION);
-getFrontOfficePages().sideMenu().getFrontOfficeSideMenu()
-        .clickSubMenu(FrontOfficeMenu.MANAGE_ORGANIZATION);
-```
-
-Enum hanya dipakai di layer **BaseTest** (dalam method `goToXxx`), tidak di Test class maupun Helper.
-
-### Cara Menambah Menu Baru ke Enum
-
-```java
-// Di FrontOfficeMenu.java ” tambahkan satu baris
-NAMA_MENU_BARU("Label Menu di UI");
-```
-
-Tidak perlu ubah kode di tempat lain. XPath akan otomatis terbentuk dari label.
+Jika label menu berubah, cukup update enum tanpa menyentuh test class.
 
 ---
 
 ## 5. Struktur Direktori
 
 ```
-src/
-+-- main/java/org/example/
-|   +-- config/                    # Konfigurasi data test (struktur JSON/Excel)
-|   +-- enums/
-|   |   +-- frontoffice/
-|   |       +-- FrontOfficeMenu.java   <- Enum menu Front Office
-|   +-- factories/
-|   |   +-- backoffice/            # Factory per modul Back Office
-|   |   |   +-- login/
-|   |   |   +-- sideMenu/
-|   |   |   +-- manageOrganization/
-|   |   |   +-- workflowEngine/
-|   |   +-- frontoffice/           # Factory per modul Front Office
-|   |       +-- login/
-|   |       +-- sideMenuFactory/
-|   |       +-- dashboard/
-|   +-- model/                     # Data model (e.g. SlaSettingModel)
-|   +-- pageObject/
-|       +-- base/
-|       |   +-- BasePage.java      <- Base semua PageObject
-|       +-- backoffice/
-|       +-- frontoffice/
-|           +-- frontOfficeSideMenu/
-|           |   +-- FrontOfficeSideMenu.java  <- Konsumen FrontOfficeMenu enum
-|           +-- manageOrganization/
-|               +-- DashboardManageOrganizationPage.java
-|
-+-- test/java/org/example/
-    +-- base/
-    |   +-- BaseTest.java                  <- Setup/teardown WebDriver
-    |   +-- BackOfficeBaseTest.java        <- Init MainPagesFactory
-    |   +-- FrontOfficeBaseTest.java       <- Init FrontOfficeMainPagesFactory
-    +-- drivers/
-    |   +-- DriverManager.java             <- ThreadLocal<WebDriver>
-    +-- backOfficeMainPagesFactory/
-    |   +-- MainPagesFactory.java              <- Root factory Back Office
-    |   +-- FrontOfficeMainPagesFactory.java   <- Root factory Front Office
-    +-- test/
-    |   +-- backoffice/
-    |   |   +-- manageOrganization/
-    |   |       +-- slaSetting/
-    |   |           +-- SlaSettingHelper.java    <- Helper (terima driver + factory)
-    |   |           +-- SlaSettingBaseTest.java  <- Base modul
-    |   |           +-- SlaSettingTest.java      <- Test (@Test + Assert)
-    |   +-- frontoffice/
-    |       +-- myOrganization/
-    |           +-- manageOrganization/
-    |               +-- ManageOrganizationHelper.java   <- Helper (terima factory saja)
-    |               +-- ManageOrganizationBaseTest.java <- Base modul
-    |               +-- ManageOrganizationFlow1.java    <- Flow (@Test + Assert)
-    +-- utils/
-        +-- account/
-        |   +-- AccountAllocator.java  <- Alokasi akun per thread
-        +-- actionUtils/
-        +-- tableUtils/
-        +-- ExcelReader.java
+project-root/
+├── src/main/java/org/example/
+│   ├── config/
+│   │   ├── Config.java
+│   │   ├── slaSettingStructure/
+│   │   │   ├── SlaSettingConfig.java, CreateConfig.java
+│   │   │   ├── EffTodayConfig.java, EffFutureConfig.java
+│   │   │   ├── PropertyConfig.java, SingleConfig.java, MultipleConfig.java
+│   │   │   ├── SlaDetailPropertyConfig.java
+│   │   │   ├── alertConfirmation/
+│   │   │   │   ├── AlertMessageConfig.java, ConfirmationConfig.java
+│   │   │   │   ├── ConfirmationDetailConfig.java, EmptyMandatoryFieldConfig.java
+│   │   │   │   ├── EmptyDataConfig.java, NotifyConfig.java
+│   │   │   └── slaPreviousSetting/SlaExistingConfig.java
+│   │   └── userLoginStructure/UserloginConfig.java
+│   ├── enums/frontoffice/FrontOfficeMenu.java
+│   ├── model/
+│   │   ├── SlaSettingModel.java
+│   │   └── SlaDetailModel.java
+│   ├── pageObject/
+│   │   ├── base/BasePage.java
+│   │   ├── backoffice/ (login, sideMenu, slaSettingMenu, workflowEngineMenu)
+│   │   └── frontoffice/ (login, frontOfficeSideMenu, dashboard, manageOrganization)
+│   ├── factories/
+│   │   ├── backoffice/ (login, sideMenu, manageOrganization, workflowEngine)
+│   │   └── frontoffice/ (login, sideMenuFactory, dashboard, manageOrganization)
+│   └── utils/
+│       ├── ExtentReportNg.java
+│       ├── report/core/ (IAutomationReporter, ReportAPI, ReportEventBus)
+│       ├── report/implementations/extent/ (ExtentImplementation, ExtentTabRenderer, ExtentUIInjector)
+│       ├── report/internal/model/ (LogEntry, LogCategory, ReportData)
+│       ├── report/internal/storage/ (ThreadLocalStore)
+│       └── actionUtils/ (ActionUtils, JsonReader)
+│
+├── src/test/java/org/example/
+│   ├── base/ (BaseTest, BackOfficeBaseTest, FrontOfficeBaseTest)
+│   ├── drivers/DriverManager.java
+│   ├── listener/Listeners.java
+│   ├── mainPagesFactory/ (BackOfficeMainPagesFactory, FrontOfficeMainPagesFactory)
+│   ├── test/
+│   │   ├── backoffice/manageOrganization/slaSetting/
+│   │   │   (AddSlaSettingTest, EditSlaSettingTest, SlaSettingTest, SlaDetailTest)
+│   │   ├── backoffice/workflowEngine/
+│   │   └── frontoffice/myOrganization/
+│   ├── utils/
+│   │   ├── account/AccountAllocator.java
+│   │   ├── CustomAssert.java, ExcelReader.java, TestDataFactory.java, AssertionUtils.java
+│   │   ├── extentReportUtils/ExtentReportAppender.java
+│   │   ├── generateName/ (SlaNameGenerator, SlaNameRepository, SlaPeriodNameService)
+│   │   ├── serviceUtils/ (NetworkMonitor, SeleniumUtils, ApiError)
+│   │   └── tableUtils/TableUtils.java
+│   └── ArchitectureTest.java
+│
+├── src/test/resources/
+│   ├── log4j2.xml
+│   ├── testng/testng.xml
+│   └── data/Data Userlogin.xlsx
+│
+├── reports/
+│   ├── index.html          <- ExtentReports output
+│   ├── capture/            <- Screenshots per test failure
+│   └── spark/              <- ExtentReports assets (offline mode)
+└── logs/
+    └── automation-test.log <- Rolling log files
 ```
 
 ---
 
-## 6. Architecture Rules
+## 6. Architecture Rules (ArchUnit)
 
-Rule arsitektur didefinisikan di:
+Project ini menggunakan **ArchUnit** untuk menegakkan aturan arsitektur secara otomatis sebagai bagian dari test suite.
 
-```
-src/test/java/org/example/ArchitectureTest.java
-```
+**File:** `src/test/java/org/example/ArchitectureTest.java`
 
-Tujuannya adalah menjaga agar class test tidak bypass factory saat mengambil PageObject.
-
-Contoh yang dilarang:
-
-```java
-// Di Test class atau Helper ” DILARANG
-new DashboardManageOrganizationPage(driver);
-new SlaSettingPage(driver);
-```
-
-Contoh yang benar:
-
-```java
-// Di Test class ” via Helper
-manageOrganizationHelper().isManageOrganizationPageDisplayed();
-
-// Di Test class ” via shortcut accessor dari BaseTest
-dashboardManageOrganizationPage().isManageOrganizationHeaderDisplayed();
-
-// Di BaseTest atau Helper ” via factory chain
-getFrontOfficePages().manageOrganization().getDashboardManageOrganizationPage();
-getMainPages().manageOrganization().getSlaSettingFactory().getSlaSettingPage();
-```
-
-Factory di `org.example.factories..` tetap boleh membuat PageObject karena factory adalah jalur resmi pembuatan object.
-
-Jalankan rule:
-
+Menjalankan architecture test saja:
 ```bash
 mvn test -Dtest=ArchitectureTest
 ```
 
 ---
 
-## 7. Scalability & Maintenance (Best Practice)
+## 7. Scalability & Maintenance Best Practice
 
-Seiring bertambahnya jumlah Page Object (PO), framework harus tetap menjaga pemisahan tanggung jawab antara Test, BaseTest, Helper, Factory, dan Page Object.
-
-### A. Avoid "Fat BaseTest"
-Jangan memasukkan semua PO sebagai field permanen di `XxxBaseTest`. Gunakan aturan berikut:
-
-1. **BaseTest hanya untuk setup dan shortcut tipis**: `XxxBaseTest` boleh menyediakan accessor singkat seperti `dashboardManageOrganizationPage()` atau `filterUpdateOrganizationPage()`, tetapi object tetap dibuat melalui factory.
-2. **Helper untuk flow lintas halaman**: rangkaian aksi seperti `Dashboard -> Update Organization -> Filter -> Generate Preview` harus dibungkus di `XxxHelper`, sehingga Test layer tetap fokus pada intent dan assertion.
-3. **Page Object untuk aksi satu halaman**: locator, klik, input, dan pemilihan dropdown tetap berada di Page Object masing-masing.
-4. **Factory sebagai satu pintu pembuatan PO**: jangan instantiate Page Object langsung di Test atau Helper. Selalu akses melalui factory chain.
-
-### B. Fluent Interface (Page Chaining)
-Jika aksi pada satu Page Object mengarah ke halaman lain dan factory tersedia pada level Helper, biarkan Page Object menjalankan klik, lalu Helper mengambil halaman berikutnya dari factory. Ini menjaga Page Object tetap sederhana dan tidak bergantung pada factory.
-
-```java
-// Di DashboardManageOrganizationPage
-public void clickUpdateOrganizationButton() {
-    click(updateOrganizationButton);
-}
-
-// Di ManageOrganizationHelper
-public void navigateToUpdateOrganization() {
-    dashboardManageOrganizationPage.clickUpdateOrganizationButton();
-    if (!filterUpdateOrganizationPage.isUpdateOrganizationHeaderDisplayed()) {
-        throw new RuntimeException("Failed to navigate to Filter Update Organization Page");
-    }
-}
-```
-
-### C. Parallel Safety
-Pastikan semua factory dan helper selalu diakses melalui `ThreadLocal` atau di-instantiate di dalam `@BeforeMethod`. Jangan pernah menggunakan `static` field untuk Page Object atau WebDriver.
-
-Contoh pola aman:
-
-```java
-private final ThreadLocal<ManageOrganizationHelper> manageOrganizationHelper = new ThreadLocal<>();
-
-@BeforeMethod
-public void initManageOrganizationContext() {
-    manageOrganizationHelper.set(new ManageOrganizationHelper(getFrontOfficePages()));
-}
-
-@AfterMethod(alwaysRun = true)
-public void cleanManageOrganizationContext() {
-    manageOrganizationHelper.remove();
-}
-```
+- **Tambah test baru**: Buat class di `test/backoffice/` atau `test/frontoffice/`, extend base test yang sesuai.
+- **Tambah akun test**: Tambah baris di sheet `ACM` pada `Data Userlogin.xlsx`. `AccountAllocator` otomatis mendistribusikannya.
+- **Tambah URL environment**: Tambah baris di sheet `URL` pada `Data Userlogin.xlsx`.
+- **Ubah thread count**: Edit `thread-count` di `testng.xml`.
+- **Tambah module baru**: Ikuti langkah di [section 3](#3-cara-menambah-module-baru).
+- **Ubah tampilan report**: Edit `ExtentUIInjector.java` (CSS/JS) atau `ExtentTabRenderer.java` (struktur HTML). Lihat `report.md` untuk panduan lengkap.
 
 ---
 
 ## 8. Network Monitoring (CDP)
 
-Framework ini dilengkapi dengan fitur **Network Monitoring** menggunakan *Chrome DevTools Protocol (CDP)*. Fitur ini secara otomatis memantau lalu lintas jaringan selama tes berjalan dan mencatat kegagalan API ke dalam laporan.
+Framework ini dilengkapi dengan **Network Monitoring** menggunakan *Chrome DevTools Protocol (CDP)*. Fitur ini otomatis memantau lalu lintas jaringan dan mencatat kegagalan API ke laporan.
+
+**File:** `src/test/java/org/example/utils/serviceUtils/NetworkMonitor.java`
 
 ### Fitur Utama
-- **Auto-Capture Status 5xx**: Setiap respon HTTP dengan status code >= 500 akan ditangkap secara otomatis.
-- **Detailed Logging**: Mencatat URL, Status Code, Status Text, dan Mime Type.
-- **Response Body Capture**: Mencoba mengambil *response body* (JSON/Text) dari API yang gagal untuk memudahkan debugging.
-- **ExtentReports Integration**: Error jaringan akan muncul langsung di dalam laporan tes pada bagian log detail.
+- **Auto-Capture Status 4xx & 5xx**: Setiap respon HTTP 400–599 ditangkap otomatis.
+- **Detailed Logging**: Mencatat URL, Method, Status Code, Status Text, Mime Type.
+- **Response & Request Body Capture**: Mengambil payload request dan response body.
+- **Temporal Filter**: Hanya menampilkan network error sebelum first test failure, mengurangi noise.
+- **ExtentReports Integration**: Error jaringan muncul di tab **NETWORK LOGS** pada laporan.
 
-### Cara Kerja
-`NetworkMonitor` diinisialisasi di dalam `BaseTest` pada setiap `@BeforeMethod`. Listener akan mendengarkan event `Network.responseReceived` dan menyimpan detail error ke dalam antrean asinkron. Jika tes gagal, detail error tersebut akan di-*flush* ke `ExtentTest`.
+### Method Utama
 
-### Troubleshooting
-Jika log tidak muncul di laporan:
-1. Pastikan browser yang digunakan adalah berbasis Chromium (Chrome/Edge).
-2. Periksa konsol IDE untuk log yang diawali dengan `[DEBUG-Network]`.
+| Method | Deskripsi |
+|--------|-----------|
+| `startMonitoring()` | Mulai CDP session dan daftarkan listener untuk network events. |
+| `flushServerErrorsToReport(test, capturedBefore)` | Kirim semua API error ke ReportAPI, filter berdasarkan timestamp. |
+| `stopMonitoring()` | Hentikan CDP session dan bersihkan resource. |
+| `setCurrentMonitor(monitor)` | Simpan monitor ke ThreadLocal. |
+| `removeCurrentMonitor()` | Hapus dari ThreadLocal setelah test selesai. |
 
 ---
 
-## 9. Informasi Tambahan
+## 9. Enhanced Error Logging & CustomAssert
+
+### A. Log4j2 Bridge (ExtentReportAppender)
+
+Semua `logger.info/warn/error()` di Page Object dan utility class **otomatis** masuk ke laporan ExtentReports.
+
+**File:** `src/test/java/org/example/utils/extentReportUtils/ExtentReportAppender.java`
+
+| Log Level | Hasil di Report |
+|-----------|----------------|
+| `logger.error(...)` | `ReportAPI.fail(message, throwable)` → badge FAIL di tab DETAILS |
+| `logger.warn(...)` | `ReportAPI.step("WARN: " + message)` → badge INFO di tab DETAILS |
+| `logger.info(...)` | `ReportAPI.step(message)` → badge INFO di tab DETAILS |
+
+Log diabaikan jika tidak ada test aktif atau jika `testMethod` di ThreadContext berbeda (parallel safety).
+
+### B. Deteksi Otomatis Kegagalan Elemen
+
+`BasePage` menggunakan `logger.warn()` untuk kondisi seperti elemen tidak visible. Karena Log4j2 bridge aktif, pesan ini otomatis masuk ke laporan sebagai diagnostik tanpa mengotori Page Object dengan kode reporting.
+
+### C. CustomAssert
+
+Gunakan `CustomAssert` sebagai pengganti `Assert` bawaan TestNG.
+
+**File:** `src/test/java/org/example/utils/CustomAssert.java`
+
+```java
+// Pakai ini (bukan Assert.assertEquals):
+CustomAssert.assertEquals(actual, expected, "Pesan error");
+CustomAssert.assertTrue(condition, "Pesan error");
+```
+
+| Method | Deskripsi |
+|--------|-----------|
+| `assertTrue(condition, message)` | Assert true + log ke ReportAPI. |
+| `assertEquals(actual, expected, message)` | Assert equals + log ke ReportAPI. |
+| `assertFalse(condition, message)` | Assert false + log ke ReportAPI. |
+| `fail(message)` | Manual failure + log ke ReportAPI. |
+
+---
+
+## 10. Account Allocator & Excel Data
+
+### AccountAllocator
+
+**File:** `src/test/java/org/example/utils/account/AccountAllocator.java`
+
+Mengelola distribusi akun test ke thread paralel secara round-robin per role. Thread-safe dengan `ConcurrentHashMap`.
+
+| Method | Deskripsi |
+|--------|-----------|
+| `allocateAccount(testName, role)` | Ambil akun tersedia untuk role tertentu. |
+| `getNip()` / `getUsername()` / `getPassword()` | Ambil kredensial akun yang dialokasikan ke thread ini. |
+| `getUrl(interfaceType)` | Ambil URL berdasarkan tipe interface. |
+| `releaseAccount()` | Kembalikan akun ke pool setelah test selesai. |
+
+### ExcelReader & Data File
+
+**File:** `src/test/java/org/example/utils/ExcelReader.java`  
+**Data:** `src/test/java/resources/data/Data Userlogin.xlsx`
+
+**Sheet ACM** — data akun per role:
+
+| Kolom | Deskripsi |
+|-------|-----------|
+| role | Role pengguna |
+| nip | Nomor Induk Pegawai |
+| username | Username login |
+| password | Password login |
+
+**Sheet URL** — URL per environment:
+
+| Kolom | Deskripsi |
+|-------|-----------|
+| interface | Nama interface (backoffice_staging, frontoffice_staging) |
+| url | URL target |
+
+Untuk menambah akun atau environment baru, cukup tambah baris di sheet yang sesuai.
+
+---
+
+## 11. Log4j2 Bridge (ExtentReportAppender)
+
+**File konfigurasi:** `src/test/resources/log4j2.xml`
+
+```xml
+<Configuration packages="org.example.utils">
+    <Appenders>
+        <ExtentReportAppender name="extent">
+            <PatternLayout pattern="%msg%n" />
+        </ExtentReportAppender>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.example" level="DEBUG" additivity="false">
+            <AppenderRef ref="extent" />
+        </Logger>
+    </Loggers>
+</Configuration>
+```
+
+Anotasi plugin: `@Plugin(name = "ExtentReportAppender", category = "Core")`.  
+Package `org.example.utils` harus terdaftar di atribut `packages` pada `<Configuration>` agar Log4j2 menemukan plugin ini saat startup.
+
+---
+
+## 12. Informasi Tambahan
 
 ### Thread Safety dan Parallel Execution
 
-| Komponen | ThreadLocal Type | Tujuan |
-|----------|-----------------|--------|
+| Komponen | ThreadLocal | Tujuan |
+|----------|-------------|--------|
 | `DriverManager` | `ThreadLocal<WebDriver>` | Setiap thread punya driver sendiri |
+| `BackOfficeBaseTest.mainPages` | `ThreadLocal<BackOfficeMainPagesFactory>` | Factory tidak di-share antar thread |
 | `FrontOfficeBaseTest.mainPages` | `ThreadLocal<FrontOfficeMainPagesFactory>` | Factory tidak di-share antar thread |
-| `BackOfficeBaseTest.mainPages` | `ThreadLocal<MainPagesFactory>` | Factory tidak di-share antar thread |
 | `AccountAllocator.currentAccount` | `ThreadLocal<UserloginConfig>` | Akun tidak bentrok antar thread |
+| `ExtentImplementation.test` | `ThreadLocal<ExtentTest>` | Test node Extent per thread |
+| `ThreadLocalStore` | `ThreadLocal<ReportData>` | Log storage per thread |
+| `NetworkMonitor.currentMonitor` | `ThreadLocal<NetworkMonitor>` | Monitor CDP per thread |
+
+Konfigurasi paralel di `testng.xml`:
+```xml
+<suite name="Test End To End" parallel="methods" thread-count="3">
+```
 
 ### Lazy Initialization Pattern
 
-Semua factory menggunakan pola ini:
-
 ```java
-public DashboardMenuAPage getDashboardMenuAPage() {
-    if (dashboardMenuAPage == null) {
-        dashboardMenuAPage = new DashboardMenuAPage(driver);
+public SlaSettingPage getSlaSettingPage() {
+    if (slaSettingPage == null) {
+        slaSettingPage = new SlaSettingPage(driver);
     }
-    return dashboardMenuAPage;
+    return slaSettingPage;
 }
 ```
-
-### Data Test dari Excel
-
-```
-src/test/java/resources/data/Data Userlogin.xlsx
-```
-
-Kolom: `role`, `nip`, `username`, `password`, `urlBackOffice`, `urlFrontOffice`
-
-Akun dikelompokkan per role dan didistribusikan round-robin ke thread paralel.
 
 ### Menjalankan Test
 
 ```bash
-# Semua test
+# Semua test sesuai testng.xml
 mvn test
 
-# Group tertentu
-mvn test -Dgroups="Manage Organization"
+# Test class tertentu
+mvn test -Dtest=AddSlaSettingTest
 
-# Architecture rule saja
+# Architecture rules saja
 mvn test -Dtest=ArchitectureTest
 ```
 
 ### Laporan Test
 
-- `reports/index.html` ” ExtentReports HTML report
-- `logs/automation-test.log` ” Log lengkap per eksekusi
+- `reports/index.html` — ExtentReports HTML report (offline, bisa dibuka tanpa internet)
+- `reports/capture/` — Screenshot per test failure, diorganisir per timestamp
+- `logs/automation-test.log` — Log lengkap, rolling harian, retensi 30 hari
 
 ### Dependency Utama
 
 | Library | Versi | Kegunaan |
 |---------|-------|----------|
-| Selenium | 4.35.0 | Browser automation |
+| Selenium Java | 4.44.0 | Browser automation |
+| Selenium DevTools v148 | 4.44.0 | Chrome DevTools Protocol (CDP) |
 | TestNG | 7.10.2 | Test framework dan parallelism |
 | ExtentReports | 5.0.9 | HTML test report |
 | Log4j2 | 2.24.3 | Logging |
 | Apache POI | 5.3.0 | Baca data dari Excel |
-| Gson | 2.12.1 | Parse JSON config |
+| Gson | 2.12.1 | Parse JSON (config & network response) |
 | Lombok | 1.18.30 | Boilerplate reduction |
 | ArchUnit | 1.4.1 | Architecture rule testing |
+| Commons IO | 2.20.0 | File utilities (screenshot) |

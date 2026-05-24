@@ -2,32 +2,50 @@ package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlo
 
 import org.example.pageObject.base.BasePage;
 import org.openqa.selenium.By;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.pagefactory.AjaxElementLocatorFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class JobSectionComponent extends BasePage {
-    private final WebElement root;
+    private WebElement root;
+    private final int index;
 
-    public JobSectionComponent(WebDriver driver, WebElement root) {
+    public JobSectionComponent(WebDriver driver, WebElement root, int index) {
         super(driver);
         PageFactory.initElements(driver, this);
         this.root = root;
+        this.index = index;
+    }
+
+    private WebElement getFreshRoot() {
+        try {
+            root.isDisplayed();
+            return root;
+        } catch (StaleElementReferenceException e) {
+            logger.debug("JobSection root is stale, re-locating at index {}", index);
+            List<WebElement> sections = driver.findElements(
+                    By.xpath("//span[contains(.,'Job & Position')]/ancestor::div[contains(@class,'border rounded-lg')]")
+            );
+            root = sections.get(index);
+            return root;
+        }
     }
 
 
     // relative locator
     private WebElement jobNameDropdown() {
-        return root.findElement(
+        return getFreshRoot().findElement(
                 By.xpath(".//label[contains(.,'Job Name')]/following::button[@role='combobox'][1]")
         );
     }
 
     private WebElement addPositionButton() {
-        return root.findElement(
+        return getFreshRoot().findElement(
                 By.xpath(".//button[contains(.,'+ Add Position')]")
         );
     }
@@ -42,14 +60,14 @@ public class JobSectionComponent extends BasePage {
 
     public List<PositionSectionComponent> getPositions() {
 
-        List<WebElement> positions = root.findElements(
+        List<WebElement> positions = getFreshRoot().findElements(
                 By.xpath(".//span[contains(.,'Position')]/ancestor::div[contains(@class,'border rounded-lg')]")
         );
 
         List<PositionSectionComponent> result = new ArrayList<>();
 
-        for (WebElement position : positions) {
-            result.add(new PositionSectionComponent(driver, position));
+        for (int i = 0; i < positions.size(); i++) {
+            result.add(new PositionSectionComponent(driver, positions.get(i), i, this::getFreshRoot));
         }
 
         return result;
