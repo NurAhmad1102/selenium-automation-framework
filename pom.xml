@@ -14,6 +14,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.compiler.source>17</project.compiler.source>
     <project.compiler.target>17</project.compiler.target>
+    <selenium.version>4.44.0</selenium.version>
   </properties>
 
   <dependencies>
@@ -36,7 +37,13 @@
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
-      <version>4.35.0</version>
+      <version>${selenium.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-devtools-v148</artifactId>
+      <version>${selenium.version}</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.aventstack/extentreports -->
     <dependency>

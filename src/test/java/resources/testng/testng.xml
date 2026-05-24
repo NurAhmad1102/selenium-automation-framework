@@ -24,28 +24,28 @@
                     <include name="saveSlaSettingStatusNotStarted"/>
                 </methods>
             </class>
-<!--            <class name="org.example.test.backoffice.manageOrganization.slaSetting.EditSlaSettingTest">-->
-<!--                <methods>-->
-<!--                    <include name="editSlaSettingStatusDraft"/>-->
-<!--                    <include name="editSlaSettingStatusNotStarted"/>-->
-<!--                </methods>-->
-<!--            </class>-->
-<!--            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaSettingTest">-->
-<!--                <methods>-->
-<!--                    <include name="checkDetailSlaSettingActive"/>-->
-<!--                    <include name="checkDetailSlaSettingInActive"/>-->
-<!--                    <include name="deleteSlaSettingStatusNotStarted"/>-->
-<!--                    <include name="deleteSlaSettingStatusDraft"/>-->
-<!--                </methods>-->
-<!--            </class>-->
-<!--            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaDetailTest">-->
-<!--                <methods>-->
-<!--                    <include name="selectCopyFromPrevious"/>-->
-<!--                    <include name="editSlaDetail"/>-->
-<!--                    <include name="deleteSlaDetail"/>-->
-<!--                    <include name="addSlaDetail"/>-->
-<!--                </methods>-->
-<!--            </class>-->
+            <class name="org.example.test.backoffice.manageOrganization.slaSetting.EditSlaSettingTest">
+                <methods>
+                    <include name="editSlaSettingStatusDraft"/>
+                    <include name="editSlaSettingStatusNotStarted"/>
+                </methods>
+            </class>
+            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaSettingTest">
+                <methods>
+                    <include name="checkDetailSlaSettingActive"/>
+                    <include name="checkDetailSlaSettingInActive"/>
+                    <include name="deleteSlaSettingStatusNotStarted"/>
+                    <include name="deleteSlaSettingStatusDraft"/>
+                </methods>
+            </class>
+            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaDetailTest">
+                <methods>
+                    <include name="selectCopyFromPrevious"/>
+                    <include name="editSlaDetail"/>
+                    <include name="deleteSlaDetail"/>
+                    <include name="addSlaDetail"/>
+                </methods>
+            </class>
         </classes>
     </test>
 

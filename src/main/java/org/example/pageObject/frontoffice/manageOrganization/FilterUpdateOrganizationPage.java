@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.pagefactory.AjaxElementLocatorFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -44,8 +45,7 @@ public class FilterUpdateOrganizationPage extends BasePage {
     @FindBy(xpath = "//div[label[text()[normalize-space()='Department']]]//button[@role='combobox']")
     private WebElement departmentDropdown;
 
-    @FindBy(xpath = "//div[@role='combobox']//input[@placeholder='Search'] | //input[@placeholder='Search']")
-    private WebElement searchDropdownOption;
+    private final By searchDropdownOption = By.xpath("//div[@role='combobox']//input[@placeholder='Search'] | //input[@placeholder='Search']");
 
     @FindBy(xpath = "//button[text()='Generate Preview']")
     private WebElement generatePreviewButton;
@@ -86,7 +86,10 @@ public class FilterUpdateOrganizationPage extends BasePage {
         click(divisionDropdown);
     }
 
-    public void setSearchDropdownOption(String searchOption) { typeText(searchDropdownOption, searchOption); }
+    public void setSearchDropdownOption(String searchOption) { 
+        WebElement searchInput = wait.until(ExpectedConditions.visibilityOfElementLocated(searchDropdownOption));
+        typeText(searchInput, searchOption); 
+    }
 
     public void clickDepartmentDropdown() {
         click(departmentDropdown);

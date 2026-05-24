@@ -12,20 +12,20 @@ import java.util.Date;
 
 public class SeleniumUtils {
 
-        public String getScreenShotPath(String testCastName, WebDriver driver) throws IOException {
+    public String getScreenShotPath(String testCastName, WebDriver driver) throws IOException {
         String RUN_TIME_STAMP = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
-        String FOLDER_PATH = System.getProperty("user.dir")+ "//reports//capture//"+ RUN_TIME_STAMP;
+        String folderName = "capture/" + RUN_TIME_STAMP;
+        String FOLDER_PATH = System.getProperty("user.dir") + File.separator + "reports" + File.separator + folderName.replace("/", File.separator);
 
-//        TakesScreenshot screenshot = (TakesScreenshot) driver;
-//        File source = screenshot.getScreenshotAs(OutputType.FILE);
         File source = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
 
         File folder = new File(FOLDER_PATH);
-        if(!folder.exists()) folder.mkdirs(); //buat kalo gak ada cok
+        if(!folder.exists()) folder.mkdirs();
 
-        String destinationFile = FOLDER_PATH+"//"+testCastName+".png";
+        String destinationFile = FOLDER_PATH + File.separator + testCastName + ".png";
         FileUtils.copyFile(source, new File(destinationFile));
-        return destinationFile;
+        
+        // Return relative path for ExtentReports embedding
+        return folderName + "/" + testCastName + ".png";
     }
-
 }
