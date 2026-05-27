@@ -43,7 +43,7 @@ public abstract class BaseTest {
         options.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
 //        options.setPageLoadStrategy(org.openqa.selenium.PageLoadStrategy.EAGER);
 //        options.addArguments("--headless=new", "--disable-gpu", "--window-size=1920,1080");
-        options.addArguments("--force-device-scale-factor=0.90");
+        options.addArguments("--force-device-scale-factor=1");
 
         ChromeDriver localDriver = new ChromeDriver(options);
         DriverManager.setDriver(localDriver);

@@ -18,12 +18,17 @@
 <!--                    <include name="validateGeneratePreviewTest"/>-->
 <!--                </methods>-->
 <!--            </class>-->
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization.AddOrganizationTest">
+<!--            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization.AddOrganizationTest">-->
+<!--                <methods>-->
+<!--                    <include name="addNewOrganizationTest"/>-->
+<!--                    <include name="addOrganizationWithExistingOrganizationNameTest"/>-->
+<!--                    <include name="addOrganizationWithExistingPositionNameTest"/>-->
+<!--                </methods>-->
+<!--            </class>-->
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization.RemoveOrganizationTest">
                 <methods>
-<!--                    <include name="validateManageOrganizationPageIsDisplayed"/>-->
-                    <include name="addNewOrganizationTest"/>
-                    <include name="addOrganizationWithExistingOrganizationNameTest"/>
-                    <include name="addOrganizationWithExistingPositionNameTest"/>
+<!--                    <include name="removeExistingOrganizationTest"/>-->
+                    <include name="removeNewOrganizationTest"/>
                 </methods>
             </class>
         </classes>

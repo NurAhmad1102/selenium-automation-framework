@@ -96,6 +96,11 @@ public class ActionUtils extends BasePage {
         return action.substring(0, 1).toUpperCase() + action.substring(1).toLowerCase();
     }
 
+    public void clickCoordinateWithJS(int x, int y) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("document.elementFromPoint(arguments[0], arguments[1]).click();", x, y);
+    }
+
 
 
 

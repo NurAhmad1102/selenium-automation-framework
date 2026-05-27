@@ -27,6 +27,8 @@ public class ExtentTabRenderer {
         DateTimeFormatter.ofPattern("h:mm:ss a")
                          .withZone(ZoneId.systemDefault());
 
+    private static final Gson GSON_PRETTY = new GsonBuilder().setPrettyPrinting().create();
+
     public static String render(ReportData data) {
         String uniqueId = UUID.randomUUID().toString().substring(0, 8);
         List<LogEntry> allLogs = data.getLogs().stream()
@@ -144,20 +146,19 @@ public class ExtentTabRenderer {
             }
 
             if (log.getRequest() != null && !log.getRequest().isBlank()) {
+                String formattedRequest = jsonFormatter(log.getRequest());
+
                 html.append("<div style='margin-top:10px;'><b>Request Payload:</b></div>")
                     .append("<pre class='code-block'>")
-                    .append(escapeHtml(log.getRequest()))
+                    .append(escapeHtml(formattedRequest))
                     .append("</pre>");
             }
 
             if (log.getResponse() != null && !log.getResponse().isBlank()) {
                 String formattedJson = log.getResponse();
-
                 try {
                     // pretty-print JSON
-                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                    JsonElement element = JsonParser.parseString(formattedJson);
-                    formattedJson = gson.toJson(element);
+                    formattedJson = jsonFormatter(formattedJson);
                 } catch (Exception e) {
                     // If parsing fails, fall back to raw response
                 }
@@ -228,4 +229,11 @@ public class ExtentTabRenderer {
         }
         return builder.toString();
     }
+
+    private static String jsonFormatter(String rawJson) {
+        JsonElement element = JsonParser.parseString(rawJson);
+        rawJson = GSON_PRETTY.toJson(element);
+        return rawJson;
+    }
+
 }

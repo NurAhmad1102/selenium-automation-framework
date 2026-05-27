@@ -47,6 +47,11 @@ public class SetOrganizationPage extends BasePage {
         return isVisible(By.xpath(xpath));
     }
 
+    public boolean isNodeOrganizationInvisible(String orgName) {
+        String xpath = String.format("//span[text()='%s']", orgName);
+        return isNotVisible(By.xpath(xpath));
+    }
+
     public void selectMenuActionFlow1(OrgMenuAction orgMenuAction){
         String xpathExpression = String.format("//div[@role='menuitem' and normalize-space()='%s']", orgMenuAction.getActionName());
         WebElement menuItem = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathExpression)));

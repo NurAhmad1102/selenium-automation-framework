@@ -67,9 +67,14 @@ public class SetOrganizationHelper {
         setOrganizationPage.selectMenuActionFlow1(action);
     }
 
-    public boolean isNodeOrganization(String orgName) {
+    public boolean isNodeOrganizationDisplayed(String orgName) {
         logger.info("Step: Search Organization Name: Get Organization Node: {}", orgName);
         return setOrganizationPage.isNodeOrganizationDisplayed(orgName);
+    }
+
+    public boolean isNodeOrganizationInvisible(String orgName) {
+        logger.info("Step: Search Organization Name: Get Organization Node: {}", orgName);
+        return setOrganizationPage.isNodeOrganizationInvisible(orgName);
     }
 
     public boolean isInlineErrorMessageDisplayed(String orgName) {
@@ -111,10 +116,10 @@ public class SetOrganizationHelper {
 
 //    ADD NEW ORG
     public void addNewOrganization(OrganizationTestData data) {
-        logger.info("Phase: --- Adding New Organization ---");
+        logger.info("Phase: --- Adding New Organization: {}---", data.getNewOrganizationName());
         clickKebabButtonOfNode(data.getParentOrganization(), OrgMenuAction.ADD_NEW);
 
-        logger.info("Step: Inputting New Organization Name [{}]", data.getNewOrganizationName());
+        logger.info("Step: Inputting New Organization Name: {}", data.getNewOrganizationName());
         addFormModal.setOrgNewName(data.getNewOrganizationName());
 
         logger.info("Step: Selecting RC Code [{}]", data.getRcCode());
@@ -124,6 +129,14 @@ public class SetOrganizationHelper {
         addFormModal.clickNext();
     }
 
+//    REMOVE ORGANIZATION
+    public void removeOrganization(String organizationName) {
+        logger.info("Phase: --- Remove Organization: {}---", organizationName);
+        clickKebabButtonOfNode(organizationName, OrgMenuAction.REMOVE);
+    }
+
+
+//    AFTER ACTIONS
     public void confirmAction(String actionName) {
         logger.info("Step: Confirming action: {}", actionName);
         Assert.assertTrue(confirmationActionModal.isConfirmationModalActionDisplayed(actionName),
@@ -131,11 +144,11 @@ public class SetOrganizationHelper {
         confirmationActionModal.clickYesButton();
     }
 
-    public void verifySuccessAndContinue(String successAction, String description) {
+    public void verifySuccessAndContinue(String successAction) {
         logger.info("Step: Verifying success modal for action: {}", successAction);
         Assert.assertTrue(successModal.isSuccessModalHeaderDisplayed(successAction),
                 "Success modal header is not displayed for action: " + successAction);
-        Assert.assertTrue(successModal.isSuccessModalDescriptionDisplayed(description),
+        Assert.assertTrue(successModal.isSuccessModalDescriptionDisplayed(successAction),
                 "Success modal description is not correct for action: " + successAction);
         Assert.assertTrue(successModal.isSuccessModalImageDisplayed(), "Confetti image is not displayed");
         successModal.clickContinueButton();

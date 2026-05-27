@@ -31,9 +31,9 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
 
         setOrganizationHelper().confirmAction("Add");
 
-        setOrganizationHelper().verifySuccessAndContinue("Added", "Selected organization has been successfully added");
+        setOrganizationHelper().verifySuccessAndContinue("Added");
 
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganization(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
     }
 
     @Test(description = "Verify that user cannot add new organization with existing organization name")

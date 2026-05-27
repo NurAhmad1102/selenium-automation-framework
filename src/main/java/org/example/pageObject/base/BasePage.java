@@ -69,6 +69,21 @@ public class BasePage {
         }
     }
 
+//     This method is specifically for cases where standard click consistently fails due to complex UI layers, and we want to bypass Selenium's clickability checks.
+    protected void clickWithJS(By locator) {
+        try {
+            logger.debug("Forcing JS Click on locator: {}", locator);
+            // tunggu sampai elemen ada di sialan muncul DOM, tidak buthu nunggu clickable
+            WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+            ReportAPI.step("Action: JS Click locator [" + locator + "]");
+        } catch (Exception e) {
+            handleActionFailure("clickWithJS", locator, e);
+        }
+    }
+
+
     protected void typeText(WebElement element, String text){
         String description = getElementDescription(element);
         try {
@@ -95,6 +110,7 @@ public class BasePage {
         }
     }
 
+//    IS VISIBLE
     protected boolean isVisible(WebElement element){
         try {
             return wait.until(ExpectedConditions.visibilityOf(element)).isDisplayed();
@@ -117,6 +133,31 @@ public class BasePage {
             return false;
         }
     }
+
+// INVISIBLE
+    protected boolean isNotVisible(WebElement element){
+        try {
+            return wait.until(ExpectedConditions.invisibilityOf(element));
+        } catch (TimeoutException | NoSuchElementException | StaleElementReferenceException e) {
+            String msg = "Element still visible: " + getElementDescription(element);
+            logger.debug(msg);
+            ReportAPI.elementError("visibility check", element.toString(), e);
+            return false;
+        }
+    }
+
+    protected boolean isNotVisible(By locator) {
+        try {
+            return wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+        } catch (TimeoutException e) {
+            String msg = "Locator still visible: " + locator;
+            logger.debug(msg);
+            ReportAPI.elementError("visibility check", "Locator: " + locator, e);
+            return false;
+        }
+    }
+
+
 
     private void handleActionFailure(String action, Object target, Exception e) {
         String description = (target instanceof WebElement) ? getElementDescription((WebElement) target) : target.toString();
@@ -159,6 +200,7 @@ public class BasePage {
         }
     }
 
+//    DROPDOWN
     protected void selectDropdownModal(WebElement element, String option){
         logger.info("Step: Open Dropdown and select: {}", option);
         click(element);
@@ -234,5 +276,6 @@ public class BasePage {
             return false;
         }
     }
+//
 
 }
