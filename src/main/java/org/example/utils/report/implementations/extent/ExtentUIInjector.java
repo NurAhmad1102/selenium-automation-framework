@@ -24,6 +24,7 @@ public class ExtentUIInjector {
             .badge-info { background: #00bcd4; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
             .badge-pass { background: #00af66; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
             .badge-fail { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+            .badge-skip { background: #f39c12; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
             .network-detail-label { font-weight: bold; color: #555; width: 100px; display: inline-block; }
             
             /* Pure CSS controls to hide original Extent table elements and show tabbed wrapper full-width */

@@ -44,6 +44,22 @@ public class ReportAPI {
         post(entry);
     }
 
+    public static void skip(String message) {
+        log(LogCategory.DETAILS, Status.SKIP, message);
+    }
+
+    public static void skip(Throwable error) {
+        LogEntry entry = new LogEntry(LogCategory.DETAILS, Status.SKIP, "Test Execution Skipped");
+        entry.setError(error);
+        post(entry);
+    }
+
+    public static void skip(String message, Throwable error) {
+        LogEntry entry = new LogEntry(LogCategory.DETAILS, Status.SKIP, message);
+        entry.setError(error);
+        post(entry);
+    }
+
     public static void elementError(String locator, Throwable error) {
         elementError(null, locator, error);
     }
@@ -164,5 +180,35 @@ public class ReportAPI {
             }
         }
         return result.toString();
+    }
+
+    public static boolean isInfrastructureSkip(Throwable throwable) {
+        if (throwable == null) {
+            return true;
+        }
+        if (throwable.getClass().getName().equals("org.testng.SkipException")) {
+            return true;
+        }
+
+        String message = throwable.getMessage();
+        if (message != null) {
+            String lowerMessage = message.toLowerCase();
+            if (lowerMessage.contains("err_connection_timed_out") ||
+                lowerMessage.contains("err_connection_refused") ||
+                lowerMessage.contains("connection timed out") ||
+                lowerMessage.contains("sessionnotcreatedexception") ||
+                lowerMessage.contains("session not created") ||
+                lowerMessage.contains("nosuchsessionexception") ||
+                lowerMessage.contains("no such session")) {
+                return true;
+            }
+        }
+
+        Throwable cause = throwable.getCause();
+        if (cause != null && cause != throwable) {
+            return isInfrastructureSkip(cause);
+        }
+
+        return false;
     }
 }

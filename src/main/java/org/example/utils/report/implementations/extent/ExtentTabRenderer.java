@@ -207,6 +207,9 @@ public class ExtentTabRenderer {
         if (status == Status.PASS) {
             return "badge-pass";
         }
+        if (status == Status.SKIP) {
+            return "badge-skip";
+        }
         return "badge-info";
     }
 

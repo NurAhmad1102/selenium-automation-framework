@@ -21,9 +21,7 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
     @Test(description = "Verify Remove existing organization")
     public void removeExistingOrganizationTest() {
         logger.info("Starting test: removeOrganization");
-        String organizationToRemove = data.get().getParentOrganization();
-
-        manageOrganizationHelper().goToFlow1();
+        String organizationToRemove = data.get().getPrimaryOrganization();        manageOrganizationHelper().goToFlow1();
         CustomAssert.assertTrue(setOrganizationFlow1Page().isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
 
         setOrganizationHelper().removeOrganization(organizationToRemove);

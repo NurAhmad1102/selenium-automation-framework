@@ -132,7 +132,8 @@ src/
         ├── extentReportUtils/
         │   └── ExtentReportAppender.java                [Log4j2 → ReportAPI bridge]
         └── serviceUtils/
-            └── NetworkMonitor.java                      [CDP network monitoring → ReportAPI]
+            ├── NetworkMonitor.java                      [CDP network monitoring → ReportAPI]
+            └── CdpVersionHelper.java                    [reflection engine untuk versi CDP mandiri]
 ```
 
 ---

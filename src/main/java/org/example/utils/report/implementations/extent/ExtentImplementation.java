@@ -63,8 +63,11 @@ public class ExtentImplementation implements IAutomationReporter {
 
             // Handle overall test status
             boolean hasFailures = data.getLogs().stream().anyMatch(l -> l.getStatus() == Status.FAIL);
+            boolean hasSkips = data.getLogs().stream().anyMatch(l -> l.getStatus() == Status.SKIP);
             if (hasFailures) {
                 currentTest.fail("Test failed. Check ELEMENT LOGS or NETWORK LOGS tabs for details.");
+            } else if (hasSkips) {
+                currentTest.skip("Test skipped.");
             } else {
                 currentTest.pass("Test passed.");
             }

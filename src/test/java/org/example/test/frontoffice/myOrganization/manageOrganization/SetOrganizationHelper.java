@@ -12,7 +12,12 @@ import org.testng.Assert;
 public class SetOrganizationHelper {
     private final Logger logger = LogManager.getLogger(getClass());
     private final SetOrganizationPage setOrganizationPage;
+
     private final AddFormModal addFormModal;
+    private final MergeFormModal mergeFormModal;
+    private final RenameFormModal renameFormModal;
+    private final MoveFormModal moveFormModal;
+    private final SplitFormModal splitFormModal;
     private final AddJobPositionModal addJobPositionModal;
     private final ConfirmationActionModal confirmationActionModal;
     private final SuccessModal successModal;
@@ -24,6 +29,19 @@ public class SetOrganizationHelper {
         this.addFormModal = mainPagesFactory.manageOrganization()
                 .modals()
                 .getAddFormModal();
+        this.mergeFormModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getMergeFormModal();
+        this.renameFormModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getRenameFormModal();
+        this.moveFormModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getMoveFormModal();
+        this.splitFormModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getSplitFormModal();
+
         this.addJobPositionModal = mainPagesFactory.manageOrganization()
                 .modals()
                 .getAddJobPositionModal();
@@ -38,7 +56,8 @@ public class SetOrganizationHelper {
 
     private void initializeDefaultData() {
         data = new OrganizationTestData();
-        data.setParentOrganization("O223 Network Sales Digitalization D2 ID");
+        data.setPrimaryOrganization("O223 Network Sales Digitalization D2 ID");
+        data.setMergeOrganizationWith("org apa saja");
         data.setNewOrganizationName("New Organization");
         data.setRcCode("1611.00007.0401");
 
@@ -101,8 +120,8 @@ public class SetOrganizationHelper {
         logger.info("Step: Selecting Location [{}]", data.getLocation());
         positionSection.selectLocation(data.getLocation());
 
-        logger.info("Step: Selecting Parent Position [{}]", data.getParentPosition());
-        positionSection.selectParentPositionName(data.getParentPosition());
+        logger.info("Step: Selecting Parent Position [{}]", data.getPrimaryOrganization());
+        positionSection.selectParentPositionName(data.getPrimaryOrganization());
 
         logger.info("Step: Setting FTE to [{}]", data.getFteNumbers());
         positionSection.setFTE(data.getFteNumbers());
@@ -117,7 +136,7 @@ public class SetOrganizationHelper {
 //    ADD NEW ORG
     public void addNewOrganization(OrganizationTestData data) {
         logger.info("Phase: --- Adding New Organization: {}---", data.getNewOrganizationName());
-        clickKebabButtonOfNode(data.getParentOrganization(), OrgMenuAction.ADD_NEW);
+        clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.ADD_NEW);
 
         logger.info("Step: Inputting New Organization Name: {}", data.getNewOrganizationName());
         addFormModal.setOrgNewName(data.getNewOrganizationName());
@@ -133,6 +152,34 @@ public class SetOrganizationHelper {
     public void removeOrganization(String organizationName) {
         logger.info("Phase: --- Remove Organization: {}---", organizationName);
         clickKebabButtonOfNode(organizationName, OrgMenuAction.REMOVE);
+    }
+
+    public void renameOrganization(OrganizationTestData data) {
+        logger.info("Phase: --- Rename Organization: {}---", data.getPrimaryOrganization());
+        clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.RENAME);
+        setOrganizationName(data);
+    }
+
+    public void mergeOrganization(OrganizationTestData data) {
+        logger.info("Phase: --- Merge Organization: {}---", data.getPrimaryOrganization());
+        clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.MERGE);
+
+        logger.info("Step: select Merge Organization with: {}", data.getMergeOrganizationWith());
+        mergeFormModal.clickMergeOrgWithDropdown(data.getMergeOrganizationWith());
+        logger.info("Step: Clicking Next to proceed to confirmation modal");
+        mergeFormModal.clickNext();
+
+        setOrganizationName(data);
+    }
+
+    private void setOrganizationName(OrganizationTestData data) {
+        logger.info("Phase: --- Set Organization Name: {}---", data.getPrimaryOrganization());
+        logger.info("Step: Inputting New Organization Name: {}", data.getNewOrganizationName());
+        addFormModal.setOrgNewName(data.getNewOrganizationName());
+        logger.info("Step: Selecting RC Code [{}]", data.getRcCode());
+        addFormModal.clickRCCodeDropdown(data.getRcCode());
+        logger.info("Action: Clicking Next to proceed to Job Position modal");
+        addFormModal.clickNext();
     }
 
 

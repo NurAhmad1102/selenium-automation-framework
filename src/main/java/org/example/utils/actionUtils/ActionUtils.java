@@ -1,6 +1,7 @@
 package org.example.utils.actionUtils;
 
-import org.example.pageObject.base.BasePage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -9,10 +10,12 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.List;
 
-public class ActionUtils extends BasePage {
+public class ActionUtils {
+    private final WebDriver driver;
+    private final Logger logger = LogManager.getLogger(getClass());
 
     public ActionUtils(WebDriver driver) {
-        super(driver);
+        this.driver = driver;
     }
 
     /**

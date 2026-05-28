@@ -38,25 +38,50 @@ public abstract class BaseTest {
         AccountAllocator.allocateAccount(testName, getRole());
 
         logger.info("Setting Up WebDriver for test: {}", testName);
-        ChromeOptions options = new ChromeOptions();
-        options.setAcceptInsecureCerts(true);
-        options.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
-//        options.setPageLoadStrategy(org.openqa.selenium.PageLoadStrategy.EAGER);
-//        options.addArguments("--headless=new", "--disable-gpu", "--window-size=1920,1080");
-        options.addArguments("--force-device-scale-factor=1");
+        String browser = System.getProperty("browser", "chrome").trim().toLowerCase();
+        WebDriver localDriver;
 
-        ChromeDriver localDriver = new ChromeDriver(options);
+        switch (browser) {
+            case "firefox":
+                org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
+                firefoxOptions.setAcceptInsecureCerts(true);
+                firefoxOptions.setCapability("webSocketUrl", true);
+                localDriver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
+                break;
+            case "edge":
+                org.openqa.selenium.edge.EdgeOptions edgeOptions = new org.openqa.selenium.edge.EdgeOptions();
+                edgeOptions.setAcceptInsecureCerts(true);
+                edgeOptions.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
+                edgeOptions.addArguments("--force-device-scale-factor=1");
+                edgeOptions.setCapability("webSocketUrl", true);
+                localDriver = new org.openqa.selenium.edge.EdgeDriver(edgeOptions);
+                break;
+            case "chrome":
+            default:
+                ChromeOptions options = new ChromeOptions();
+                options.setAcceptInsecureCerts(true);
+                options.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
+                options.addArguments("--force-device-scale-factor=1");
+                options.setCapability("webSocketUrl", true);
+                localDriver = new ChromeDriver(options);
+                break;
+        }
+
         DriverManager.setDriver(localDriver);
 
         DriverManager.getDriver().manage().window().maximize();
         DriverManager.getDriver().manage().timeouts().pageLoadTimeout(Duration.ofSeconds(300));
 
         try {
-            NetworkMonitor monitor = new NetworkMonitor(localDriver);
-            monitor.startMonitoring();
-            networkMonitor.set(monitor);
-            NetworkMonitor.setCurrentMonitor(monitor);
-            logger.info("Network monitoring started via CDP");
+            if (localDriver instanceof org.openqa.selenium.devtools.HasDevTools) {
+                NetworkMonitor monitor = new NetworkMonitor((org.openqa.selenium.devtools.HasDevTools) localDriver);
+                monitor.startMonitoring();
+                networkMonitor.set(monitor);
+                NetworkMonitor.setCurrentMonitor(monitor);
+                logger.info("Network monitoring started via CDP");
+            } else {
+                logger.warn("Driver does not support DevTools. Network monitoring skipped.");
+            }
         } catch (Exception e) {
             logger.error("Failed to start network monitoring", e);
         }
@@ -107,12 +132,17 @@ public abstract class BaseTest {
             return;
         }
 
-        if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
+        if (result.getStatus() == ITestResult.SKIP) {
+            Throwable throwable = result.getThrowable();
+            if (ReportAPI.isInfrastructureSkip(throwable)) {
+                ReportAPI.skip("Test Skipped: " + (throwable != null ? throwable.getMessage() : "No reason provided"), throwable);
+            } else {
+                ReportAPI.fail("Test Setup Failed: " + (throwable != null ? throwable.getMessage() : "No reason provided"), throwable);
+                attachFailureScreenshot(result);
+            }
+        } else if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
             ReportAPI.fail("Test Execution Failed", result.getThrowable());
             attachFailureScreenshot(result);
-        } else if (result.getStatus() == ITestResult.SKIP) {
-            Throwable throwable = result.getThrowable();
-            ReportAPI.step("Test Skipped: " + (throwable != null ? throwable.getMessage() : "No reason provided"));
         } else {
             ReportAPI.pass("Test Execution Finished Successfully");
         }
