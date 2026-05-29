@@ -150,4 +150,36 @@ public class ReportSkipTest {
         Throwable assertionError = new java.lang.AssertionError("expected [true] but found [false]");
         Assert.assertFalse(ReportAPI.isInfrastructureSkip(assertionError), "AssertionError must not be classified as infrastructure skip (should fail)");
     }
+
+    @Test
+    public void testSeleniumElementErrorLogging() throws IOException {
+        ExtentImplementation.init();
+
+        // 1. Start test and log a failure with NoSuchElementException
+        String testName = "MockElementFailureTest";
+        ReportAPI.startTest(testName, "Simulated element failure test");
+
+        Exception ex = new org.openqa.selenium.NoSuchElementException(
+            "no such element: Unable to locate element: {\"method\":\"xpath\",\"selector\":\"//a[@id='submit-btn']\"}"
+        );
+        ReportAPI.fail("Button click failed", ex);
+        ReportAPI.flush();
+        ExtentReportNg.getReportObject().flush();
+
+        // 2. Locate and read the report
+        String reportPath = System.getProperty("user.dir") + File.separator + "reports" + File.separator + "index.html";
+        String htmlContent = new String(Files.readAllBytes(Paths.get(reportPath)));
+
+        // 3. Verify that the element log is generated in index.html
+        Assert.assertTrue(
+            htmlContent.contains("Locate Element"),
+            "Report should contain the Action 'Locate Element' in Element Logs tab"
+        );
+        Assert.assertTrue(
+            htmlContent.contains("xpath: //a[@id=&#39;submit-btn&#39;]") || htmlContent.contains("xpath: //a[@id='submit-btn']"),
+            "Report should contain the extracted locator detail"
+        );
+
+        System.out.println("Selenium element error logging check successful!");
+    }
 }

@@ -6,6 +6,9 @@ import org.apache.logging.log4j.ThreadContext;
 import org.example.drivers.DriverManager;
 import org.example.utils.account.AccountAllocator;
 import org.example.utils.report.core.ReportAPI;
+import org.example.utils.report.core.ThrowableOutcomeClassifier;
+import org.example.utils.report.internal.model.OutcomeStatus;
+import org.example.utils.report.internal.model.TestOutcome;
 import org.example.utils.serviceUtils.NetworkMonitor;
 import org.example.utils.serviceUtils.SeleniumUtils;
 import org.openqa.selenium.WebDriver;
@@ -134,14 +137,28 @@ public abstract class BaseTest {
 
         if (result.getStatus() == ITestResult.SKIP) {
             Throwable throwable = result.getThrowable();
-            if (ReportAPI.isInfrastructureSkip(throwable)) {
-                ReportAPI.skip("Test Skipped: " + (throwable != null ? throwable.getMessage() : "No reason provided"), throwable);
+            TestOutcome outcome = ThrowableOutcomeClassifier.classify(throwable);
+            String reason = throwable != null ? throwable.getMessage() : "No reason provided";
+            if (outcome.getStatus() == OutcomeStatus.BROKEN) {
+                ReportAPI.broken("Test Setup Broken: " + reason, throwable);
+                attachFailureScreenshot(result);
+            } else if (outcome.getStatus() == OutcomeStatus.BLOCKED) {
+                ReportAPI.blocked("Test Blocked: " + reason, throwable);
+            } else if (outcome.getStatus() == OutcomeStatus.SKIP) {
+                ReportAPI.skip("Test Skipped: " + reason, throwable);
             } else {
-                ReportAPI.fail("Test Setup Failed: " + (throwable != null ? throwable.getMessage() : "No reason provided"), throwable);
+                ReportAPI.fail("Test Setup Failed: " + reason, throwable);
                 attachFailureScreenshot(result);
             }
         } else if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
-            ReportAPI.fail("Test Execution Failed", result.getThrowable());
+            TestOutcome outcome = ThrowableOutcomeClassifier.classify(result.getThrowable());
+            if (outcome.getStatus() == OutcomeStatus.BROKEN) {
+                ReportAPI.broken("Test Execution Broken", result.getThrowable());
+            } else if (outcome.getStatus() == OutcomeStatus.BLOCKED) {
+                ReportAPI.blocked("Test Blocked", result.getThrowable());
+            } else {
+                ReportAPI.fail("Test Execution Failed", result.getThrowable());
+            }
             attachFailureScreenshot(result);
         } else {
             ReportAPI.pass("Test Execution Finished Successfully");

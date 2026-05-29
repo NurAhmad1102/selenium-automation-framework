@@ -7,6 +7,7 @@ import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.*;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.model.OrganizationTestData;
+import org.example.utils.CustomAssert;
 import org.testng.Assert;
 
 public class SetOrganizationHelper {
@@ -57,7 +58,7 @@ public class SetOrganizationHelper {
     private void initializeDefaultData() {
         data = new OrganizationTestData();
         data.setPrimaryOrganization("O223 Network Sales Digitalization D2 ID");
-        data.setMergeOrganizationWith("org apa saja");
+        data.setMergeOrganizationWith("O223 Network Specialist D2 ID");
         data.setNewOrganizationName("New Organization");
         data.setRcCode("1611.00007.0401");
 
@@ -103,6 +104,7 @@ public class SetOrganizationHelper {
 
 //    PERFORM ACTION
     public void fillJobPosition(OrganizationTestData data) {
+        CustomAssert.assertTrue(addJobPositionModal.isModalHeaderDisplayed(), "Add Job Position modal header is not displayed after click next to add Job & Position details");
         logger.info("Phase: --- Filling Job & Position Details ---");
 
         var jobSection = addJobPositionModal.getJobSection(data.getJobIndex());
@@ -120,8 +122,8 @@ public class SetOrganizationHelper {
         logger.info("Step: Selecting Location [{}]", data.getLocation());
         positionSection.selectLocation(data.getLocation());
 
-        logger.info("Step: Selecting Parent Position [{}]", data.getPrimaryOrganization());
-        positionSection.selectParentPositionName(data.getPrimaryOrganization());
+        logger.info("Step: Selecting Parent Position [{}]", data.getParentPosition());
+        positionSection.selectParentPositionName(data.getParentPosition());
 
         logger.info("Step: Setting FTE to [{}]", data.getFteNumbers());
         positionSection.setFTE(data.getFteNumbers());
@@ -137,15 +139,7 @@ public class SetOrganizationHelper {
     public void addNewOrganization(OrganizationTestData data) {
         logger.info("Phase: --- Adding New Organization: {}---", data.getNewOrganizationName());
         clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.ADD_NEW);
-
-        logger.info("Step: Inputting New Organization Name: {}", data.getNewOrganizationName());
-        addFormModal.setOrgNewName(data.getNewOrganizationName());
-
-        logger.info("Step: Selecting RC Code [{}]", data.getRcCode());
-        addFormModal.clickRCCodeDropdown(data.getRcCode());
-
-        logger.info("Action: Clicking Next to proceed to Job Position modal");
-        addFormModal.clickNext();
+        setOrganizationName(data, OrgMenuAction.ADD_NEW);
     }
 
 //    REMOVE ORGANIZATION
@@ -157,7 +151,7 @@ public class SetOrganizationHelper {
     public void renameOrganization(OrganizationTestData data) {
         logger.info("Phase: --- Rename Organization: {}---", data.getPrimaryOrganization());
         clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.RENAME);
-        setOrganizationName(data);
+        setOrganizationName(data, OrgMenuAction.REMOVE);
     }
 
     public void mergeOrganization(OrganizationTestData data) {
@@ -169,17 +163,22 @@ public class SetOrganizationHelper {
         logger.info("Step: Clicking Next to proceed to confirmation modal");
         mergeFormModal.clickNext();
 
-        setOrganizationName(data);
+        setOrganizationName(data, OrgMenuAction.MERGE);
     }
 
-    private void setOrganizationName(OrganizationTestData data) {
+    private void setOrganizationName(OrganizationTestData data, OrgMenuAction orgMenuAction) {
         logger.info("Phase: --- Set Organization Name: {}---", data.getPrimaryOrganization());
         logger.info("Step: Inputting New Organization Name: {}", data.getNewOrganizationName());
         addFormModal.setOrgNewName(data.getNewOrganizationName());
         logger.info("Step: Selecting RC Code [{}]", data.getRcCode());
         addFormModal.clickRCCodeDropdown(data.getRcCode());
         logger.info("Action: Clicking Next to proceed to Job Position modal");
-        addFormModal.clickNext();
+        if (orgMenuAction == OrgMenuAction.MERGE) {
+            mergeFormModal.clickApplyButton();
+        } else{
+            addFormModal.clickNext();
+        }
+
     }
 
 
@@ -189,9 +188,11 @@ public class SetOrganizationHelper {
         Assert.assertTrue(confirmationActionModal.isConfirmationModalActionDisplayed(actionName),
                 "Confirmation Action modal header is not displayed for action: " + actionName);
         confirmationActionModal.clickYesButton();
+        String actionMessage = validateAction(actionName);
+        verifySuccessAndContinue(actionMessage);
     }
 
-    public void verifySuccessAndContinue(String successAction) {
+    private void verifySuccessAndContinue(String successAction) {
         logger.info("Step: Verifying success modal for action: {}", successAction);
         Assert.assertTrue(successModal.isSuccessModalHeaderDisplayed(successAction),
                 "Success modal header is not displayed for action: " + successAction);
@@ -201,5 +202,28 @@ public class SetOrganizationHelper {
         successModal.clickContinueButton();
     }
 
+    private String validateAction(String actionName) {
+        logger.info("Step: Validating action: {}", actionName);
+        String message = "";
+        if(actionName.equals("Add")){
+            message = "Added";
+        }
+        else if(actionName.equals("Merge")){
+            message = "Merged";
+        }
+        else if(actionName.equals("Rename")){
+            message = "Renamed";
+        }
+        else if(actionName.equals("Split")){
+            message = "Split";
+        }
+        else if(actionName.equals("Move")){
+            message = "Moved";
+        }
+        else if(actionName.equals("Remove")){
+            message = "Removed";
+        }
+        return message;
+    }
 
 }

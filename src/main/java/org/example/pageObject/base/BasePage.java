@@ -117,7 +117,7 @@ public class BasePage {
         } catch (TimeoutException | NoSuchElementException | StaleElementReferenceException e) {
             String msg = "Element not visible: " + getElementDescription(element);
             logger.debug(msg);
-            ReportAPI.elementError("visibility check", element.toString(), e);
+            ReportAPI.elementWarning("visibility check", element.toString(), e);
             return false;
         }
     }
@@ -129,7 +129,7 @@ public class BasePage {
         } catch (TimeoutException e) {
             String msg = "Locator not visible: " + locator;
             logger.debug(msg);
-            ReportAPI.elementError("visibility check", "Locator: " + locator, e);
+            ReportAPI.elementWarning("visibility check", "Locator: " + locator, e);
             return false;
         }
     }
@@ -141,7 +141,7 @@ public class BasePage {
         } catch (TimeoutException | NoSuchElementException | StaleElementReferenceException e) {
             String msg = "Element still visible: " + getElementDescription(element);
             logger.debug(msg);
-            ReportAPI.elementError("visibility check", element.toString(), e);
+            ReportAPI.elementWarning("visibility check", element.toString(), e);
             return false;
         }
     }
@@ -152,7 +152,7 @@ public class BasePage {
         } catch (TimeoutException e) {
             String msg = "Locator still visible: " + locator;
             logger.debug(msg);
-            ReportAPI.elementError("visibility check", "Locator: " + locator, e);
+            ReportAPI.elementWarning("visibility check", "Locator: " + locator, e);
             return false;
         }
     }

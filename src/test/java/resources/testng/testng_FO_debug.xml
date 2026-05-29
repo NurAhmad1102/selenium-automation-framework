@@ -18,17 +18,22 @@
 <!--                    <include name="validateGeneratePreviewTest"/>-->
 <!--                </methods>-->
 <!--            </class>-->
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization.AddOrganizationTest">
+<!--            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization.AddOrganizationTest">-->
+<!--                <methods>-->
+<!--&lt;!&ndash;                    <include name="addNewOrganizationTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="addOrganizationWithExistingOrganizationNameTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="addOrganizationWithExistingPositionNameTest"/>&ndash;&gt;-->
+<!--                </methods>-->
+<!--            </class>-->
+<!--            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization.RemoveOrganizationTest">-->
+<!--                <methods>-->
+<!--                    <include name="removeExistingOrganizationTest"/>-->
+<!--                    <include name="removeNewOrganizationTest"/>-->
+<!--                </methods>-->
+<!--            </class>-->
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization.MergeOrganizationTest">
                 <methods>
-                    <include name="addNewOrganizationTest"/>
-                    <include name="addOrganizationWithExistingOrganizationNameTest"/>
-                    <include name="addOrganizationWithExistingPositionNameTest"/>
-                </methods>
-            </class>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization.RemoveOrganizationTest">
-                <methods>
-                    <include name="removeExistingOrganizationTest"/>
-                    <include name="removeNewOrganizationTest"/>
+                    <include name="mergeOrganizationTest"/>
                 </methods>
             </class>
         </classes>

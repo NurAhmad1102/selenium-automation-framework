@@ -6,8 +6,10 @@ import com.aventstack.extentreports.Status;
 import org.example.utils.ExtentReportNg;
 import org.example.utils.report.core.IAutomationReporter;
 import org.example.utils.report.core.ReportEventBus;
+import org.example.utils.report.core.TestOutcomeResolver;
 import org.example.utils.report.internal.model.LogEntry;
 import org.example.utils.report.internal.model.ReportData;
+import org.example.utils.report.internal.model.TestOutcome;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -61,15 +63,15 @@ public class ExtentImplementation implements IAutomationReporter {
                 }
             }
 
-            // Handle overall test status
-            boolean hasFailures = data.getLogs().stream().anyMatch(l -> l.getStatus() == Status.FAIL);
-            boolean hasSkips = data.getLogs().stream().anyMatch(l -> l.getStatus() == Status.SKIP);
-            if (hasFailures) {
-                currentTest.fail("Test failed. Check ELEMENT LOGS or NETWORK LOGS tabs for details.");
-            } else if (hasSkips) {
-                currentTest.skip("Test skipped.");
+            TestOutcome outcome = TestOutcomeResolver.resolve(data);
+            if (outcome.getExtentStatus() == Status.FAIL) {
+                currentTest.fail(outcome.getStatus() + ": " + outcome.getReason());
+            } else if (outcome.getExtentStatus() == Status.SKIP) {
+                currentTest.skip(outcome.getStatus() + ": " + outcome.getReason());
+            } else if (outcome.getExtentStatus() == Status.PASS) {
+                currentTest.pass(outcome.getStatus() + ": " + outcome.getReason());
             } else {
-                currentTest.pass("Test passed.");
+                currentTest.info(outcome.getStatus() + ": " + outcome.getReason());
             }
         }
         test.remove();
