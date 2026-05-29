@@ -26,6 +26,10 @@ public class LogEntry {
     private int occurrenceCount;
     private final long threadId;
     private int retryCount;
+    private OutcomeStatus outcomeStatus;
+    private OutcomeCategory outcomeCategory;
+    private String outcomeReason;
+    private boolean affectsFinalOutcome;
 
     public LogEntry(LogCategory category, Status status, String message) {
         this(category, status, message, Instant.now());
@@ -37,6 +41,12 @@ public class LogEntry {
         this.status = status;
         this.message = message;
         this.threadId = Thread.currentThread().getId();
+        this.outcomeStatus = mapStatus(status);
+        this.outcomeCategory = LogCategory.NETWORK_LOGS == category
+                ? OutcomeCategory.NETWORK
+                : OutcomeCategory.LIFECYCLE;
+        this.outcomeReason = message;
+        this.affectsFinalOutcome = status == Status.PASS || status == Status.FAIL || status == Status.SKIP;
     }
 
     // Getters and Setters for optional fields
@@ -69,4 +79,25 @@ public class LogEntry {
     public long getThreadId() { return threadId; }
     public int getRetryCount() { return retryCount; }
     public void setRetryCount(int retryCount) { this.retryCount = retryCount; }
+    public OutcomeStatus getOutcomeStatus() { return outcomeStatus; }
+    public void setOutcomeStatus(OutcomeStatus outcomeStatus) { this.outcomeStatus = outcomeStatus; }
+    public OutcomeCategory getOutcomeCategory() { return outcomeCategory; }
+    public void setOutcomeCategory(OutcomeCategory outcomeCategory) { this.outcomeCategory = outcomeCategory; }
+    public String getOutcomeReason() { return outcomeReason; }
+    public void setOutcomeReason(String outcomeReason) { this.outcomeReason = outcomeReason; }
+    public boolean isAffectsFinalOutcome() { return affectsFinalOutcome; }
+    public void setAffectsFinalOutcome(boolean affectsFinalOutcome) { this.affectsFinalOutcome = affectsFinalOutcome; }
+
+    private static OutcomeStatus mapStatus(Status status) {
+        if (status == Status.FAIL) {
+            return OutcomeStatus.FAIL;
+        }
+        if (status == Status.SKIP) {
+            return OutcomeStatus.SKIP;
+        }
+        if (status == Status.PASS) {
+            return OutcomeStatus.PASS;
+        }
+        return OutcomeStatus.INFO;
+    }
 }

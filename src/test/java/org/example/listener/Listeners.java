@@ -6,16 +6,20 @@ import org.apache.logging.log4j.ThreadContext;
 import org.example.drivers.DriverManager;
 import org.example.utils.ExtentReportNg;
 import org.example.utils.report.core.ReportAPI;
+import org.example.utils.report.core.ThrowableOutcomeClassifier;
 import org.example.utils.report.implementations.extent.ExtentImplementation;
+import org.example.utils.report.internal.model.OutcomeStatus;
+import org.example.utils.report.internal.model.TestOutcome;
 import org.example.utils.serviceUtils.SeleniumUtils;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
-public class Listeners extends SeleniumUtils implements ITestListener {
+public class Listeners implements ITestListener {
 
     private static final Logger logger = LogManager.getLogger(Listeners.class);
+    private final SeleniumUtils seleniumUtils = new SeleniumUtils();
 
     @Override
     public void onStart(ITestContext context) {
@@ -47,12 +51,19 @@ public class Listeners extends SeleniumUtils implements ITestListener {
         if (isManagedByBaseTest(result)) {
             return;
         }
-        ReportAPI.fail("Test Execution Failed", result.getThrowable());
+        TestOutcome outcome = ThrowableOutcomeClassifier.classify(result.getThrowable());
+        if (outcome.getStatus() == OutcomeStatus.BROKEN) {
+            ReportAPI.broken("Test Execution Broken", result.getThrowable());
+        } else if (outcome.getStatus() == OutcomeStatus.BLOCKED) {
+            ReportAPI.blocked("Test Blocked", result.getThrowable());
+        } else {
+            ReportAPI.fail("Test Execution Failed", result.getThrowable());
+        }
 
         WebDriver driver = DriverManager.getDriver();
         if (driver != null) {
             try {
-                String screenShotPath = getScreenShotPath(result.getMethod().getMethodName(), driver);
+                String screenShotPath = seleniumUtils.getScreenShotPath(result.getMethod().getMethodName(), driver);
                 ReportAPI.addScreenshot(screenShotPath);
             } catch (Exception e) {
                 logger.error("Failed to capture screenshot for failed test: {}",
@@ -69,7 +80,29 @@ public class Listeners extends SeleniumUtils implements ITestListener {
         if (isManagedByBaseTest(result)) {
             return;
         }
-        ReportAPI.step("Test Skipped: " + result.getThrowable().getMessage());
+        String methodName = result.getMethod().getMethodName();
+        String testDesc = result.getMethod().getDescription();
+
+        ThreadContext.put("testMethod", methodName);
+        if (!ReportAPI.isTestActive()) {
+            ReportAPI.startTest(methodName, testDesc);
+        }
+
+        Throwable throwable = result.getThrowable();
+        String msg = throwable != null ? throwable.getMessage() : "No reason provided";
+        TestOutcome outcome = ThrowableOutcomeClassifier.classify(throwable);
+        if (outcome.getStatus() == OutcomeStatus.BROKEN) {
+            ReportAPI.broken("Test Setup Broken: " + msg, throwable);
+            attachSetupScreenshot(methodName);
+        } else if (outcome.getStatus() == OutcomeStatus.BLOCKED) {
+            ReportAPI.blocked("Test Blocked: " + msg, throwable);
+        } else if (outcome.getStatus() == OutcomeStatus.SKIP) {
+            ReportAPI.skip("Test Skipped: " + msg, throwable);
+        } else {
+            ReportAPI.fail("Test Setup Failed: " + msg, throwable);
+            attachSetupScreenshot(methodName);
+        }
+
         ReportAPI.flush();
         ThreadContext.remove("testMethod");
     }
@@ -85,5 +118,18 @@ public class Listeners extends SeleniumUtils implements ITestListener {
 
     private boolean isManagedByBaseTest(ITestResult result) {
         return Boolean.TRUE.equals(result.getAttribute("reportManagedByBaseTest"));
+    }
+
+    private void attachSetupScreenshot(String methodName) {
+        WebDriver driver = DriverManager.getDriver();
+        if (driver == null) {
+            return;
+        }
+        try {
+            String screenShotPath = seleniumUtils.getScreenShotPath(methodName, driver);
+            ReportAPI.addScreenshot(screenShotPath);
+        } catch (Exception e) {
+            logger.error("Failed to capture screenshot for failed setup test: {}", methodName, e);
+        }
     }
 }

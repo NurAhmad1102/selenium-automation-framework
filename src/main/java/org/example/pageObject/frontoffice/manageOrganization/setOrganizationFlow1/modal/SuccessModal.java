@@ -18,8 +18,7 @@ public class SuccessModal extends BasePage {
         PageFactory.initElements(driver, this);
     }
 
-    @FindBy(xpath = "//div[@role='dialog']//button[normalize-space()='Continue']")
-    private WebElement continueButton;
+    private final By continueButton = By.xpath("//div[@role='dialog']//*[contains(text(), 'Continue')]");
 
     public void clickContinueButton(){
         click(continueButton);
@@ -38,8 +37,8 @@ public class SuccessModal extends BasePage {
 
     public boolean isSuccessModalDescriptionDisplayed(String description){
         String xpath = String.format(
-                "//div[@role='dialog']//p[normalize-space()='%s']",
-                description
+                "//div[@role='dialog']//p[contains(.,'Selected organization has been successfully %s')]",
+                description.toLowerCase()
         );
 
         return isVisible(By.xpath(xpath));

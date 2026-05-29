@@ -40,7 +40,9 @@ public class PositionSectionComponent extends BasePage {
 
     private WebElement positionNamingTypeDropdown(){
         return getFreshRoot().findElement(
-                By.xpath(".//label[contains(.,'Position Naming Type')]/following::button[@role='combobox'][1]")
+//                By.xpath(".//label[contains(.,'Position Naming Type')]/following::button[@role='combobox'][1]") //TODO: activekan kembali after fix bug https://aktiv.clickup.com/t/86ext2a5r
+                By.xpath(".//label[contains(.,'Position Type') or contains(.,'Position Naming Type')]/following::button[@role='combobox'][1]")
+
         );
     }
 

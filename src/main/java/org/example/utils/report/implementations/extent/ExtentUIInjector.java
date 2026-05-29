@@ -16,14 +16,22 @@ public class ExtentUIInjector {
             .report-table { width: 100%; border-collapse: collapse; background: #fff; }
             .details-table { table-layout: fixed; width: 100%; }
             .details-table th:nth-child(1), .details-table td:nth-child(1) { width: 10% ; }
-            .details-table th:nth-child(2), .details-table td:nth-child(2) { width: 15% ; }
-            .details-table th:nth-child(3), .details-table td:nth-child(3) { width: 75% ; }
+            .details-table th:nth-child(2), .details-table td:nth-child(2) { width: 13% ; }
+            .details-table th:nth-child(3), .details-table td:nth-child(3) { width: 15% ; }
+            .details-table th:nth-child(4), .details-table td:nth-child(4) { width: 62% ; }
             .report-table th { text-align: left; padding: 10px; background: #fafafa; border-bottom: 2px solid #eee; font-size: 12px; }
             .report-table td { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: top; }
             .code-block { background: #282c34; color: #abb2bf; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 11px; white-space: pre-wrap; margin-top: 5px; }
             .badge-info { background: #00bcd4; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
             .badge-pass { background: #00af66; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
             .badge-fail { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+            .badge-skip { background: #f39c12; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+            .badge-broken { background: #8e44ad; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+            .badge-blocked { background: #7f8c8d; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+            .badge-warning { background: #d35400; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+            .outcome-category { margin-top: 4px; color: #777; font-size: 10px; word-break: break-word; }
+            .outcome-summary { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 8px 10px; background: #fafafa; border-left: 4px solid #ddd; }
+            .outcome-summary-text { color: #444; font-size: 13px; word-break: break-word; }
             .network-detail-label { font-weight: bold; color: #555; width: 100px; display: inline-block; }
             
             /* Pure CSS controls to hide original Extent table elements and show tabbed wrapper full-width */
@@ -79,16 +87,22 @@ public class ExtentUIInjector {
                                     width: 10% !important;
                                 }
                 
-                                /* Kolom 2: TIMESTAMPS */
+                                /* Kolom 2: OUTCOME */
                                 .test-report-wrapper table.report-table th:nth-child(2),
                                 .test-report-wrapper table.report-table td:nth-child(2) {
-                                    width: 15% !important;
+                                    width: 13% !important;
                                 }
                 
-                                /* Kolom 3: DETAILS / STEP DESCRIPTION */
+                                /* Kolom 3: TIMESTAMPS */
                                 .test-report-wrapper table.report-table th:nth-child(3),
                                 .test-report-wrapper table.report-table td:nth-child(3) {
-                                    width: 75% !important;
+                                    width: 15% !important;
+                                }
+
+                                /* Kolom 4: DETAILS / STEP DESCRIPTION */
+                                .test-report-wrapper table.report-table th:nth-child(4),
+                                .test-report-wrapper table.report-table td:nth-child(4) {
+                                    width: 62% !important;
                                     word-break: break-all !important;      /* Ini yang menjinakkan teks Tailwind panjang */
                                     overflow-wrap: anywhere !important;
                                     white-space: normal !important;

@@ -52,7 +52,7 @@ public class ExtentReportAppender extends AbstractAppender {
         if (level.isMoreSpecificThan(Level.ERROR)) {
             ReportAPI.fail(message, event.getThrown());
         } else if (level.isMoreSpecificThan(Level.WARN)) {
-            ReportAPI.step("WARN: " + message);
+            ReportAPI.warning("WARN: " + message);
         } else if (level.isMoreSpecificThan(Level.INFO)) {
             ReportAPI.step(message);
         }

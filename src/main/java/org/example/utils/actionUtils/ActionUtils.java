@@ -1,6 +1,7 @@
 package org.example.utils.actionUtils;
 
-import org.example.pageObject.base.BasePage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -9,10 +10,12 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.List;
 
-public class ActionUtils extends BasePage {
+public class ActionUtils {
+    private final WebDriver driver;
+    private final Logger logger = LogManager.getLogger(getClass());
 
     public ActionUtils(WebDriver driver) {
-        super(driver);
+        this.driver = driver;
     }
 
     /**
@@ -94,6 +97,11 @@ public class ActionUtils extends BasePage {
         }
 
         return action.substring(0, 1).toUpperCase() + action.substring(1).toLowerCase();
+    }
+
+    public void clickCoordinateWithJS(int x, int y) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("document.elementFromPoint(arguments[0], arguments[1]).click();", x, y);
     }
 
 
