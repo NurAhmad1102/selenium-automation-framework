@@ -7,12 +7,18 @@ import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.*;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.model.OrganizationTestData;
+import org.example.utils.CustomAssert;
 import org.testng.Assert;
 
 public class SetOrganizationHelper {
     private final Logger logger = LogManager.getLogger(getClass());
     private final SetOrganizationPage setOrganizationPage;
+
     private final AddFormModal addFormModal;
+    private final MergeFormModal mergeFormModal;
+    private final RenameFormModal renameFormModal;
+    private final MoveFormModal moveFormModal;
+    private final SplitFormModal splitFormModal;
     private final AddJobPositionModal addJobPositionModal;
     private final ConfirmationActionModal confirmationActionModal;
     private final SuccessModal successModal;
@@ -24,6 +30,19 @@ public class SetOrganizationHelper {
         this.addFormModal = mainPagesFactory.manageOrganization()
                 .modals()
                 .getAddFormModal();
+        this.mergeFormModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getMergeFormModal();
+        this.renameFormModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getRenameFormModal();
+        this.moveFormModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getMoveFormModal();
+        this.splitFormModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getSplitFormModal();
+
         this.addJobPositionModal = mainPagesFactory.manageOrganization()
                 .modals()
                 .getAddJobPositionModal();
@@ -38,7 +57,8 @@ public class SetOrganizationHelper {
 
     private void initializeDefaultData() {
         data = new OrganizationTestData();
-        data.setParentOrganization("O223 Network Sales Digitalization D2 ID");
+        data.setPrimaryOrganization("O223 Network Sales Digitalization D2 ID");
+        data.setMergeOrganizationWith("O223 Network Specialist D2 ID");
         data.setNewOrganizationName("New Organization");
         data.setRcCode("1611.00007.0401");
 
@@ -67,9 +87,14 @@ public class SetOrganizationHelper {
         setOrganizationPage.selectMenuActionFlow1(action);
     }
 
-    public boolean isNodeOrganization(String orgName) {
+    public boolean isNodeOrganizationDisplayed(String orgName) {
         logger.info("Step: Search Organization Name: Get Organization Node: {}", orgName);
         return setOrganizationPage.isNodeOrganizationDisplayed(orgName);
+    }
+
+    public boolean isNodeOrganizationInvisible(String orgName) {
+        logger.info("Step: Search Organization Name: Get Organization Node: {}", orgName);
+        return setOrganizationPage.isNodeOrganizationInvisible(orgName);
     }
 
     public boolean isInlineErrorMessageDisplayed(String orgName) {
@@ -79,6 +104,7 @@ public class SetOrganizationHelper {
 
 //    PERFORM ACTION
     public void fillJobPosition(OrganizationTestData data) {
+        CustomAssert.assertTrue(addJobPositionModal.isModalHeaderDisplayed(), "Add Job Position modal header is not displayed after click next to add Job & Position details");
         logger.info("Phase: --- Filling Job & Position Details ---");
 
         var jobSection = addJobPositionModal.getJobSection(data.getJobIndex());
@@ -111,35 +137,93 @@ public class SetOrganizationHelper {
 
 //    ADD NEW ORG
     public void addNewOrganization(OrganizationTestData data) {
-        logger.info("Phase: --- Adding New Organization ---");
-        clickKebabButtonOfNode(data.getParentOrganization(), OrgMenuAction.ADD_NEW);
-
-        logger.info("Step: Inputting New Organization Name [{}]", data.getNewOrganizationName());
-        addFormModal.setOrgNewName(data.getNewOrganizationName());
-
-        logger.info("Step: Selecting RC Code [{}]", data.getRcCode());
-        addFormModal.clickRCCodeDropdown(data.getRcCode());
-
-        logger.info("Action: Clicking Next to proceed to Job Position modal");
-        addFormModal.clickNext();
+        logger.info("Phase: --- Adding New Organization: {}---", data.getNewOrganizationName());
+        clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.ADD_NEW);
+        setOrganizationName(data, OrgMenuAction.ADD_NEW);
     }
 
+//    REMOVE ORGANIZATION
+    public void removeOrganization(String organizationName) {
+        logger.info("Phase: --- Remove Organization: {}---", organizationName);
+        clickKebabButtonOfNode(organizationName, OrgMenuAction.REMOVE);
+    }
+
+    public void renameOrganization(OrganizationTestData data) {
+        logger.info("Phase: --- Rename Organization: {}---", data.getPrimaryOrganization());
+        clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.RENAME);
+        setOrganizationName(data, OrgMenuAction.REMOVE);
+    }
+
+    public void mergeOrganization(OrganizationTestData data) {
+        logger.info("Phase: --- Merge Organization: {}---", data.getPrimaryOrganization());
+        clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.MERGE);
+
+        logger.info("Step: select Merge Organization with: {}", data.getMergeOrganizationWith());
+        mergeFormModal.clickMergeOrgWithDropdown(data.getMergeOrganizationWith());
+        logger.info("Step: Clicking Next to proceed to confirmation modal");
+        mergeFormModal.clickNext();
+
+        setOrganizationName(data, OrgMenuAction.MERGE);
+    }
+
+    private void setOrganizationName(OrganizationTestData data, OrgMenuAction orgMenuAction) {
+        logger.info("Phase: --- Set Organization Name: {}---", data.getPrimaryOrganization());
+        logger.info("Step: Inputting New Organization Name: {}", data.getNewOrganizationName());
+        addFormModal.setOrgNewName(data.getNewOrganizationName());
+        logger.info("Step: Selecting RC Code [{}]", data.getRcCode());
+        addFormModal.clickRCCodeDropdown(data.getRcCode());
+        logger.info("Action: Clicking Next to proceed to Job Position modal");
+        if (orgMenuAction == OrgMenuAction.MERGE) {
+            mergeFormModal.clickApplyButton();
+        } else{
+            addFormModal.clickNext();
+        }
+
+    }
+
+
+//    AFTER ACTIONS
     public void confirmAction(String actionName) {
         logger.info("Step: Confirming action: {}", actionName);
         Assert.assertTrue(confirmationActionModal.isConfirmationModalActionDisplayed(actionName),
                 "Confirmation Action modal header is not displayed for action: " + actionName);
         confirmationActionModal.clickYesButton();
+        String actionMessage = validateAction(actionName);
+        verifySuccessAndContinue(actionMessage);
     }
 
-    public void verifySuccessAndContinue(String successAction, String description) {
+    private void verifySuccessAndContinue(String successAction) {
         logger.info("Step: Verifying success modal for action: {}", successAction);
         Assert.assertTrue(successModal.isSuccessModalHeaderDisplayed(successAction),
                 "Success modal header is not displayed for action: " + successAction);
-        Assert.assertTrue(successModal.isSuccessModalDescriptionDisplayed(description),
+        Assert.assertTrue(successModal.isSuccessModalDescriptionDisplayed(successAction),
                 "Success modal description is not correct for action: " + successAction);
         Assert.assertTrue(successModal.isSuccessModalImageDisplayed(), "Confetti image is not displayed");
         successModal.clickContinueButton();
     }
 
+    private String validateAction(String actionName) {
+        logger.info("Step: Validating action: {}", actionName);
+        String message = "";
+        if(actionName.equals("Add")){
+            message = "Added";
+        }
+        else if(actionName.equals("Merge")){
+            message = "Merged";
+        }
+        else if(actionName.equals("Rename")){
+            message = "Renamed";
+        }
+        else if(actionName.equals("Split")){
+            message = "Split";
+        }
+        else if(actionName.equals("Move")){
+            message = "Moved";
+        }
+        else if(actionName.equals("Remove")){
+            message = "Removed";
+        }
+        return message;
+    }
 
 }

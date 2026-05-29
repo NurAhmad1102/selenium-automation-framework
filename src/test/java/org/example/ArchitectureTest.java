@@ -26,9 +26,8 @@ public class ArchitectureTest {
         DescribedPredicate<JavaConstructorCall> callToFrontOfficePageObject =
                 DescribedPredicate.describe(
                         "call to constructor of a Front Office Page Object",
-                        // 'call' = JavaConstructorCall, getTargetOwner() = class yang di-new
-                        call -> call.getTargetOwner().getPackageName()
-                                    .startsWith("org.example.pageObject.frontoffice")
+                        call -> call.getTargetOwner().getPackageName().startsWith("org.example.pageObject.frontoffice")
+                                && !call.getTargetOwner().getName().endsWith("TestData")
                 );
 
         ArchRule rule = noClasses()
@@ -48,8 +47,8 @@ public class ArchitectureTest {
         DescribedPredicate<JavaConstructorCall> callToBackOfficePageObject =
                 DescribedPredicate.describe(
                         "call to constructor of a Back Office Page Object",
-                        call -> call.getTargetOwner().getPackageName()
-                                    .startsWith("org.example.pageObject.backoffice")
+                        call -> call.getTargetOwner().getPackageName().startsWith("org.example.pageObject.backoffice")
+                                && !call.getTargetOwner().getName().endsWith("TestData")
                 );
 
         ArchRule rule = noClasses()

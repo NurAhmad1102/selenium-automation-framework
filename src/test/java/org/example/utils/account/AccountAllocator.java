@@ -3,10 +3,8 @@ package org.example.utils.account;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.config.userLoginStructure.UserloginConfig;
-import org.example.utils.ExcelReader;
-import org.testng.ITestContext;
+import org.example.utils.excelReader.ExcelReader;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +16,7 @@ public class AccountAllocator {
     private static final Map<String, List<UserloginConfig>> roleAccountPool = new ConcurrentHashMap<>();
     private static final Map<String, AtomicInteger> roleCounters = new ConcurrentHashMap<>();
     private static final ThreadLocal<UserloginConfig> currentAccount = new ThreadLocal<>();
+    private static final Map<UserloginConfig, Boolean> allocatedAccounts = new ConcurrentHashMap<>();
 
     // Separated URL concern
     private static final Map<String, String> interfaceUrls = new ConcurrentHashMap<>();
@@ -57,9 +56,32 @@ public class AccountAllocator {
             }
         }
 
-        AtomicInteger counter = roleCounters.computeIfAbsent(role, k -> new AtomicInteger(0));
-        int index = counter.getAndIncrement() % pool.size();
-        UserloginConfig account = pool.get(index);
+        UserloginConfig account = null;
+        long startTime = System.currentTimeMillis();
+        long timeoutMs = 30000; // 30 seconds timeout
+
+        while (account == null) {
+            for (UserloginConfig candidate : pool) {
+                if (allocatedAccounts.putIfAbsent(candidate, Boolean.TRUE) == null) {
+                    account = candidate;
+                    break;
+                }
+            }
+            if (account == null) {
+                if (System.currentTimeMillis() - startTime > timeoutMs) {
+                    logger.error("Timeout waiting for available account for role: {}", role);
+                    throw new RuntimeException("No available accounts for role: " + role + " (All accounts are busy).");
+                }
+                logger.info("All accounts for role [{}] are currently busy. Waiting for release...", role);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted while waiting for available account.", e);
+                }
+            }
+        }
+
         currentAccount.set(account);
 
         logger.info("Test [{}] allocated account: [Role: {}, NIP: {}, Username: {}]",
@@ -104,6 +126,11 @@ public class AccountAllocator {
     }
 
     public static void releaseAccount() {
+        UserloginConfig account = currentAccount.get();
+        if (account != null) {
+            allocatedAccounts.remove(account);
+            logger.info("Released account: [Role: {}, Username: {}]", account.getRole(), account.getUsername());
+        }
         currentAccount.remove();
     }
 }

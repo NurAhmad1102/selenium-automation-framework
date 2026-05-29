@@ -1,4 +1,4 @@
-﻿# Panduan Arsitektur Automation Test Framework
+# Panduan Arsitektur Automation Test Framework
 
 > Stack: Java 17, Selenium 4, TestNG, Maven, ExtentReports, Log4j2, Apache POI
 
@@ -296,28 +296,29 @@ mvn test -Dtest=ArchitectureTest
 
 ---
 
-## 8. Network Monitoring (CDP)
+## 8. Network Monitoring (CDP) & Version Agnosticism
 
-Framework ini dilengkapi dengan **Network Monitoring** menggunakan *Chrome DevTools Protocol (CDP)*. Fitur ini otomatis memantau lalu lintas jaringan dan mencatat kegagalan API ke laporan.
+Framework ini dilengkapi dengan **Network Monitoring** berbasis *Chrome DevTools Protocol (CDP)* yang didekopel secara dinamis melalui reflection. Ini membuat monitoring jaringan kebal terhadap pembaruan versi browser secara tiba-tiba.
 
-**File:** `src/test/java/org/example/utils/serviceUtils/NetworkMonitor.java`
+**File:**
+- [NetworkMonitor.java](file:///d:/MyCave/Refactor/AutomationTest/src/test/java/org/example/utils/serviceUtils/NetworkMonitor.java)
+- [CdpVersionHelper.java](file:///d:/MyCave/Refactor/AutomationTest/src/test/java/org/example/utils/serviceUtils/CdpVersionHelper.java) (Reflection Engine)
 
 ### Fitur Utama
-- **Auto-Capture Status 4xx & 5xx**: Setiap respon HTTP 400–599 ditangkap otomatis.
+- **CDP Version Agnostic**: Menggunakan `CdpVersionHelper` untuk memuat paket CDP (`devtools.v125` s.d. `v148`) yang sesuai dengan versi browser saat runtime menggunakan Java Reflection.
+- **Auto-Capture Status 4xx & 5xx**: Setiap respon HTTP 400–599 ditangkap secara otomatis.
 - **Detailed Logging**: Mencatat URL, Method, Status Code, Status Text, Mime Type.
-- **Response & Request Body Capture**: Mengambil payload request dan response body.
-- **Temporal Filter**: Hanya menampilkan network error sebelum first test failure, mengurangi noise.
-- **ExtentReports Integration**: Error jaringan muncul di tab **NETWORK LOGS** pada laporan.
+- **Response & Request Body Capture**: Mengambil payload request dan response body secara dinamis.
+- **Temporal Filter**: Hanya menampilkan network error sebelum first test failure untuk meminimalkan noise debug.
+- **ExtentReports Integration**: Error jaringan diinjeksi ke tab **NETWORK LOGS** pada laporan Extent.
 
 ### Method Utama
 
 | Method | Deskripsi |
 |--------|-----------|
-| `startMonitoring()` | Mulai CDP session dan daftarkan listener untuk network events. |
-| `flushServerErrorsToReport(test, capturedBefore)` | Kirim semua API error ke ReportAPI, filter berdasarkan timestamp. |
-| `stopMonitoring()` | Hentikan CDP session dan bersihkan resource. |
-| `setCurrentMonitor(monitor)` | Simpan monitor ke ThreadLocal. |
-| `removeCurrentMonitor()` | Hapus dari ThreadLocal setelah test selesai. |
+| `startMonitoring()` | Memulai CDP session dan mendaftarkan event listener melalui reflection. |
+| `flushServerErrorsToReport(test, capturedBefore)` | Mengirimkan API error yang ditangkap ke `ReportAPI`. |
+| `stopMonitoring()` | Menghentikan CDP session dan membersihkan resource thread. |
 
 ---
 
@@ -364,18 +365,21 @@ CustomAssert.assertTrue(condition, "Pesan error");
 
 ## 10. Account Allocator & Excel Data
 
-### AccountAllocator
+### AccountAllocator (Thread-Safe Account Lock System)
 
-**File:** `src/test/java/org/example/utils/account/AccountAllocator.java`
+**File:** [AccountAllocator.java](file:///d:/MyCave/Refactor/AutomationTest/src/test/java/org/example/utils/account/AccountAllocator.java)
 
-Mengelola distribusi akun test ke thread paralel secara round-robin per role. Thread-safe dengan `ConcurrentHashMap`.
+Mengelola distribusi akun test ke thread paralel secara aman menggunakan mekanisme **State Locking** (bukan round-robin murni). Sistem ini mencegah beberapa thread menggunakan akun yang sama pada saat bersamaan (menghindari tabrakan sesi).
+
+- **Penguncian Akun**: Menggunakan `ConcurrentHashMap` sebagai mutex lock.
+- **Queue/Wait Timeout**: Jika semua akun untuk suatu role sedang sibuk, thread lain akan mengantre (retry setiap 1 detik) hingga batas waktu **30 detik** sebelum melempar exception.
 
 | Method | Deskripsi |
 |--------|-----------|
-| `allocateAccount(testName, role)` | Ambil akun tersedia untuk role tertentu. |
-| `getNip()` / `getUsername()` / `getPassword()` | Ambil kredensial akun yang dialokasikan ke thread ini. |
-| `getUrl(interfaceType)` | Ambil URL berdasarkan tipe interface. |
-| `releaseAccount()` | Kembalikan akun ke pool setelah test selesai. |
+| `allocateAccount(testName, role)` | Mengunci dan mengambil akun yang kosong untuk role tertentu (dengan antrean 30 detik). |
+| `getNip()` / `getUsername()` / `getPassword()` | Mengambil kredensial akun yang teralokasi ke thread aktif. |
+| `getUrl(interfaceType)` | Mengambil URL berdasarkan tipe interface. |
+| `releaseAccount()` | Membuka kunci akun agar dapat langsung digunakan oleh thread test lainnya. |
 
 ### ExcelReader & Data File
 
@@ -459,11 +463,14 @@ public SlaSettingPage getSlaSettingPage() {
 ### Menjalankan Test
 
 ```bash
-# Semua test sesuai testng.xml
+# Semua test sesuai testng.xml (Default browser: chrome)
 mvn test
 
+# Menjalankan dengan browser tertentu (chrome, firefox, edge)
+mvn test -Dbrowser=firefox
+
 # Test class tertentu
-mvn test -Dtest=AddSlaSettingTest
+mvn test -Dtest=AddSlaSettingTest -Dbrowser=edge
 
 # Architecture rules saja
 mvn test -Dtest=ArchitectureTest

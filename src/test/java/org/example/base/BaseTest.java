@@ -6,6 +6,9 @@ import org.apache.logging.log4j.ThreadContext;
 import org.example.drivers.DriverManager;
 import org.example.utils.account.AccountAllocator;
 import org.example.utils.report.core.ReportAPI;
+import org.example.utils.report.core.ThrowableOutcomeClassifier;
+import org.example.utils.report.internal.model.OutcomeStatus;
+import org.example.utils.report.internal.model.TestOutcome;
 import org.example.utils.serviceUtils.NetworkMonitor;
 import org.example.utils.serviceUtils.SeleniumUtils;
 import org.openqa.selenium.WebDriver;
@@ -38,25 +41,50 @@ public abstract class BaseTest {
         AccountAllocator.allocateAccount(testName, getRole());
 
         logger.info("Setting Up WebDriver for test: {}", testName);
-        ChromeOptions options = new ChromeOptions();
-        options.setAcceptInsecureCerts(true);
-        options.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
-//        options.setPageLoadStrategy(org.openqa.selenium.PageLoadStrategy.EAGER);
-//        options.addArguments("--headless=new", "--disable-gpu", "--window-size=1920,1080");
-        options.addArguments("--force-device-scale-factor=0.90");
+        String browser = System.getProperty("browser", "chrome").trim().toLowerCase();
+        WebDriver localDriver;
 
-        ChromeDriver localDriver = new ChromeDriver(options);
+        switch (browser) {
+            case "firefox":
+                org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
+                firefoxOptions.setAcceptInsecureCerts(true);
+                firefoxOptions.setCapability("webSocketUrl", true);
+                localDriver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
+                break;
+            case "edge":
+                org.openqa.selenium.edge.EdgeOptions edgeOptions = new org.openqa.selenium.edge.EdgeOptions();
+                edgeOptions.setAcceptInsecureCerts(true);
+                edgeOptions.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
+                edgeOptions.addArguments("--force-device-scale-factor=1");
+                edgeOptions.setCapability("webSocketUrl", true);
+                localDriver = new org.openqa.selenium.edge.EdgeDriver(edgeOptions);
+                break;
+            case "chrome":
+            default:
+                ChromeOptions options = new ChromeOptions();
+                options.setAcceptInsecureCerts(true);
+                options.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
+                options.addArguments("--force-device-scale-factor=1");
+                options.setCapability("webSocketUrl", true);
+                localDriver = new ChromeDriver(options);
+                break;
+        }
+
         DriverManager.setDriver(localDriver);
 
         DriverManager.getDriver().manage().window().maximize();
         DriverManager.getDriver().manage().timeouts().pageLoadTimeout(Duration.ofSeconds(300));
 
         try {
-            NetworkMonitor monitor = new NetworkMonitor(localDriver);
-            monitor.startMonitoring();
-            networkMonitor.set(monitor);
-            NetworkMonitor.setCurrentMonitor(monitor);
-            logger.info("Network monitoring started via CDP");
+            if (localDriver instanceof org.openqa.selenium.devtools.HasDevTools) {
+                NetworkMonitor monitor = new NetworkMonitor((org.openqa.selenium.devtools.HasDevTools) localDriver);
+                monitor.startMonitoring();
+                networkMonitor.set(monitor);
+                NetworkMonitor.setCurrentMonitor(monitor);
+                logger.info("Network monitoring started via CDP");
+            } else {
+                logger.warn("Driver does not support DevTools. Network monitoring skipped.");
+            }
         } catch (Exception e) {
             logger.error("Failed to start network monitoring", e);
         }
@@ -107,12 +135,31 @@ public abstract class BaseTest {
             return;
         }
 
-        if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
-            ReportAPI.fail("Test Execution Failed", result.getThrowable());
-            attachFailureScreenshot(result);
-        } else if (result.getStatus() == ITestResult.SKIP) {
+        if (result.getStatus() == ITestResult.SKIP) {
             Throwable throwable = result.getThrowable();
-            ReportAPI.step("Test Skipped: " + (throwable != null ? throwable.getMessage() : "No reason provided"));
+            TestOutcome outcome = ThrowableOutcomeClassifier.classify(throwable);
+            String reason = throwable != null ? throwable.getMessage() : "No reason provided";
+            if (outcome.getStatus() == OutcomeStatus.BROKEN) {
+                ReportAPI.broken("Test Setup Broken: " + reason, throwable);
+                attachFailureScreenshot(result);
+            } else if (outcome.getStatus() == OutcomeStatus.BLOCKED) {
+                ReportAPI.blocked("Test Blocked: " + reason, throwable);
+            } else if (outcome.getStatus() == OutcomeStatus.SKIP) {
+                ReportAPI.skip("Test Skipped: " + reason, throwable);
+            } else {
+                ReportAPI.fail("Test Setup Failed: " + reason, throwable);
+                attachFailureScreenshot(result);
+            }
+        } else if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
+            TestOutcome outcome = ThrowableOutcomeClassifier.classify(result.getThrowable());
+            if (outcome.getStatus() == OutcomeStatus.BROKEN) {
+                ReportAPI.broken("Test Execution Broken", result.getThrowable());
+            } else if (outcome.getStatus() == OutcomeStatus.BLOCKED) {
+                ReportAPI.blocked("Test Blocked", result.getThrowable());
+            } else {
+                ReportAPI.fail("Test Execution Failed", result.getThrowable());
+            }
+            attachFailureScreenshot(result);
         } else {
             ReportAPI.pass("Test Execution Finished Successfully");
         }

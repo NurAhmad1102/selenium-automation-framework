@@ -6,6 +6,7 @@ import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.DashboardManageOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.FilterUpdateOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
+import org.example.utils.CustomAssert;
 
 import java.time.LocalDate;
 
@@ -73,5 +74,6 @@ public class ManageOrganizationHelper {
         navigateToUpdateOrganization();
         setFilterUpdateOrganizationPage(true);
         filterUpdateOrganizationPage.clickNextButton();
+        CustomAssert.assertTrue(setOrganizationPage.isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
     }
 }

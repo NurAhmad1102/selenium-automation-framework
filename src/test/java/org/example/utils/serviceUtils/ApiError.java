@@ -1,12 +1,11 @@
 package org.example.utils.serviceUtils;
 
-import org.openqa.selenium.devtools.v148.network.model.RequestId;
 
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ApiError {
-    private final RequestId requestId;
+    private final Object requestId;
     private final String name;
     private final String url;
     private final String normalizedUrl;
@@ -21,7 +20,7 @@ public class ApiError {
     private volatile String responseBody;
     private volatile String bodyCaptureError;
 
-    public ApiError(RequestId requestId,
+    public ApiError(Object requestId,
                     String name,
                     String url,
                     String normalizedUrl,
@@ -43,7 +42,7 @@ public class ApiError {
         this.lastSeenTimestamp = this.timestamp;
     }
 
-    public RequestId getRequestId() {
+    public Object getRequestId() {
         return requestId;
     }
 

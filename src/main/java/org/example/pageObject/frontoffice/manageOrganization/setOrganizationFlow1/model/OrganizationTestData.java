@@ -1,7 +1,9 @@
 package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.model;
 
 public class OrganizationTestData {
-    private String parentOrganization;
+    // Organization Section Data
+    private String primaryOrganization;
+    private String mergeOrganizationWith;
     private String newOrganizationName;
     private String rcCode;
     
@@ -18,11 +20,14 @@ public class OrganizationTestData {
     private boolean isDottedMatrix;
 
     // Getters and Setters
-    public String getParentOrganization() { return parentOrganization; }
-    public void setParentOrganization(String parentOrganization) { this.parentOrganization = parentOrganization; }
+    public String getPrimaryOrganization() { return primaryOrganization; }
+    public void setPrimaryOrganization(String primaryOrganization) { this.primaryOrganization = primaryOrganization; }
 
     public String getNewOrganizationName() { return newOrganizationName; }
     public void setNewOrganizationName(String newOrganizationName) { this.newOrganizationName = newOrganizationName; }
+
+    public String getMergeOrganizationWith() {return mergeOrganizationWith;}
+    public void setMergeOrganizationWith(String mergeOrganizationWith) { this.mergeOrganizationWith = mergeOrganizationWith; }
 
     public String getRcCode() { return rcCode; }
     public void setRcCode(String rcCode) { this.rcCode = rcCode; }

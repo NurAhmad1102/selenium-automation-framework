@@ -4,13 +4,10 @@ import com.aventstack.extentreports.ExtentTest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.utils.report.core.ReportAPI;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.devtools.DevTools;
+import org.openqa.selenium.devtools.Event;
 import org.openqa.selenium.devtools.HasDevTools;
-import org.openqa.selenium.devtools.v148.network.Network;
-import org.openqa.selenium.devtools.v148.network.model.Request;
-import org.openqa.selenium.devtools.v148.network.model.RequestId;
-import org.openqa.selenium.devtools.v148.network.model.ResourceType;
-import org.openqa.selenium.devtools.v148.network.model.Response;
 
 import java.net.URI;
 import java.net.URLDecoder;
@@ -29,6 +26,7 @@ public class NetworkMonitor {
     private static final ThreadLocal<NetworkMonitor> currentMonitor = new ThreadLocal<>();
 
     private final DevTools devTools;
+    private final CdpVersionHelper cdpHelper;
     private final AtomicBoolean monitoringStarted = new AtomicBoolean(false);
     private final Map<String, RequestMetadata> requestMetadataById = new ConcurrentHashMap<>();
     private final Map<String, RequestMetadata> latestRequestMetadataByUrl = new ConcurrentHashMap<>();
@@ -37,6 +35,7 @@ public class NetworkMonitor {
 
     public NetworkMonitor(HasDevTools driver) {
         this.devTools = driver.getDevTools();
+        this.cdpHelper = new CdpVersionHelper((WebDriver) driver);
     }
 
     public static NetworkMonitor getCurrentMonitor() {
@@ -51,6 +50,7 @@ public class NetworkMonitor {
         currentMonitor.remove();
     }
 
+    @SuppressWarnings("unchecked")
     public void startMonitoring() {
         if (!monitoringStarted.compareAndSet(false, true)) {
             logger.debug("Network monitoring already started for current test.");
@@ -58,89 +58,118 @@ public class NetworkMonitor {
         }
 
         devTools.createSession();
-        devTools.send(Network.enable(
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()));
+        devTools.send(cdpHelper.enableNetwork());
 
-        devTools.addListener(Network.requestWillBeSent(), requestWillBeSent -> {
-            Request request = requestWillBeSent.getRequest();
-            ResourceType resourceType = requestWillBeSent.getType().orElse(null);
-            RequestMetadata metadata = new RequestMetadata(
-                    request.getMethod(),
-                    request.getUrl(),
-                    normalizeUrl(request.getUrl()),
-                    resourceType,
-                    request.getPostData().orElse(null));
+        // Listen for requestWillBeSent event
+        devTools.addListener((Event<Object>) cdpHelper.requestWillBeSentEvent(), requestWillBeSent -> {
+            try {
+                Object request = CdpVersionHelper.invokeGetter(requestWillBeSent, "getRequest");
+                String method = CdpVersionHelper.getOptionalString(CdpVersionHelper.invokeGetter(request, "getMethod"));
+                String url = CdpVersionHelper.getOptionalString(CdpVersionHelper.invokeGetter(request, "getUrl"));
+                String resourceType = CdpVersionHelper.getOptionalString(CdpVersionHelper.invokeGetter(requestWillBeSent, "getType"));
+                String postData = CdpVersionHelper.getOptionalString(CdpVersionHelper.invokeGetter(request, "getPostData"));
+                Object requestId = CdpVersionHelper.invokeGetter(requestWillBeSent, "getRequestId");
 
-            requestMetadataById.put(requestIdKey(requestWillBeSent.getRequestId()), metadata);
-            latestRequestMetadataByUrl.put(metadata.normalizedUrl, metadata);
+                RequestMetadata metadata = new RequestMetadata(
+                        method,
+                        url,
+                        normalizeUrl(url),
+                        resourceType,
+                        postData);
+
+                requestMetadataById.put(requestIdKey(requestId), metadata);
+                latestRequestMetadataByUrl.put(metadata.normalizedUrl, metadata);
+            } catch (Exception e) {
+                logger.error("Error processing requestWillBeSent event via reflection", e);
+            }
         });
 
-        devTools.addListener(Network.responseReceived(), responseReceived -> {
-            Response response = responseReceived.getResponse();
-            int statusCode = response.getStatus();
-            String requestIdKey = requestIdKey(responseReceived.getRequestId());
-            String responseUrl = response.getUrl();
-            String responseNormalizedUrl = normalizeUrl(responseUrl);
-            RequestMetadata metadata = requestMetadataById.get(requestIdKey);
-            if (metadata == null) {
-                metadata = latestRequestMetadataByUrl.get(responseNormalizedUrl);
-            }
-            if (metadata == null) {
-                logger.debug("Request metadata not found for requestId={} url={}", requestIdKey, responseNormalizedUrl);
-            }
-            ResourceType resourceType = responseReceived.getType();
-            String method = resolveMethod(metadata);
-            String url = metadata != null ? metadata.url : responseUrl;
-            String normalizedUrl = metadata != null ? metadata.normalizedUrl : responseNormalizedUrl;
-            String requestPayload = metadata != null ? metadata.postData : null;
+        // Listen for responseReceived event
+        devTools.addListener((Event<Object>) cdpHelper.responseReceivedEvent(), responseReceived -> {
+            try {
+                Object response = CdpVersionHelper.invokeGetter(responseReceived, "getResponse");
+                int statusCode = (Integer) CdpVersionHelper.invokeGetter(response, "getStatus");
+                Object requestId = CdpVersionHelper.invokeGetter(responseReceived, "getRequestId");
+                String requestIdKey = requestIdKey(requestId);
+                String responseUrl = CdpVersionHelper.getOptionalString(CdpVersionHelper.invokeGetter(response, "getUrl"));
+                String responseNormalizedUrl = normalizeUrl(responseUrl);
+                
+                RequestMetadata metadata = requestMetadataById.get(requestIdKey);
+                if (metadata == null) {
+                    metadata = latestRequestMetadataByUrl.get(responseNormalizedUrl);
+                }
+                if (metadata == null) {
+                    logger.debug("Request metadata not found for requestId={} url={}", requestIdKey, responseNormalizedUrl);
+                }
+                
+                String resourceType = CdpVersionHelper.getOptionalString(CdpVersionHelper.invokeGetter(responseReceived, "getType"));
+                String method = resolveMethod(metadata);
+                String url = metadata != null ? metadata.url : responseUrl;
+                String normalizedUrl = metadata != null ? metadata.normalizedUrl : responseNormalizedUrl;
+                String requestPayload = metadata != null ? metadata.postData : null;
 
-            if (!shouldCapture(method, statusCode, resourceType)) {
-                return;
-            }
-
-            String uniqueKey = buildUniqueKey(method, normalizedUrl, statusCode);
-            ApiError apiError = apiErrorsByKey.compute(uniqueKey, (key, existingError) -> {
-                if (existingError != null) {
-                    existingError.incrementRetryCount();
-                    return existingError;
+                if (!shouldCapture(method, statusCode, resourceType)) {
+                    return;
                 }
 
-                return new ApiError(
-                        responseReceived.getRequestId(),
-                        deriveNameFromUrl(normalizedUrl),
-                        url,
-                        normalizedUrl,
-                        method,
-                        statusCode,
-                        response.getStatusText(),
-                        response.getMimeType(),
-                        limitBodyLength(requestPayload));
-            });
+                String statusText = CdpVersionHelper.getOptionalString(CdpVersionHelper.invokeGetter(response, "getStatusText"));
+                String mimeType = CdpVersionHelper.getOptionalString(CdpVersionHelper.invokeGetter(response, "getMimeType"));
 
-            pendingBodyCaptureById.put(requestIdKey, new PendingBodyCapture(responseReceived.getRequestId(), apiError));
-            logger.warn("Detected HTTP {} for {} {}", statusCode, method, normalizedUrl);
-        });
+                String uniqueKey = buildUniqueKey(method, normalizedUrl, statusCode);
+                ApiError apiError = apiErrorsByKey.compute(uniqueKey, (key, existingError) -> {
+                    if (existingError != null) {
+                        existingError.incrementRetryCount();
+                        return existingError;
+                    }
 
-        devTools.addListener(Network.loadingFailed(), loadingFailed -> {
-            String requestIdKey = requestIdKey(loadingFailed.getRequestId());
-            PendingBodyCapture pendingBodyCapture = pendingBodyCaptureById.remove(requestIdKey);
-            if (pendingBodyCapture != null && pendingBodyCapture.apiError.getBodyCaptureError() == null) {
-                pendingBodyCapture.apiError.setBodyCaptureError(loadingFailed.getErrorText());
+                    return new ApiError(
+                            requestId,
+                            deriveNameFromUrl(normalizedUrl),
+                            url,
+                            normalizedUrl,
+                            method,
+                            statusCode,
+                            statusText,
+                            mimeType,
+                            limitBodyLength(requestPayload));
+                });
+
+                pendingBodyCaptureById.put(requestIdKey, new PendingBodyCapture(requestId, apiError));
+                logger.warn("Detected HTTP {} for {} {}", statusCode, method, normalizedUrl);
+            } catch (Exception e) {
+                logger.error("Error processing responseReceived event via reflection", e);
             }
-            requestMetadataById.remove(requestIdKey);
         });
 
-        devTools.addListener(Network.loadingFinished(), loadingFinished -> {
-            String key = requestIdKey(loadingFinished.getRequestId());
-            requestMetadataById.remove(key);
-            PendingBodyCapture pending = pendingBodyCaptureById.get(key);
-            if (pending != null) {
-                captureResponseBody(pending.requestId, pending.apiError);
-                pendingBodyCaptureById.remove(key);
+        // Listen for loadingFailed event
+        devTools.addListener((Event<Object>) cdpHelper.loadingFailedEvent(), loadingFailed -> {
+            try {
+                Object requestId = CdpVersionHelper.invokeGetter(loadingFailed, "getRequestId");
+                String requestIdKey = requestIdKey(requestId);
+                PendingBodyCapture pendingBodyCapture = pendingBodyCaptureById.remove(requestIdKey);
+                if (pendingBodyCapture != null && pendingBodyCapture.apiError.getBodyCaptureError() == null) {
+                    String errorText = CdpVersionHelper.getOptionalString(CdpVersionHelper.invokeGetter(loadingFailed, "getErrorText"));
+                    pendingBodyCapture.apiError.setBodyCaptureError(errorText);
+                }
+                requestMetadataById.remove(requestIdKey);
+            } catch (Exception e) {
+                logger.error("Error processing loadingFailed event via reflection", e);
+            }
+        });
+
+        // Listen for loadingFinished event
+        devTools.addListener((Event<Object>) cdpHelper.loadingFinishedEvent(), loadingFinished -> {
+            try {
+                Object requestId = CdpVersionHelper.invokeGetter(loadingFinished, "getRequestId");
+                String key = requestIdKey(requestId);
+                requestMetadataById.remove(key);
+                PendingBodyCapture pending = pendingBodyCaptureById.get(key);
+                if (pending != null) {
+                    captureResponseBody(pending.requestId, pending.apiError);
+                    pendingBodyCaptureById.remove(key);
+                }
+            } catch (Exception e) {
+                logger.error("Error processing loadingFinished event via reflection", e);
             }
         });
     }
@@ -153,9 +182,8 @@ public class NetworkMonitor {
         capturePendingResponseBodies();
 
         apiErrorsByKey.values().stream()
-                .filter(error -> capturedBefore == null || !error.getLastSeenTimestamp().isAfter(capturedBefore))
-                .max(Comparator.comparing(ApiError::getLastSeenTimestamp))
-                .ifPresent(error -> {
+                .sorted(Comparator.comparing(ApiError::getTimestamp))
+                .forEach(error -> {
                     ReportAPI.network(
                             error.getName(),
                             error.getMethod(),
@@ -183,7 +211,7 @@ public class NetworkMonitor {
             }
 
             try {
-                devTools.send(Network.disable());
+                devTools.send(cdpHelper.disableNetwork());
             } catch (Exception e) {
                 logger.debug("Failed to disable network domain: {}", e.getMessage());
             }
@@ -212,13 +240,15 @@ public class NetworkMonitor {
         });
     }
 
-    private void captureResponseBody(RequestId requestId, ApiError apiError) {
+    @SuppressWarnings("unchecked")
+    private void captureResponseBody(Object requestId, ApiError apiError) {
         if (apiError.hasResponseBody()) {
             return;
         }
 
         try {
-            String body = devTools.send(Network.getResponseBody(requestId)).getBody();
+            Object getResponseBodyResponse = devTools.send(cdpHelper.getResponseBody(requestId));
+            String body = CdpVersionHelper.getOptionalString(CdpVersionHelper.invokeGetter(getResponseBodyResponse, "getBody"));
             apiError.setResponseBody(limitBodyLength(body));
         } catch (Exception e) {
             apiError.setBodyCaptureError(e.getMessage());
@@ -229,7 +259,7 @@ public class NetworkMonitor {
         }
     }
 
-    private static String requestIdKey(RequestId requestId) {
+    private static String requestIdKey(Object requestId) {
         return requestId == null ? "" : requestId.toString();
     }
 
@@ -240,7 +270,7 @@ public class NetworkMonitor {
         return metadata.method;
     }
 
-    private static boolean shouldCapture(String method, int statusCode, ResourceType resourceType) {
+    private static boolean shouldCapture(String method, int statusCode, String resourceType) {
         if (statusCode < 400) {
             return false;
         }
@@ -249,7 +279,7 @@ public class NetworkMonitor {
             return false;
         }
 
-        return ResourceType.XHR.equals(resourceType) || ResourceType.FETCH.equals(resourceType);
+        return "XHR".equalsIgnoreCase(resourceType) || "Fetch".equalsIgnoreCase(resourceType);
     }
 
     private static String buildUniqueKey(String method, String normalizedUrl, int statusCode) {
@@ -351,13 +381,13 @@ public class NetworkMonitor {
         private final String method;
         private final String url;
         private final String normalizedUrl;
-        private final ResourceType resourceType;
+        private final String resourceType;
         private final String postData;
 
         private RequestMetadata(String method,
                                 String url,
                                 String normalizedUrl,
-                                ResourceType resourceType,
+                                String resourceType,
                                 String postData) {
             this.method = method;
             this.url = url;
@@ -368,10 +398,10 @@ public class NetworkMonitor {
     }
 
     private static class PendingBodyCapture {
-        private final RequestId requestId;
+        private final Object requestId;
         private final ApiError apiError;
 
-        private PendingBodyCapture(RequestId requestId, ApiError apiError) {
+        private PendingBodyCapture(Object requestId, ApiError apiError) {
             this.requestId = requestId;
             this.apiError = apiError;
         }

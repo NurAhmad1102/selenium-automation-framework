@@ -9,6 +9,7 @@ public class SetOrganizationModalFactory {
     private MoveFormModal moveFormModal;
     private MergeFormModal mergeFormModal;
     private SplitFormModal splitFormModal;
+    private RenameFormModal renameFormModal;
     private AddJobPositionModal addJobPositionModal;
     private ConfirmationActionModal confirmationActionModal;
     private SuccessModal successModal;
@@ -43,6 +44,13 @@ public class SetOrganizationModalFactory {
             splitFormModal = new SplitFormModal(driver);
         }
         return splitFormModal;
+    }
+
+    public RenameFormModal getRenameFormModal() {
+        if (renameFormModal == null) {
+            renameFormModal = new RenameFormModal(driver);
+        }
+        return renameFormModal;
     }
 
     public AddJobPositionModal getAddJobPositionModal() {
