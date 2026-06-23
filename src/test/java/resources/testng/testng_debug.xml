@@ -22,7 +22,7 @@
 <!--        </classes>-->
         <packages>
             <package name="org.example.test.backoffice.manageOrganization.slaSetting"/>
-            <package name="org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization"/>
+            <package name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization"/>
         </packages>
     </test>
 

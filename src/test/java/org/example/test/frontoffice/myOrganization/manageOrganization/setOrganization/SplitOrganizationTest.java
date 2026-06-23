@@ -1,4 +1,4 @@
-package org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization;
+package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 

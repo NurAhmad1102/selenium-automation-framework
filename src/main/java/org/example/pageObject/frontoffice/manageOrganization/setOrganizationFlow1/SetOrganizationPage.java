@@ -19,6 +19,7 @@ public class SetOrganizationPage extends BasePage {
     @FindBy(xpath = "//span[text()='Set Organization']")
     private WebElement setOrganizationHeader;
 
+    private final By isMissingParentPositionNodeDisplayed = By.xpath("//div[@data-orientation='vertical'][.//span[normalize-space()='Missing Parent Position']]");
 
     public boolean isSetOrganizationHeaderDisplayed() {
         return isVisible(setOrganizationHeader);
@@ -56,6 +57,10 @@ public class SetOrganizationPage extends BasePage {
         String xpathExpression = String.format("//div[@role='menuitem' and normalize-space()='%s']", orgMenuAction.getActionName());
         WebElement menuItem = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathExpression)));
         click(menuItem);
+    }
+
+    public boolean isMissingParentPositionNodeDisplayed() {
+        return isVisible(isMissingParentPositionNodeDisplayed);
     }
 
 }
