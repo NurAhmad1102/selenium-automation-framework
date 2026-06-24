@@ -1,6 +1,7 @@
-package org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization;
+package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.model.OrganizationTestData;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
+import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
 import org.testng.annotations.BeforeMethod;
@@ -18,7 +19,7 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
     }
 
 
-    @Test(description = "Verify Remove existing organization")
+    @Test( groups = {"smoke"},description = "Verify Remove existing organization")
     public void removeExistingOrganizationTest() {
         logger.info("Starting test: removeOrganization");
         String organizationToRemove = data.get().getPrimaryOrganization();        manageOrganizationHelper().goToFlow1();
@@ -26,7 +27,6 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
 
         setOrganizationHelper().removeOrganization(organizationToRemove);
         setOrganizationHelper().confirmAction("Remove");
-//        setOrganizationHelper().verifySuccessAndContinue("Removed");
 
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(organizationToRemove), "Removed Organization node is still displayed in the organization tree");
     }
@@ -37,19 +37,15 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
         String organizationToRemove = data.get().getNewOrganizationName();
 
         manageOrganizationHelper().goToFlow1();
-//        CustomAssert.assertTrue(setOrganizationFlow1Page().isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
 
 //        KODE PRE CONDITION ADD NEW ORG
         setOrganizationHelper().addNewOrganization(data.get());
-//        CustomAssert.assertTrue(setOrganizationModals().getAddJobPositionModal().isModalHeaderDisplayed(), "Add Job Position modal header is not displayed after adding new organization");
-        setOrganizationHelper().fillJobPosition(data.get());
+        setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.ADD_NEW);
         setOrganizationHelper().confirmAction("Add");
-//        setOrganizationHelper().verifySuccessAndContinue("Added");
 
 //        KODE REMOVE ORG
         setOrganizationHelper().removeOrganization(organizationToRemove);
         setOrganizationHelper().confirmAction("Remove");
-//        setOrganizationHelper().verifySuccessAndContinue("Removed");
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(organizationToRemove), "Removed Organization node is still displayed in the organization tree");;
     }
 

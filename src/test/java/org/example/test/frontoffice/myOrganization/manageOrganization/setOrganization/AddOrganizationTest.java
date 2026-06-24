@@ -1,6 +1,7 @@
-package org.example.test.frontoffice.myOrganization.manageOrganization.SetOrganization;
+package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.model.OrganizationTestData;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
+import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
 import org.testng.annotations.BeforeMethod;
@@ -18,14 +19,13 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
         this.data.set(setOrganizationHelper().getTestData());
     }
 
-    @Test
+    @Test(groups = {"smoke"},description = "Verify that user can add new organization with valid data")
     public void addNewOrganizationTest() {
         logger.info("Starting test: addNewOrganization");
         manageOrganizationHelper().goToFlow1();
-//        CustomAssert.assertTrue(setOrganizationFlow1Page().isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
 
         setOrganizationHelper().addNewOrganization(data.get());
-        setOrganizationHelper().fillJobPosition(data.get());
+        setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.ADD_NEW);
 
         setOrganizationHelper().confirmAction("Add");
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
@@ -35,7 +35,6 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     public void addOrganizationWithExistingOrganizationNameTest() {
         logger.info("Starting test: addExistingOrganization");
         manageOrganizationHelper().goToFlow1();
-//        CustomAssert.assertTrue(setOrganizationFlow1Page().isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
 
         data.get().setNewOrganizationName(duplicateOrganizationName);
         setOrganizationHelper().addNewOrganization(data.get());
@@ -50,7 +49,7 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
 
         data.get().setJobName(duplicatePositionName);
         setOrganizationHelper().addNewOrganization(data.get());
-        setOrganizationHelper().fillJobPosition(data.get());
+        setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.ADD_NEW);
         CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicatePositionMessage), "Inline error message is not displayed");
 
     }

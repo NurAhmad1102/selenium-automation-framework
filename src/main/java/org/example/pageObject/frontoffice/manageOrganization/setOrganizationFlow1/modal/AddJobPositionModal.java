@@ -29,6 +29,10 @@ public class AddJobPositionModal extends BaseFormModal {
 
     private final By addJobSectionButton = By.xpath("//button[normalize-space()='+ Add Job']");
     private final By addButton = By.xpath("//div[@role='dialog']//button[normalize-space(text())='Add']");
+    private final By applyButton = By.xpath("//div[@role='dialog']//button[normalize-space(text())='Apply']");
+    private final By moveButton = By.xpath("//div[@role='dialog']//button[normalize-space(text())='Move']");
+
+
 
 // =========================
     public List<JobSectionComponent> getJobSections() {
@@ -57,5 +61,6 @@ public class AddJobPositionModal extends BaseFormModal {
     public void clickAddButton(){
         click(addButton);
     }
-
+    public void clickApplyButton() {click(applyButton);}
+    public void clickMoveButton() {click(moveButton);}
 }
