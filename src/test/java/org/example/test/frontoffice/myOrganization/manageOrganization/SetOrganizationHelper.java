@@ -6,7 +6,7 @@ import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.*;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.model.OrganizationTestData;
+import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
 import org.testng.Assert;
 
@@ -103,8 +103,14 @@ public class SetOrganizationHelper {
     }
 
 //    PERFORM ACTION
-    public void fillJobPosition(OrganizationTestData data) {
-        CustomAssert.assertTrue(addJobPositionModal.isModalHeaderDisplayed(), "Add Job Position modal header is not displayed after click next to add Job & Position details");
+    public void fillJobPosition(OrganizationTestData data, OrgMenuAction action) {
+
+        if (action == OrgMenuAction.RENAME){
+            CustomAssert.assertTrue(renameFormModal.isRenameJobPositionVisible(), "Rename Job Position modal header is not displayed after click next to modal Job & Position details");
+        } else {
+            CustomAssert.assertTrue(addJobPositionModal.isModalHeaderDisplayed(), "Add Job Position modal header is not displayed after click next to modal Job & Position details");
+        }
+
         logger.info("Phase: --- Filling Job & Position Details ---");
 
         var jobSection = addJobPositionModal.getJobSection(data.getJobIndex());
@@ -125,15 +131,38 @@ public class SetOrganizationHelper {
         logger.info("Step: Selecting Parent Position [{}]", data.getParentPosition());
         positionSection.selectParentPositionName(data.getParentPosition());
 
-        logger.info("Step: Setting FTE to [{}]", data.getFteNumbers());
-        positionSection.setFTE(data.getFteNumbers());
+        if (action == OrgMenuAction.ADD_NEW || action == OrgMenuAction.MERGE || action == OrgMenuAction.SPLIT) {
+            logger.info("Step: Setting FTE to [{}]", data.getFteNumbers());
+            positionSection.setFTE(data.getFteNumbers());
+        }
 
-        logger.info("Step: Setting Dotted Matrix to [{}]", data.isDottedMatrix());
-        positionSection.selectDottedMatrix(data.isDottedMatrix());
+        if (action == OrgMenuAction.ADD_NEW) {
+            logger.info("Step: Setting Dotted Matrix to [{}]", data.isDottedMatrix());
+            positionSection.selectDottedMatrix(data.isDottedMatrix());
+        }
 
-        logger.info("Action: Clicking Add button to finalize");
-        addJobPositionModal.clickAddButton();
+        clickButtonProceedJobPosition(action);
     }
+
+    private void clickButtonProceedJobPosition(OrgMenuAction action) {
+        if (action == OrgMenuAction.RENAME) {
+            logger.info("Action: Clicking Apply button to finalize");
+            addJobPositionModal.clickApplyButton();
+        }
+        else if (action == OrgMenuAction.MOVE) {
+            logger.info("Action: Clicking Move button to finalize");
+            addJobPositionModal.clickMoveButton();
+        } else {
+            logger.info("Action: Clicking Add button to finalize");
+            addJobPositionModal.clickAddButton();
+        }
+    }
+
+    public boolean verifyMissingParentPositionDisplayed() {
+        logger.info("Step: Verify missing parent position displayed in the organization tree");
+        return setOrganizationPage.isMissingParentPositionNodeDisplayed();
+    }
+
 
 //    ADD NEW ORG
     public void addNewOrganization(OrganizationTestData data) {
@@ -151,7 +180,7 @@ public class SetOrganizationHelper {
     public void renameOrganization(OrganizationTestData data) {
         logger.info("Phase: --- Rename Organization: {}---", data.getPrimaryOrganization());
         clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.RENAME);
-        setOrganizationName(data, OrgMenuAction.REMOVE);
+        setOrganizationName(data, OrgMenuAction.RENAME);
     }
 
     public void mergeOrganization(OrganizationTestData data) {
@@ -173,10 +202,15 @@ public class SetOrganizationHelper {
         logger.info("Step: Selecting RC Code [{}]", data.getRcCode());
         addFormModal.clickRCCodeDropdown(data.getRcCode());
         logger.info("Action: Clicking Next to proceed to Job Position modal");
+
         if (orgMenuAction == OrgMenuAction.MERGE) {
             mergeFormModal.clickApplyButton();
-        } else{
+        } else if (orgMenuAction == OrgMenuAction.ADD_NEW){
             addFormModal.clickNext();
+        } else if (orgMenuAction == OrgMenuAction.MOVE){
+            moveFormModal.clickNext();
+        } else if (orgMenuAction == OrgMenuAction.RENAME){
+            renameFormModal.clickNext();
         }
 
     }

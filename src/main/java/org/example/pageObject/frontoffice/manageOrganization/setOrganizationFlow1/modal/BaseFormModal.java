@@ -49,6 +49,9 @@ public class BaseFormModal extends BasePage {
         selectDropdownModal(element, value);
     }
 
+    /**
+     * header Job & Position for rename is handled in RenameFormModal itself
+     */
     public boolean isModalHeaderDisplayed() {
         try {
             String xpath = String.format("//h2[normalize-space()='%s']", this.formTitle);
