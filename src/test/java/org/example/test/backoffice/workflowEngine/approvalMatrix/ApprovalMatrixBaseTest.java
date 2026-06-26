@@ -5,6 +5,7 @@ import org.example.drivers.DriverManager;
 import org.example.test.backoffice.manageOrganization.slaSetting.SlaSettingHelper;
 import org.example.utils.TestDataFactory;
 import org.example.utils.account.AccountAllocator;
+import org.example.utils.account.UserRole;
 import org.example.utils.actionUtils.ActionUtils;
 import org.example.utils.tableUtils.TableUtils;
 import org.testng.annotations.AfterMethod;
@@ -14,6 +15,11 @@ public class ApprovalMatrixBaseTest extends BackOfficeBaseTest {
     private final ThreadLocal<String> loginNip = new ThreadLocal<>();
     private final ThreadLocal<String> username = new ThreadLocal<>();
     private final ThreadLocal<ActionUtils> actionUtils = new ThreadLocal<>();
+
+    @Override
+    protected String getRole() {
+        return UserRole.HR_OD.getValue();
+    }
 
     @BeforeMethod
     public void initApprovalMatrixContext(org.testng.ITestResult result) {
