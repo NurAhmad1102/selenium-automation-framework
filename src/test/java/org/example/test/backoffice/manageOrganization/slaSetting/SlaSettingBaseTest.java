@@ -11,6 +11,7 @@ import org.example.pageObject.backoffice.slaSettingMenu.modal.deleteSlaSetting.D
 import org.example.pageObject.backoffice.slaSettingMenu.popUp.AlertPopUpMessage;
 import org.example.utils.TestDataFactory;
 import org.example.utils.account.AccountAllocator;
+import org.example.utils.account.UserRole;
 import org.example.utils.actionUtils.ActionUtils;
 import org.example.utils.tableUtils.TableUtils;
 import org.testng.annotations.AfterMethod;
@@ -22,6 +23,11 @@ public abstract class SlaSettingBaseTest extends BackOfficeBaseTest {
     private final ThreadLocal<TableUtils> tableUtils = new ThreadLocal<>();
     private final ThreadLocal<SlaSettingHelper> slaSettingHelper = new ThreadLocal<>();
     private final ThreadLocal<ActionUtils> actionUtils = new ThreadLocal<>();
+
+    @Override
+    protected String getRole() {
+        return UserRole.HR_OD.getValue();
+    }
 
     @BeforeMethod
     public void initSlaSettingContext(org.testng.ITestResult result) {

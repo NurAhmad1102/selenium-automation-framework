@@ -12,6 +12,7 @@ import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.SuccessModal;
 import org.example.utils.TestDataFactory;
 import org.example.utils.account.AccountAllocator;
+import org.example.utils.account.UserRole;
 import org.example.utils.actionUtils.ActionUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -23,6 +24,11 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
     private final ThreadLocal<ManageOrganizationHelper> manageOrganizationHelper = new ThreadLocal<>();
     private final ThreadLocal<SetOrganizationHelper> setOrganizationHelper = new ThreadLocal<>();
     private final ThreadLocal<ActionUtils> actionUtils = new ThreadLocal<>();
+
+    @Override
+    protected String getRole() {
+        return UserRole.HR_OD.getValue();
+    }
 
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result){

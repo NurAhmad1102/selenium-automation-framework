@@ -180,8 +180,10 @@ public class NetworkMonitor {
 
     public void flushServerErrorsToReport(ExtentTest currentTest, Instant capturedBefore) {
         capturePendingResponseBodies();
+        Instant upperBound = capturedBefore != null ? capturedBefore : Instant.now();
 
         apiErrorsByKey.values().stream()
+                .filter(error -> !error.getLastSeenTimestamp().isAfter(upperBound))
                 .sorted(Comparator.comparing(ApiError::getTimestamp))
                 .forEach(error -> {
                     ReportAPI.network(

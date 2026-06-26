@@ -2,8 +2,10 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.data;
 
 import org.apache.poi.ss.usermodel.*;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.utils.resource.ResourcePathResolver;
 
 import java.io.FileInputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,18 +13,21 @@ import java.util.Map;
 
 public class ManageOrganizationExcelReader {
     public static List<OrganizationTestData> readExcelData(String sheetName) {
-        String filePath = "src/test/java/resources/data/frontoffice/Manage_organization_Data_Test.xlsx";
+        Path filePath = ResourcePathResolver.resolve(
+                "data/frontoffice/Manage_organization_Data_Test.xlsx",
+                "src/test/resources/data/frontoffice/Manage_organization_Data_Test.xlsx",
+                "src/test/java/resources/data/frontoffice/Manage_organization_Data_Test.xlsx"
+        );
 
         List<OrganizationTestData> dataList = new ArrayList<>();
         DataFormatter formatter = new DataFormatter();
 
-        try (FileInputStream fis = new FileInputStream(filePath);
+        try (FileInputStream fis = new FileInputStream(filePath.toFile());
              Workbook workbook = WorkbookFactory.create(fis)) {
 
             Sheet sheet = workbook.getSheet(sheetName);
             if (sheet == null) {
-                System.out.println("Sheet '" + sheetName + "' tidak ditemukan!");
-                return dataList;
+                throw new IllegalArgumentException("Sheet '" + sheetName + "' tidak ditemukan di file: " + filePath);
             }
 
             Row headerRow = sheet.getRow(0);
@@ -128,7 +133,7 @@ public class ManageOrganizationExcelReader {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to read Manage Organization data from: " + filePath, e);
         }
 
         return dataList;
