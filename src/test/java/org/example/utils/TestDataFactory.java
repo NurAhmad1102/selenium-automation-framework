@@ -6,8 +6,8 @@ import org.example.config.slaSettingStructure.SingleConfig;
 import org.example.config.slaSettingStructure.SlaConfig;
 import org.example.config.slaSettingStructure.alertConfirmation.ConfirmationDetailConfig;
 import org.example.config.slaSettingStructure.slaPreviousSetting.SlaExistingConfig;
-import org.example.utils.account.AccountAllocator;
 import org.example.utils.actionUtils.JsonReader;
+import org.example.utils.config.UrlProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,15 +17,33 @@ public class TestDataFactory{
 
     //   User Login
     public static String getPassword(){
+        String systemPassword = System.getProperty("automation.password");
+        if (systemPassword != null && !systemPassword.isBlank()) {
+            return systemPassword;
+        }
+
+        String envPassword = System.getenv("AUTOMATION_PASSWORD");
+        if (envPassword != null && !envPassword.isBlank()) {
+            return envPassword;
+        }
+
         return config.getUserlogin().getPassword();
     }
 
+    /**
+     * @deprecated Use {@link UrlProvider#getBackOfficeUrl()} instead.
+     */
+    @Deprecated
     public static String getBackOfficeUrl(){
-        return AccountAllocator.getUrl("Backoffice");
+        return UrlProvider.getBackOfficeUrl();
     }
 
+    /**
+     * @deprecated Use {@link UrlProvider#getFrontOfficeUrl()} instead.
+     */
+    @Deprecated
     public static String getFrontOfficeUrl(){
-        return AccountAllocator.getUrl("Frontoffice");
+        return UrlProvider.getFrontOfficeUrl();
     }
 
 //    rest for nip, username kalo butuh

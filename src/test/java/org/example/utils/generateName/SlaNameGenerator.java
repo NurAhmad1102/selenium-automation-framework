@@ -62,7 +62,7 @@ public class SlaNameGenerator {
         }
     }
 
-    public String generateSlaName(){
+    public synchronized String generateSlaName(){
         if(availableSlaName.isEmpty()){
             throw new RuntimeException("Semua Kombinasi telah dipakai");
         }

@@ -1,498 +1,301 @@
-# Panduan Arsitektur Automation Test Framework
+# Automation Test Framework
 
-> Stack: Java 17, Selenium 4, TestNG, Maven, ExtentReports, Log4j2, Apache POI
+Framework automation UI berbasis Java 17, Selenium 4, TestNG, Maven, ExtentReports, Log4j2, Apache POI, dan ArchUnit.
 
----
+## Status Refactor Aman
 
-## Daftar Isi
+Refactor ini fokus ke area ringan-sedang dan tidak mengubah inti lifecycle automation.
 
-1. [Gambaran Umum Arsitektur](#1-gambaran-umum-arsitektur)
-2. [Flow Pemanggilan: Test ke PageObject](#2-flow-pemanggilan-test-ke-pageobject)
-3. [Cara Menambah Module Baru](#3-cara-menambah-module-baru)
-4. [Penggunaan Enum FrontOfficeMenu](#4-penggunaan-enum-frontofficemenu)
-5. [Struktur Direktori](#5-struktur-direktori)
-6. [Architecture Rules (ArchUnit)](#6-architecture-rules-archunit)
-7. [Scalability & Maintenance](#7-scalability--maintenance-best-practice)
-8. [Network Monitoring (CDP)](#8-network-monitoring-cdp)
-9. [Enhanced Error Logging & CustomAssert](#9-enhanced-error-logging--customassert)
-10. [Account Allocator & Excel Data](#10-account-allocator--excel-data)
-11. [Log4j2 Bridge (ExtentReportAppender)](#11-log4j2-bridge-extentreportappender)
-12. [Informasi Tambahan](#12-informasi-tambahan)
-8. [Network Monitoring (CDP)](#8-network-monitoring-cdp)
-9. [Enhanced Error Logging & CustomAssert](#9-enhanced-error-logging--customassert)
-10. [Account Allocator & Excel Data](#10-account-allocator--excel-data)
-11. [Log4j2 Bridge (ExtentReportAppender)](#11-log4j2-bridge-extentreportappender)
-12. [Informasi Tambahan](#12-informasi-tambahan)
+Yang diubah:
+- Resource test dipindahkan ke standar Maven: `src/test/resources`.
+- JSON dan Excel reader memakai `ResourcePathResolver` dengan fallback ke path lama.
+- Password default bisa dioverride lewat system property atau environment variable.
+- Network log memakai batas waktu `capturedBefore` saat flush error.
+- README disesuaikan dengan struktur aktual.
 
----
+Yang tidak diubah:
+- `BaseTest` setup/teardown lifecycle.
+- `BasePage` click, wait, type, dropdown, dan action helper.
+- `DriverManager`.
+- Test class dan flow bisnis yang sudah ada.
 
-## 1. Gambaran Umum Arsitektur
+## Stack
 
-Framework ini menggunakan pola **Page Object Model (POM)** dikombinasikan dengan **Factory Pattern** dan **Thread-Local Singleton** untuk mendukung eksekusi paralel yang aman.
+| Area | Teknologi |
+| --- | --- |
+| Language | Java 17 |
+| Build | Maven |
+| Test runner | TestNG |
+| UI automation | Selenium 4 |
+| Reporting | ExtentReports + custom tab renderer |
+| Logging | Log4j2 |
+| Test data | JSON + Excel via Apache POI |
+| Architecture guard | ArchUnit |
 
-```
-+------------------------------------------------------------------+
-|                        LAYER DIAGRAM                             |
-+------------------------------------------------------------------+
-|  [TEST LAYER]      XxxTest                                       |
-|                         |                                        |
-|  [BASE TEST]       XxxBaseTest (BackOffice / FrontOffice)        |
-|                    BaseTest                                      |
-|                         |                                        |
-|  [FACTORY LAYER]   BackOfficeMainPagesFactory                    |
-|                    FrontOfficeMainPagesFactory                   |
-|                    ModuleFactory (e.g. ManageOrganizationFactory)|
-|                                                                  |
-|  [PAGE OBJECT]     XxxPage extends BasePage                      |
-|                                                                  |
-|  [INFRA]           DriverManager (ThreadLocal<WebDriver>)        |
-|                    AccountAllocator (ThreadLocal<UserloginConfig>)|
-|                    NetworkMonitor (CDP)                          |
-|                    ReportAPI (Logging & Reporting)               |
-+------------------------------------------------------------------+
-```
+## Struktur Project
 
----
+```text
+src/main/java/org/example/
+  config/                 Model konfigurasi
+  factories/              Factory untuk Page Object
+  pageObject/             Page Object dan component UI
+  utils/
+    actionUtils/          JSON reader dan action utilities
+    report/               Reporting API dan Extent implementation
+    resource/             ResourcePathResolver
 
-## 2. Flow Pemanggilan: Test ke PageObject
+src/test/java/org/example/
+  base/                   BaseTest, BackOfficeBaseTest, FrontOfficeBaseTest
+  drivers/                DriverManager ThreadLocal
+  listener/               TestNG listener
+  mainPagesFactory/       Entry factory per interface
+  test/                   Test class per module
+  utils/                  Test utilities, account, assertion, table, service
 
-### Diagram Back Office
-
-```
-SlaSettingTest.java
-        |
-        | extends
-        v
-SlaSettingBaseTest.java  (abstract)
-        | @BeforeMethod: login + navigasi ke SLA Setting
-        |
-        | extends
-        v
-BackOfficeBaseTest.java
-        | (setUp() -> new BackOfficeMainPagesFactory(driver))
-        | (menyediakan: getMainPages())
-        | extends
-        v
-BaseTest.java
-        | @BeforeMethod setUp():
-        |   AccountAllocator.allocateAccount(testName, role)
-        |   new ChromeDriver(options)
-        |   DriverManager.setDriver(driver)
-        |   NetworkMonitor.startMonitoring()
-        |   driver.get(targetUrl)
-        |
-        | @AfterMethod tearDown():
-        |   NetworkMonitor.flushServerErrorsToReport()
-        |   finalizeReport()  -> ReportAPI.flush()
-        |   DriverManager.quitDriver()
-        |   AccountAllocator.releaseAccount()
-        |
-        v
-BackOfficeMainPagesFactory.java
-        | (lazy init semua module factory)
-        |-- login()              -> BackOfficeLoginPagesFactory
-        |-- sideMenu()           -> SideMenuFactory
-        |-- manageOrganization() -> ManageOrganizationFactory (BO)
-        +-- workflowEngine()     -> WorkflowEngineFactory
-                |
-                v
-        ManageOrganizationFactory (BO)
-                +-- getSlaSettingPage()
-                        |
-                        v
-                SlaSettingPage.java (extends BasePage)
-                        | @FindBy locators
-                        | action methods
-                        v
-                BasePage.java
-                        click(), typeText(), isVisible()
-                        selectDropdownModal(), getAttributeValue()
-                        WebDriverWait (10 detik)
-                        Logger (Log4j2)
+src/test/resources/
+  data/
+    data.json
+    Data Userlogin.xlsx
+    frontoffice/Manage_organization_Data_Test.xlsx
+  testng/
+    testng.xml
+    testng_debug.xml
+    testng_FO_debug.xml
+    testng_fo_od_smoke.xml
+  log4j2.xml
 ```
 
-### Diagram Front Office
+## Arsitektur Singkat
 
-```
-ManageOrganizationTest.java
-        |
-        | extends
-        v
-ManageOrganizationBaseTest.java  (abstract)
-        | @BeforeMethod: login + navigasi via FrontOfficeMenu enum
-        |
-        | extends
-        v
-FrontOfficeBaseTest.java
-        | (setUp() -> new FrontOfficeMainPagesFactory(driver))
-        | (menyediakan: getFrontOfficePages())
-        | extends
-        v
-BaseTest.java
-        |
-        v
-FrontOfficeMainPagesFactory.java
-        |-- login()              -> FrontOfficeLoginPagesFactory
-        |-- sideMenu()           -> FrontOfficeSideMenuFactory
-        |-- dashboard()          -> FrontOfficeDashboardFactory
-        +-- manageOrganization() -> ManageOrganizationFactory (FO)
+```text
+Test Class
+  -> BackOfficeBaseTest / FrontOfficeBaseTest
+  -> BaseTest
+  -> MainPagesFactory
+  -> Module Factory
+  -> Page Object
+  -> BasePage action helper
 ```
 
----
+Komponen utama:
+- `DriverManager`: menyimpan `WebDriver` per thread.
+- `LoginDataRepository`: membaca `Data Userlogin.xlsx` sekali untuk account dan URL.
+- `AccountAllocator`: mengalokasikan akun per role, menyimpan alias akun per test thread, dan melepas semua akun saat teardown.
+- `UrlProvider`: mengambil URL Back Office / Front Office dari sheet `URL`.
+- `OfficeSessionSwitcher`: switch user dan switch URL Front Office / Back Office dalam satu test thread.
+- `ReportAPI`: pintu masuk logging/reporting.
+- `NetworkMonitor`: capture HTTP 4xx/5xx via CDP.
+- `ArchitectureTest`: guard agar test tidak instantiate Page Object langsung.
 
-## 3. Cara Menambah Module Baru
+## Menjalankan Test
 
-Contoh: menambah module **"Payroll"** di Back Office.
-
-**1. Buat Page Object**
-
-```java
-// src/main/java/org/example/pageObject/backoffice/payrollMenu/PayrollPage.java
-public class PayrollPage extends BasePage {
-    @FindBy(id = "payroll-table")
-    private WebElement payrollTable;
-
-    public PayrollPage(WebDriver driver) { super(driver); }
-
-    public boolean isPayrollTableVisible() {
-        return isVisible(payrollTable);
-    }
-}
-```
-
-**2. Buat Factory**
-
-```java
-public class PayrollFactory {
-    private final WebDriver driver;
-    private PayrollPage payrollPage;
-
-    public PayrollFactory(WebDriver driver) { this.driver = driver; }
-
-    public PayrollPage getPayrollPage() {
-        if (payrollPage == null) payrollPage = new PayrollPage(driver);
-        return payrollPage;
-    }
-}
-```
-
-**3. Daftarkan di BackOfficeMainPagesFactory**
-
-```java
-public PayrollFactory payroll() {
-    if (payrollFactory == null) payrollFactory = new PayrollFactory(driver);
-    return payrollFactory;
-}
-```
-
-**4. Buat Test Class** yang extend `BackOfficeBaseTest`, lalu daftarkan di `testng.xml`.
-
----
-
-## 4. Penggunaan Enum FrontOfficeMenu
-
-`FrontOfficeMenu` digunakan untuk navigasi menu di Front Office secara type-safe, menghindari hardcoded string.
-
-```java
-sideMenuPage.navigateTo(FrontOfficeMenu.MY_ORGANIZATION);
-```
-
-Jika label menu berubah, cukup update enum tanpa menyentuh test class.
-
----
-
-## 5. Struktur Direktori
-
-```
-project-root/
-├── src/main/java/org/example/
-│   ├── config/
-│   │   ├── Config.java
-│   │   ├── slaSettingStructure/
-│   │   │   ├── SlaSettingConfig.java, CreateConfig.java
-│   │   │   ├── EffTodayConfig.java, EffFutureConfig.java
-│   │   │   ├── PropertyConfig.java, SingleConfig.java, MultipleConfig.java
-│   │   │   ├── SlaDetailPropertyConfig.java
-│   │   │   ├── alertConfirmation/
-│   │   │   │   ├── AlertMessageConfig.java, ConfirmationConfig.java
-│   │   │   │   ├── ConfirmationDetailConfig.java, EmptyMandatoryFieldConfig.java
-│   │   │   │   ├── EmptyDataConfig.java, NotifyConfig.java
-│   │   │   └── slaPreviousSetting/SlaExistingConfig.java
-│   │   └── userLoginStructure/UserloginConfig.java
-│   ├── enums/frontoffice/FrontOfficeMenu.java
-│   ├── model/
-│   │   ├── SlaSettingModel.java
-│   │   └── SlaDetailModel.java
-│   ├── pageObject/
-│   │   ├── base/BasePage.java
-│   │   ├── backoffice/ (login, sideMenu, slaSettingMenu, workflowEngineMenu)
-│   │   └── frontoffice/ (login, frontOfficeSideMenu, dashboard, manageOrganization)
-│   ├── factories/
-│   │   ├── backoffice/ (login, sideMenu, manageOrganization, workflowEngine)
-│   │   └── frontoffice/ (login, sideMenuFactory, dashboard, manageOrganization)
-│   └── utils/
-│       ├── ExtentReportNg.java
-│       ├── report/core/ (IAutomationReporter, ReportAPI, ReportEventBus)
-│       ├── report/implementations/extent/ (ExtentImplementation, ExtentTabRenderer, ExtentUIInjector)
-│       ├── report/internal/model/ (LogEntry, LogCategory, ReportData)
-│       ├── report/internal/storage/ (ThreadLocalStore)
-│       └── actionUtils/ (ActionUtils, JsonReader)
-│
-├── src/test/java/org/example/
-│   ├── base/ (BaseTest, BackOfficeBaseTest, FrontOfficeBaseTest)
-│   ├── drivers/DriverManager.java
-│   ├── listener/Listeners.java
-│   ├── mainPagesFactory/ (BackOfficeMainPagesFactory, FrontOfficeMainPagesFactory)
-│   ├── test/
-│   │   ├── backoffice/manageOrganization/slaSetting/
-│   │   │   (AddSlaSettingTest, EditSlaSettingTest, SlaSettingTest, SlaDetailTest)
-│   │   ├── backoffice/workflowEngine/
-│   │   └── frontoffice/myOrganization/
-│   ├── utils/
-│   │   ├── account/AccountAllocator.java
-│   │   ├── CustomAssert.java, ExcelReader.java, TestDataFactory.java, AssertionUtils.java
-│   │   ├── extentReportUtils/ExtentReportAppender.java
-│   │   ├── generateName/ (SlaNameGenerator, SlaNameRepository, SlaPeriodNameService)
-│   │   ├── serviceUtils/ (NetworkMonitor, SeleniumUtils, ApiError)
-│   │   └── tableUtils/TableUtils.java
-│   └── ArchitectureTest.java
-│
-├── src/test/resources/
-│   ├── log4j2.xml
-│   ├── testng/testng.xml
-│   └── data/Data Userlogin.xlsx
-│
-├── reports/
-│   ├── index.html          <- ExtentReports output
-│   ├── capture/            <- Screenshots per test failure
-│   └── spark/              <- ExtentReports assets (offline mode)
-└── logs/
-    └── automation-test.log <- Rolling log files
-```
-
----
-
-## 6. Architecture Rules (ArchUnit)
-
-Project ini menggunakan **ArchUnit** untuk menegakkan aturan arsitektur secara otomatis sebagai bagian dari test suite.
-
-**File:** `src/test/java/org/example/ArchitectureTest.java`
-
-Menjalankan architecture test saja:
 ```bash
+# Suite default dari pom.xml
+mvn test
+
+# Architecture rules saja
 mvn test -Dtest=ArchitectureTest
+
+# Test class tertentu
+mvn test -Dtest=AddSlaSettingTest
+
+# Browser tertentu
+mvn test -Dbrowser=firefox
 ```
 
----
+Suite default:
 
-## 7. Scalability & Maintenance Best Practice
+```text
+src/test/resources/testng/testng.xml
+```
 
-- **Tambah test baru**: Buat class di `test/backoffice/` atau `test/frontoffice/`, extend base test yang sesuai.
-- **Tambah akun test**: Tambah baris di sheet `ACM` pada `Data Userlogin.xlsx`. `AccountAllocator` otomatis mendistribusikannya.
-- **Tambah URL environment**: Tambah baris di sheet `URL` pada `Data Userlogin.xlsx`.
-- **Ubah thread count**: Edit `thread-count` di `testng.xml`.
-- **Tambah module baru**: Ikuti langkah di [section 3](#3-cara-menambah-module-baru).
-- **Ubah tampilan report**: Edit `ExtentUIInjector.java` (CSS/JS) atau `ExtentTabRenderer.java` (struktur HTML). Lihat `report.md` untuk panduan lengkap.
+Suite Front Office OD smoke:
 
----
+```text
+src/test/resources/testng/testng_fo_od_smoke.xml
+```
 
-## 8. Network Monitoring (CDP) & Version Agnosticism
+## Konfigurasi Data
 
-Framework ini dilengkapi dengan **Network Monitoring** berbasis *Chrome DevTools Protocol (CDP)* yang didekopel secara dinamis melalui reflection. Ini membuat monitoring jaringan kebal terhadap pembaruan versi browser secara tiba-tiba.
+Data login dan URL:
 
-**File:**
-- [NetworkMonitor.java](file:///d:/MyCave/Refactor/AutomationTest/src/test/java/org/example/utils/serviceUtils/NetworkMonitor.java)
-- [CdpVersionHelper.java](file:///d:/MyCave/Refactor/AutomationTest/src/test/java/org/example/utils/serviceUtils/CdpVersionHelper.java) (Reflection Engine)
+```text
+src/test/resources/data/Data Userlogin.xlsx
+```
 
-### Fitur Utama
-- **CDP Version Agnostic**: Menggunakan `CdpVersionHelper` untuk memuat paket CDP (`devtools.v125` s.d. `v148`) yang sesuai dengan versi browser saat runtime menggunakan Java Reflection.
-- **Auto-Capture Status 4xx & 5xx**: Setiap respon HTTP 400–599 ditangkap secara otomatis.
-- **Detailed Logging**: Mencatat URL, Method, Status Code, Status Text, Mime Type.
-- **Response & Request Body Capture**: Mengambil payload request dan response body secara dinamis.
-- **Temporal Filter**: Hanya menampilkan network error sebelum first test failure untuk meminimalkan noise debug.
-- **ExtentReports Integration**: Error jaringan diinjeksi ke tab **NETWORK LOGS** pada laporan Extent.
+Sheet `URL` dibaca oleh `UrlProvider`. Base test memakai key:
 
-### Method Utama
+```text
+Backoffice_staging
+Frontoffice_staging
+```
 
-| Method | Deskripsi |
-|--------|-----------|
-| `startMonitoring()` | Memulai CDP session dan mendaftarkan event listener melalui reflection. |
-| `flushServerErrorsToReport(test, capturedBefore)` | Mengirimkan API error yang ditangkap ke `ReportAPI`. |
-| `stopMonitoring()` | Menghentikan CDP session dan membersihkan resource thread. |
+Data konfigurasi domain:
 
----
+```text
+src/test/resources/data/data.json
+```
 
-## 9. Enhanced Error Logging & CustomAssert
+Data Front Office Manage Organization:
 
-### A. Log4j2 Bridge (ExtentReportAppender)
+```text
+src/test/resources/data/frontoffice/Manage_organization_Data_Test.xlsx
+```
 
-Semua `logger.info/warn/error()` di Page Object dan utility class **otomatis** masuk ke laporan ExtentReports.
+Reader resource memakai `ResourcePathResolver`, sehingga file dibaca dari classpath saat test berjalan. Fallback ke path lama tetap tersedia untuk kompatibilitas, tetapi path standar baru adalah `src/test/resources`.
 
-**File:** `src/test/java/org/example/utils/extentReportUtils/ExtentReportAppender.java`
+## Account Session dan Multi User
 
-| Log Level | Hasil di Report |
-|-----------|----------------|
-| `logger.error(...)` | `ReportAPI.fail(message, throwable)` → badge FAIL di tab DETAILS |
-| `logger.warn(...)` | `ReportAPI.step("WARN: " + message)` → badge INFO di tab DETAILS |
-| `logger.info(...)` | `ReportAPI.step(message)` → badge INFO di tab DETAILS |
+Setiap test tetap wajib menentukan default role lewat `getRole()` di base/module test. Akun default itu otomatis disimpan dengan alias `default`, sehingga test biasa tidak perlu setup tambahan.
 
-Log diabaikan jika tidak ada test aktif atau jika `testMethod` di ThreadContext berbeda (parallel safety).
-
-### B. Deteksi Otomatis Kegagalan Elemen
-
-`BasePage` menggunakan `logger.warn()` untuk kondisi seperti elemen tidak visible. Karena Log4j2 bridge aktif, pesan ini otomatis masuk ke laporan sebagai diagnostik tanpa mengotori Page Object dengan kode reporting.
-
-### C. CustomAssert
-
-Gunakan `CustomAssert` sebagai pengganti `Assert` bawaan TestNG.
-
-**File:** `src/test/java/org/example/utils/CustomAssert.java`
+Untuk flow multi-actor, gunakan alias akun di level test method:
 
 ```java
-// Pakai ini (bukan Assert.assertEquals):
-CustomAssert.assertEquals(actual, expected, "Pesan error");
-CustomAssert.assertTrue(condition, "Pesan error");
+@Test
+public void approvalTrxUpdateEmployee() {
+    useCurrentUserAs("submitter");
+    submit();
+
+    useBackOfficeUser("approver", UserRole.HR_PSOM);
+    approve();
+
+    useBackOfficeUser("submitter");
+    verify();
+}
 ```
 
-| Method | Deskripsi |
-|--------|-----------|
-| `assertTrue(condition, message)` | Assert true + log ke ReportAPI. |
-| `assertEquals(actual, expected, message)` | Assert equals + log ke ReportAPI. |
-| `assertFalse(condition, message)` | Assert false + log ke ReportAPI. |
-| `fail(message)` | Manual failure + log ke ReportAPI. |
+Untuk flow lintas aplikasi, helper Front Office dan Back Office tersedia dari semua turunan `BaseTest`:
 
----
+```java
+@Test
+public void approvalTrxUpdateEmployee() {
+    useCurrentUserAs("submitter");
+    submit();
 
-## 10. Account Allocator & Excel Data
+    useBackOfficeUser("approver", UserRole.HR_PSOM);
+    approve();
 
-### AccountAllocator (Thread-Safe Account Lock System)
-
-**File:** [AccountAllocator.java](file:///d:/MyCave/Refactor/AutomationTest/src/test/java/org/example/utils/account/AccountAllocator.java)
-
-Mengelola distribusi akun test ke thread paralel secara aman menggunakan mekanisme **State Locking** (bukan round-robin murni). Sistem ini mencegah beberapa thread menggunakan akun yang sama pada saat bersamaan (menghindari tabrakan sesi).
-
-- **Penguncian Akun**: Menggunakan `ConcurrentHashMap` sebagai mutex lock.
-- **Queue/Wait Timeout**: Jika semua akun untuk suatu role sedang sibuk, thread lain akan mengantre (retry setiap 1 detik) hingga batas waktu **30 detik** sebelum melempar exception.
-
-| Method | Deskripsi |
-|--------|-----------|
-| `allocateAccount(testName, role)` | Mengunci dan mengambil akun yang kosong untuk role tertentu (dengan antrean 30 detik). |
-| `getNip()` / `getUsername()` / `getPassword()` | Mengambil kredensial akun yang teralokasi ke thread aktif. |
-| `getUrl(interfaceType)` | Mengambil URL berdasarkan tipe interface. |
-| `releaseAccount()` | Membuka kunci akun agar dapat langsung digunakan oleh thread test lainnya. |
-
-### ExcelReader & Data File
-
-**File:** `src/test/java/org/example/utils/ExcelReader.java`  
-**Data:** `src/test/java/resources/data/Data Userlogin.xlsx`
-
-**Sheet ACM** — data akun per role:
-
-| Kolom | Deskripsi |
-|-------|-----------|
-| role | Role pengguna |
-| nip | Nomor Induk Pegawai |
-| username | Username login |
-| password | Password login |
-
-**Sheet URL** — URL per environment:
-
-| Kolom | Deskripsi |
-|-------|-----------|
-| interface | Nama interface (backoffice_staging, frontoffice_staging) |
-| url | URL target |
-
-Untuk menambah akun atau environment baru, cukup tambah baris di sheet yang sesuai.
-
----
-
-## 11. Log4j2 Bridge (ExtentReportAppender)
-
-**File konfigurasi:** `src/test/resources/log4j2.xml`
-
-```xml
-<Configuration packages="org.example.utils">
-    <Appenders>
-        <ExtentReportAppender name="extent">
-            <PatternLayout pattern="%msg%n" />
-        </ExtentReportAppender>
-    </Appenders>
-    <Loggers>
-        <Logger name="org.example" level="DEBUG" additivity="false">
-            <AppenderRef ref="extent" />
-        </Logger>
-    </Loggers>
-</Configuration>
+    useFrontOfficeUser("submitter");
+    verify();
+}
 ```
 
-Anotasi plugin: `@Plugin(name = "ExtentReportAppender", category = "Core")`.  
-Package `org.example.utils` harus terdaftar di atribut `packages` pada `<Configuration>` agar Log4j2 menemukan plugin ini saat startup.
+Alias seperti `submitter` dan `approver` hanya berlaku dalam satu test method dan tidak perlu ditambahkan ke Excel. Semua akun yang pernah dialokasikan dalam test thread akan dilepas oleh `BaseTest.tearDown()` melalui `releaseAllAccounts()`.
 
----
+Dokumentasi teknis lengkap: [`docs/account-session-logic.md`](docs/account-session-logic.md).
 
-## 12. Informasi Tambahan
+## Password Override
 
-### Thread Safety dan Parallel Execution
+Password fallback dari `data.json` dapat dioverride agar secret tidak perlu diubah di repo.
 
-| Komponen | ThreadLocal | Tujuan |
-|----------|-------------|--------|
-| `DriverManager` | `ThreadLocal<WebDriver>` | Setiap thread punya driver sendiri |
-| `BackOfficeBaseTest.mainPages` | `ThreadLocal<BackOfficeMainPagesFactory>` | Factory tidak di-share antar thread |
-| `FrontOfficeBaseTest.mainPages` | `ThreadLocal<FrontOfficeMainPagesFactory>` | Factory tidak di-share antar thread |
-| `AccountAllocator.currentAccount` | `ThreadLocal<UserloginConfig>` | Akun tidak bentrok antar thread |
-| `ExtentImplementation.test` | `ThreadLocal<ExtentTest>` | Test node Extent per thread |
-| `ThreadLocalStore` | `ThreadLocal<ReportData>` | Log storage per thread |
-| `NetworkMonitor.currentMonitor` | `ThreadLocal<NetworkMonitor>` | Monitor CDP per thread |
+```bash
+mvn test -Dautomation.password=your-password
+```
 
-Konfigurasi paralel di `testng.xml`:
+Atau:
+
+```bash
+AUTOMATION_PASSWORD=your-password
+```
+
+Prioritas:
+1. System property `automation.password`.
+2. Environment variable `AUTOMATION_PASSWORD`.
+3. Fallback dari `data.json`.
+
+## Parallel Execution
+
+Suite default berjalan paralel:
+
 ```xml
 <suite name="Test End To End" parallel="methods" thread-count="3">
 ```
 
-### Lazy Initialization Pattern
+Komponen yang sudah memakai `ThreadLocal`:
+- `DriverManager`
+- Main pages factory di base test
+- `AccountAllocator.currentAccount`
+- `AccountAllocator` alias akun per test thread
+- Report storage
+- Network monitor
 
-```java
-public SlaSettingPage getSlaSettingPage() {
-    if (slaSettingPage == null) {
-        slaSettingPage = new SlaSettingPage(driver);
-    }
-    return slaSettingPage;
-}
-```
-
-### Menjalankan Test
+Jika account untuk role tertentu habis saat parallel run, test akan menunggu sampai account dilepas. Timeout default 30 detik dan bisa dioverride:
 
 ```bash
-# Semua test sesuai testng.xml (Default browser: chrome)
-mvn test
+mvn test -Daccount.wait.timeout.seconds=120
+```
 
-# Menjalankan dengan browser tertentu (chrome, firefox, edge)
-mvn test -Dbrowser=firefox
+Catatan: generator nama SLA masih menulis state ke `used_names.txt`. Jika parallel execution dinaikkan atau sering jalan di CI, bagian ini perlu dibuat run-scoped dan thread-safe.
 
-# Test class tertentu
-mvn test -Dtest=AddSlaSettingTest -Dbrowser=edge
+## Reporting
 
-# Architecture rules saja
+Output utama:
+
+```text
+reports/index.html
+reports/capture/
+logs/automation-test.log
+```
+
+Flow:
+
+```text
+ReportAPI
+  -> ReportEventBus
+  -> ExtentImplementation
+  -> ExtentTabRenderer
+  -> reports/index.html
+```
+
+Tab report:
+- `DETAILS`
+- `ELEMENT LOGS`
+- `NETWORK LOGS`
+
+Network log hanya mengirim error yang terjadi sampai batas waktu failure saat `capturedBefore` tersedia.
+
+## Architecture Rules
+
+```bash
 mvn test -Dtest=ArchitectureTest
 ```
 
-### Laporan Test
+Rules saat ini:
+- Front Office test tidak boleh instantiate Page Object langsung.
+- Back Office test tidak boleh instantiate Page Object langsung.
+- Utility class tidak boleh instantiate Page Object langsung, kecuali component tertentu.
 
-- `reports/index.html` — ExtentReports HTML report (offline, bisa dibuka tanpa internet)
-- `reports/capture/` — Screenshot per test failure, diorganisir per timestamp
-- `logs/automation-test.log` — Log lengkap, rolling harian, retensi 30 hari
+## Batas Aman Refactor Berikutnya
 
-### Dependency Utama
+Aman untuk dilakukan bertahap:
+- Tambah env/system property untuk config.
+- Tambah resource reader untuk data baru.
+- Perbaiki report/network diagnostic.
+- Tambah ArchUnit rule.
 
-| Library | Versi | Kegunaan |
-|---------|-------|----------|
-| Selenium Java | 4.44.0 | Browser automation |
-| Selenium DevTools v148 | 4.44.0 | Chrome DevTools Protocol (CDP) |
-| TestNG | 7.10.2 | Test framework dan parallelism |
-| ExtentReports | 5.0.9 | HTML test report |
-| Log4j2 | 2.24.3 | Logging |
-| Apache POI | 5.3.0 | Baca data dari Excel |
-| Gson | 2.12.1 | Parse JSON (config & network response) |
-| Lombok | 1.18.30 | Boilerplate reduction |
-| ArchUnit | 1.4.1 | Architecture rule testing |
-| Commons IO | 2.20.0 | File utilities (screenshot) |
+Perlu regression lebih luas jika mengubah:
+- `BaseTest`
+- `BasePage`
+- `DriverManager`
+- `AccountAllocator`
+- generator test data yang mempengaruhi parallel run
+
+## Verifikasi Minimal
+
+Setelah refactor ringan-sedang:
+
+```bash
+mvn test -Dtest=ArchitectureTest
+```
+
+Setelah perubahan account, browser, atau data:
+
+```bash
+mvn test -Dtest=AddSlaSettingTest
+```
+
+Untuk Front Office Manage Organization:
+
+```bash
+mvn test -DsuiteXmlFile=src/test/resources/testng/testng_fo_od_smoke.xml
+```

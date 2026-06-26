@@ -123,7 +123,7 @@ public class SlaSettingPage extends BasePage {
         moveCalendarToYear(expectedYear, Integer.parseInt(getDateYear().getText()));
         getDateCell(String.valueOf(dateValue)).click();
 
-        return expectedDate + "/" + expectedMonth + "/" + expectedYear;
+        return expectedDate + " " + expectedMonthName + " " + expectedYear;
     }
 
     private void moveCalendarToMonth(String expectedMonth, String actualMonth) {

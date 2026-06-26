@@ -3,14 +3,19 @@ package org.example.base;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
+import org.example.config.userLoginStructure.UserloginConfig;
 import org.example.drivers.DriverManager;
+import org.example.mainPagesFactory.BackOfficeMainPagesFactory;
+import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.utils.account.AccountAllocator;
+import org.example.utils.account.UserRole;
 import org.example.utils.report.core.ReportAPI;
 import org.example.utils.report.core.ThrowableOutcomeClassifier;
 import org.example.utils.report.internal.model.OutcomeStatus;
 import org.example.utils.report.internal.model.TestOutcome;
 import org.example.utils.serviceUtils.NetworkMonitor;
 import org.example.utils.serviceUtils.SeleniumUtils;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -25,6 +30,8 @@ public abstract class BaseTest {
 
     protected final Logger logger = LogManager.getLogger(getClass());
     private ThreadLocal<NetworkMonitor> networkMonitor = new ThreadLocal<>();
+    private final ThreadLocal<String> currentTestName = new ThreadLocal<>();
+    private final ThreadLocal<OfficeSessionSwitcher> officeSession = new ThreadLocal<>();
     private final SeleniumUtils seleniumUtils = new SeleniumUtils();
 
     protected abstract String getUrl();
@@ -35,6 +42,7 @@ public abstract class BaseTest {
     public void setUp(org.testng.ITestResult result) {
         result.setAttribute("reportManagedByBaseTest", true);
         String testName = result.getMethod().getMethodName();
+        currentTestName.set(testName);
         // Lifecycle is managed by Listeners, but we can add steps here
         ReportAPI.step("Setting up test environment for: " + testName);
         
@@ -99,6 +107,117 @@ public abstract class BaseTest {
         return DriverManager.getDriver();
     }
 
+    protected String currentTestName() {
+        String testName = currentTestName.get();
+        if (testName == null || testName.isEmpty()) {
+            throw new IllegalStateException("Current test name is not initialized. Ensure setUp() runs first.");
+        }
+        return testName;
+    }
+
+    protected void useCurrentUserAs(String alias) {
+        AccountAllocator.aliasCurrentAccount(alias);
+    }
+
+    protected OfficeSessionSwitcher officeSession() {
+        OfficeSessionSwitcher session = officeSession.get();
+        if (session == null) {
+            session = new OfficeSessionSwitcher(this);
+            officeSession.set(session);
+        }
+        return session;
+    }
+
+    protected BackOfficeMainPagesFactory backOfficePages() {
+        return officeSession().backOfficePages();
+    }
+
+    protected FrontOfficeMainPagesFactory frontOfficePages() {
+        return officeSession().frontOfficePages();
+    }
+
+    protected void useBackOfficeUser(String alias, UserRole role) {
+        officeSession().useBackOfficeUser(alias, role);
+    }
+
+    protected void useBackOfficeUser(String alias, String role) {
+        officeSession().useBackOfficeUser(alias, role);
+    }
+
+    protected void useBackOfficeUser(String alias) {
+        officeSession().useBackOfficeUser(alias);
+    }
+
+    protected void useFrontOfficeUser(String alias, UserRole role) {
+        officeSession().useFrontOfficeUser(alias, role);
+    }
+
+    protected void useFrontOfficeUser(String alias, String role) {
+        officeSession().useFrontOfficeUser(alias, role);
+    }
+
+    protected void useFrontOfficeUser(String alias) {
+        officeSession().useFrontOfficeUser(alias);
+    }
+
+    protected UserloginConfig currentAccount() {
+        UserloginConfig account = AccountAllocator.getCurrentAccount();
+        if (account == null) {
+            throw new IllegalStateException("No current account is allocated for this test thread.");
+        }
+        return account;
+    }
+
+    protected UserloginConfig account(String alias) {
+        UserloginConfig account = AccountAllocator.getAccount(alias);
+        if (account == null) {
+            throw new IllegalArgumentException("Account alias not found for this test thread: " + alias);
+        }
+        return account;
+    }
+
+    protected String currentAccountAlias() {
+        return AccountAllocator.getCurrentAlias();
+    }
+
+    protected String currentNip() {
+        return currentAccount().getNip();
+    }
+
+    protected String currentUsername() {
+        return currentAccount().getUsername();
+    }
+
+    protected String accountNip(String alias) {
+        return account(alias).getNip();
+    }
+
+    protected String accountUsername(String alias) {
+        return account(alias).getUsername();
+    }
+
+    protected void resetBrowserSession() {
+        WebDriver driver = DriverManager.getDriver();
+        if (driver == null) {
+            throw new IllegalStateException("WebDriver is not initialized. Cannot reset browser session.");
+        }
+
+        try {
+            driver.manage().deleteAllCookies();
+        } catch (Exception e) {
+            logger.warn("Failed to delete browser cookies during account switch.", e);
+        }
+
+        if (driver instanceof JavascriptExecutor) {
+            try {
+                ((JavascriptExecutor) driver).executeScript(
+                        "window.localStorage.clear(); window.sessionStorage.clear();");
+            } catch (Exception e) {
+                logger.warn("Failed to clear browser storage during account switch.", e);
+            }
+        }
+    }
+
     @AfterMethod(alwaysRun = true)
     public void tearDown(ITestResult result) {
         logger.info("Tear down started");
@@ -125,7 +244,13 @@ public abstract class BaseTest {
         } catch (Exception e) {
             logger.error("Error during tear down", e);
         } finally {
-            AccountAllocator.releaseAccount();
+            OfficeSessionSwitcher session = officeSession.get();
+            if (session != null) {
+                session.clear();
+                officeSession.remove();
+            }
+            AccountAllocator.releaseAllAccounts();
+            currentTestName.remove();
             ThreadContext.clearAll();
         }
     }
