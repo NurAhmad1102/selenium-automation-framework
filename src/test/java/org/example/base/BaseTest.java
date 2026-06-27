@@ -10,6 +10,7 @@ import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.utils.account.AccountAllocator;
 import org.example.utils.account.UserRole;
 import org.example.utils.report.core.ReportAPI;
+import org.example.utils.report.internal.storage.ThreadLocalStore;
 import org.example.utils.report.core.ThrowableOutcomeClassifier;
 import org.example.utils.report.internal.model.OutcomeStatus;
 import org.example.utils.report.internal.model.TestOutcome;
@@ -222,36 +223,75 @@ public abstract class BaseTest {
     public void tearDown(ITestResult result) {
         logger.info("Tear down started");
         try {
-            if (networkMonitor.get() != null) {
-                try {
-                    if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
-                        // Flush only the relevant server error before the test failure.
-                        networkMonitor.get().flushServerErrorsToReport(null, getTestEndInstant(result));
+            // Phase 1: Network Monitor Teardown
+            try {
+                if (networkMonitor.get() != null) {
+                    try {
+                        if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
+                            // Flush only the relevant server error before the test failure.
+                            networkMonitor.get().flushServerErrorsToReport(null, getTestEndInstant(result));
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error flushing network errors", e);
+                    } finally {
+                        networkMonitor.get().stopMonitoring();
+                        networkMonitor.remove();
+                        NetworkMonitor.removeCurrentMonitor();
                     }
-                } catch (Exception e) {
-                    logger.error("Error flushing network errors", e);
-                } finally {
-                    networkMonitor.get().stopMonitoring();
-                    networkMonitor.remove();
-                    NetworkMonitor.removeCurrentMonitor();
                 }
+            } catch (Exception e) {
+                logger.error("Error in network monitor teardown phase", e);
             }
-            finalizeReport(result);
-            if (DriverManager.getDriver() != null) {
-                DriverManager.quitDriver();
-                logger.info("Driver quit successfully");
+
+            // Phase 2: Report Finalization
+            try {
+                finalizeReport(result);
+            } catch (Exception e) {
+                logger.error("Error finalizing report", e);
+            }
+
+            // Phase 3: WebDriver Quit
+            try {
+                if (DriverManager.getDriver() != null) {
+                    DriverManager.quitDriver();
+                    logger.info("Driver quit successfully");
+                }
+            } catch (Exception e) {
+                logger.error("Error quitting driver", e);
             }
         } catch (Exception e) {
-            logger.error("Error during tear down", e);
+            logger.error("Unexpected error during tear down pipeline", e);
         } finally {
-            OfficeSessionSwitcher session = officeSession.get();
-            if (session != null) {
-                session.clear();
-                officeSession.remove();
+            // Phase 4: ThreadLocal and allocator cleanup (essential to prevent leaks across runs)
+            try {
+                OfficeSessionSwitcher session = officeSession.get();
+                if (session != null) {
+                    session.clear();
+                    officeSession.remove();
+                }
+            } catch (Exception e) {
+                logger.error("Error clearing office session", e);
+            } finally {
+                try {
+                    AccountAllocator.releaseAllAccounts();
+                } catch (Exception e) {
+                    logger.error("Error releasing accounts", e);
+                } finally {
+                    try {
+                        currentTestName.remove();
+                    } catch (Exception e) {
+                        logger.error("Error removing currentTestName", e);
+                    } finally {
+                        try {
+                            ThreadLocalStore.clear();
+                        } catch (Exception e) {
+                            logger.error("Error clearing ThreadLocalStore", e);
+                        } finally {
+                            ThreadContext.clearAll();
+                        }
+                    }
+                }
             }
-            AccountAllocator.releaseAllAccounts();
-            currentTestName.remove();
-            ThreadContext.clearAll();
         }
     }
 
