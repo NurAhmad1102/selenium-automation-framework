@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.example.config.userLoginStructure.UserloginConfig;
 import org.example.drivers.DriverManager;
+import org.example.drivers.DriverFactory;
 import org.example.mainPagesFactory.BackOfficeMainPagesFactory;
 import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.utils.account.AccountAllocator;
@@ -50,34 +51,7 @@ public abstract class BaseTest {
         AccountAllocator.allocateAccount(testName, getRole());
 
         logger.info("Setting Up WebDriver for test: {}", testName);
-        String browser = System.getProperty("browser", "chrome").trim().toLowerCase();
-        WebDriver localDriver;
-
-        switch (browser) {
-            case "firefox":
-                org.openqa.selenium.firefox.FirefoxOptions firefoxOptions = new org.openqa.selenium.firefox.FirefoxOptions();
-                firefoxOptions.setAcceptInsecureCerts(true);
-                firefoxOptions.setCapability("webSocketUrl", true);
-                localDriver = new org.openqa.selenium.firefox.FirefoxDriver(firefoxOptions);
-                break;
-            case "edge":
-                org.openqa.selenium.edge.EdgeOptions edgeOptions = new org.openqa.selenium.edge.EdgeOptions();
-                edgeOptions.setAcceptInsecureCerts(true);
-                edgeOptions.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
-                edgeOptions.addArguments("--force-device-scale-factor=1");
-                edgeOptions.setCapability("webSocketUrl", true);
-                localDriver = new org.openqa.selenium.edge.EdgeDriver(edgeOptions);
-                break;
-            case "chrome":
-            default:
-                ChromeOptions options = new ChromeOptions();
-                options.setAcceptInsecureCerts(true);
-                options.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
-                options.addArguments("--force-device-scale-factor=1");
-                options.setCapability("webSocketUrl", true);
-                localDriver = new ChromeDriver(options);
-                break;
-        }
+        WebDriver localDriver = DriverFactory.createDriver();
 
         DriverManager.setDriver(localDriver);
 
