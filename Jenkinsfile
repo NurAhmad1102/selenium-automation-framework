@@ -39,7 +39,7 @@ pipeline {
     stage('Test') {
       steps {
         bat """
-          mvn -B -ntp clean test -DsuiteXmlFile=${params.TESTNG_XML} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
+          call mvn -B -ntp clean test -DsuiteXmlFile=${params.TESTNG_XML} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
           set EXIT_CODE=%ERRORLEVEL%
           taskkill /F /IM chromedriver.exe /T 2>nul
           taskkill /F /IM chrome.exe /T 2>nul
