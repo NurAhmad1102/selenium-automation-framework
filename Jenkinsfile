@@ -43,7 +43,7 @@ pipeline {
           set EXIT_CODE=%ERRORLEVEL%
           taskkill /F /IM chromedriver.exe /T 2>nul
           taskkill /F /IM chrome.exe /T 2>nul
-          exit %EXIT_CODE%
+          exit /b %EXIT_CODE%
         """
       }
     }

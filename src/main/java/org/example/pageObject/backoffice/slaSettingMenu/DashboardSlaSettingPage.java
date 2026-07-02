@@ -20,14 +20,12 @@ public class DashboardSlaSettingPage extends BasePage {
         PageFactory.initElements(driver, this);
     }
 
-
      //TODO: FIX HERE for XPATH FCKN
     @FindBy(xpath = "//button[span[text()=\"Add\"]]")
     private WebElement addSlaSettingButton;
 
     @FindBy(xpath = "//h1[text()=\"SLA Setting\"]")
     private WebElement slaSettingPage;
-
 
     private final String TD_SLA_PERIOD_NAME = "//td[contains(text(), '%s')]";
     private final String TD_SLA_STATUS = "//td[span[text()= '%s']]";
