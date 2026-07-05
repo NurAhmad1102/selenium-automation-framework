@@ -116,10 +116,17 @@ pipeline {
 
     stage('Test') {
       steps {
-        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-          bat """
-            call mvn -B -ntp clean test -DsuiteXmlFile=${params.TESTNG_XML} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
-          """
+        script {
+          int testExitCode = bat(
+            returnStatus: true,
+            script: """
+              call mvn -B -ntp clean test -DsuiteXmlFile=${params.TESTNG_XML} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
+            """
+          )
+
+          if (testExitCode != 0) {
+            error("Maven test failed with exit code ${testExitCode}")
+          }
         }
       }
     }
