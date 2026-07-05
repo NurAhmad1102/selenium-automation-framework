@@ -12,14 +12,27 @@ import org.example.utils.report.internal.model.OutcomeStatus;
 import org.example.utils.report.internal.model.TestOutcome;
 import org.example.utils.serviceUtils.SeleniumUtils;
 import org.openqa.selenium.WebDriver;
+import org.testng.IExecutionListener;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
-public class Listeners implements ITestListener {
+public class Listeners implements ITestListener, IExecutionListener {
 
     private static final Logger logger = LogManager.getLogger(Listeners.class);
     private final SeleniumUtils seleniumUtils = new SeleniumUtils();
+
+    @Override
+    public void onExecutionStart() {}
+
+    @Override
+    public void onExecutionFinish() {
+        try {
+            org.example.utils.BrowserProcessCleaner.cleanupCurrentJvmDescendants();
+        } catch (Exception e) {
+            logger.error("Error during JVM-local process cleanup in execution finish", e);
+        }
+    }
 
     @Override
     public void onStart(ITestContext context) {
