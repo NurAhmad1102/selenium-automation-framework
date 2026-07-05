@@ -125,7 +125,8 @@ pipeline {
           )
 
           if (testExitCode != 0) {
-            error("Maven test failed with exit code ${testExitCode}")
+            currentBuild.result = 'FAILURE'
+            throw new RuntimeException("Maven test failed with exit code ${testExitCode}")
           }
         }
       }
