@@ -51,6 +51,7 @@ logs/
 reports/
 target/surefire-reports/
 target/failsafe-reports/
+.selenium/
 
 ### Documentation ###
 Documentations/
