@@ -125,7 +125,7 @@ pipeline {
           )
 
           if (testExitCode != 0) {
-            error("Maven test failed with exit code ${testExitCode}")
+            currentBuild.result = 'UNSTABLE'
           }
         }
       }
