@@ -125,7 +125,7 @@ pipeline {
           )
 
           if (testExitCode != 0) {
-            currentBuild.result = 'UNSTABLE'
+            currentBuild.result = 'FAILURE'
           }
         }
       }

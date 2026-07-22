@@ -195,6 +195,13 @@ public class SetOrganizationHelper {
         setOrganizationName(data, OrgMenuAction.MERGE);
     }
 
+    public void moveOrganization(OrganizationTestData data) {
+        logger.info("Phase: --- Move Organization: {}---", data.getPrimaryOrganization());
+        clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.MOVE);
+
+        logger.info("Step: select Move Organization to ORG Level D3 [go down]: {}", data.getParentPosition());
+    }
+
     private void setOrganizationName(OrganizationTestData data, OrgMenuAction orgMenuAction) {
         logger.info("Phase: --- Set Organization Name: {}---", data.getPrimaryOrganization());
         logger.info("Step: Inputting New Organization Name: {}", data.getNewOrganizationName());
