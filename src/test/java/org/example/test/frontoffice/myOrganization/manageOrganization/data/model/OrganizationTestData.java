@@ -43,6 +43,41 @@ public class OrganizationTestData {
     private String fteNumbers;
     private boolean isDottedMatrix;
 
+    public OrganizationTestData() {}
+
+    public OrganizationTestData(OrganizationTestData other) {
+        this.primaryOrganization = other.primaryOrganization;
+        this.mergeOrganizationWith = other.mergeOrganizationWith;
+        this.newOrganizationName = other.newOrganizationName;
+        this.rcCode = other.rcCode;
+        this.level = other.level;
+        this.newParentOrganization = other.newParentOrganization;
+        this.expandOrganization = other.expandOrganization;
+        this.newOrganizationName1 = other.newOrganizationName1;
+        this.newOrganizationName2 = other.newOrganizationName2;
+        this.newParentPosition = other.newParentPosition;
+        this.childOrganization = other.childOrganization;
+        this.affected = other.affected;
+        this.employeeNumber = other.employeeNumber;
+        this.directorate = other.directorate;
+        this.subDirectorate = other.subDirectorate;
+        this.group = other.group;
+        this.division = other.division;
+        this.department = other.department;
+        this.positionName = other.positionName;
+        this.organizationName = other.organizationName;
+        this.fte = other.fte;
+        this.job = other.job;
+        this.jobName = other.jobName;
+        this.jobIndex = other.jobIndex;
+        this.positionIndex = other.positionIndex;
+        this.positionNamingType = other.positionNamingType;
+        this.location = other.location;
+        this.parentPosition = other.parentPosition;
+        this.fteNumbers = other.fteNumbers;
+        this.isDottedMatrix = other.isDottedMatrix;
+    }
+
     public String getPrimaryOrganization() { return primaryOrganization; }
     public void setPrimaryOrganization(String primaryOrganization) { this.primaryOrganization = primaryOrganization; }
 

@@ -30,9 +30,9 @@ public class PositionSectionComponent extends BasePage {
             return root;
         } catch (StaleElementReferenceException e) {
             logger.debug("PositionSection root is stale, re-locating at index {}", index);
-            List<WebElement> positions = parentRootSupplier.get().findElements(
-                    By.xpath(".//span[contains(.,'Position')]/ancestor::div[contains(@class,'border rounded-lg')]")
-            );
+            String xpath = ".//*[self::span or self::button][contains(normalize-space(.),'Position')]" +
+                           "/ancestor::div[contains(@class,'border') and contains(@class,'rounded')][1]";
+            List<WebElement> positions = parentRootSupplier.get().findElements(By.xpath(xpath));
             root = positions.get(index);
             return root;
         }

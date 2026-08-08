@@ -15,8 +15,8 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
-        // Initialize data from helper's default data
-        this.data.set(setOrganizationHelper().getTestData());
+        // Initialize data from Excel 'ADD_NEW' sheet
+        this.data.set(setOrganizationHelper().getTestData("ADD_NEW"));
     }
 
     @Test(groups = {"smoke"},description = "Verify that user can add new organization with valid data")
@@ -45,8 +45,9 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     public void addOrganizationWithExistingPositionNameTest() {
         logger.info("Starting test: addExistingPositionName");
         manageOrganizationHelper().goToFlow1();
-//        CustomAssert.assertTrue(setOrganizationFlow1Page().isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
+        CustomAssert.assertTrue(setOrganizationFlow1Page().isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
 
+        data.get().setNewOrganizationName("NEW ORG POS TEST " + System.currentTimeMillis());
         data.get().setJobName(duplicatePositionName);
         setOrganizationHelper().addNewOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.ADD_NEW);

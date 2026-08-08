@@ -6,6 +6,7 @@ import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.*;
+import org.example.test.frontoffice.myOrganization.manageOrganization.data.ManageOrganizationExcelReader;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
 import org.testng.Assert;
@@ -22,7 +23,6 @@ public class SetOrganizationHelper {
     private final AddJobPositionModal addJobPositionModal;
     private final ConfirmationActionModal confirmationActionModal;
     private final SuccessModal successModal;
-    private OrganizationTestData data;
 
     public SetOrganizationHelper(FrontOfficeMainPagesFactory mainPagesFactory) {
         this.setOrganizationPage = mainPagesFactory.manageOrganization()
@@ -52,28 +52,10 @@ public class SetOrganizationHelper {
         this.successModal = mainPagesFactory.manageOrganization()
                 .modals()
                 .getSuccessModal();
-        initializeDefaultData();
     }
 
-    private void initializeDefaultData() {
-        data = new OrganizationTestData();
-        data.setPrimaryOrganization("O223 Network Sales Digitalization D2 ID");
-        data.setMergeOrganizationWith("O223 Network Specialist D2 ID");
-        data.setNewOrganizationName("New Organization");
-        data.setRcCode("1611.00007.0401");
-
-        data.setJobIndex(0);
-        data.setPositionIndex(0);
-        data.setJobName("Head of Advisory & Legal");
-        data.setPositionNamingType("Same as Job");
-        data.setLocation("Kantor Pusat - Menara Asia");
-        data.setParentPosition("Network Sales Digitalization Head O223");
-        data.setFteNumbers("2");
-        data.setDottedMatrix(false);
-    }
-
-    public OrganizationTestData getTestData() {
-        return data;
+    public OrganizationTestData getTestData(String sheetName) {
+        return ManageOrganizationExcelReader.getSingleData(sheetName);
     }
 
     private void clickOrganizationNode(String nodeName) {
@@ -104,6 +86,14 @@ public class SetOrganizationHelper {
 
 //    PERFORM ACTION
     public void fillJobPosition(OrganizationTestData data, OrgMenuAction action) {
+        fillJobPosition(data, action, action == OrgMenuAction.ADD_NEW || action == OrgMenuAction.MERGE || action == OrgMenuAction.SPLIT, true);
+    }
+
+    public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte) {
+        fillJobPosition(data, action, setFte, true);
+    }
+
+    public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte, boolean proceed) {
 
         if (action == OrgMenuAction.RENAME){
             CustomAssert.assertTrue(renameFormModal.isRenameJobPositionVisible(), "Rename Job Position modal header is not displayed after click next to modal Job & Position details");
@@ -131,7 +121,7 @@ public class SetOrganizationHelper {
         logger.info("Step: Selecting Parent Position [{}]", data.getParentPosition());
         positionSection.selectParentPositionName(data.getParentPosition());
 
-        if (action == OrgMenuAction.ADD_NEW || action == OrgMenuAction.MERGE || action == OrgMenuAction.SPLIT) {
+        if (setFte) {
             logger.info("Step: Setting FTE to [{}]", data.getFteNumbers());
             positionSection.setFTE(data.getFteNumbers());
         }
@@ -141,7 +131,9 @@ public class SetOrganizationHelper {
             positionSection.selectDottedMatrix(data.isDottedMatrix());
         }
 
-        clickButtonProceedJobPosition(action);
+        if (proceed) {
+            clickButtonProceedJobPosition(action);
+        }
     }
 
     private void clickButtonProceedJobPosition(OrgMenuAction action) {
@@ -200,6 +192,34 @@ public class SetOrganizationHelper {
         clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.MOVE);
 
         logger.info("Step: select Move Organization to ORG Level D3 [go down]: {}", data.getParentPosition());
+    }
+
+    public void splitOrganization(OrganizationTestData dataOrg1, OrganizationTestData dataOrg2) {
+        logger.info("Phase: --- Split Organization: {} ---", dataOrg1.getPrimaryOrganization());
+        clickKebabButtonOfNode(dataOrg1.getPrimaryOrganization(), OrgMenuAction.SPLIT);
+
+        logger.info("Step: Filling Organization 1 Details");
+        splitFormModal.fillOrganization1Details(dataOrg1.getNewOrganizationName1(), dataOrg1.getRcCode());
+
+        logger.info("Step: Filling Organization 2 Details");
+        splitFormModal.fillOrganization2Details(dataOrg2.getNewOrganizationName2(), dataOrg2.getRcCode());
+
+        logger.info("Action: Clicking Next to proceed to Job & Position modal");
+        splitFormModal.clickNext();
+    }
+
+    public void fillJobPositionForSplit(OrganizationTestData dataOrg1, OrganizationTestData dataOrg2) {
+        fillJobPositionForSplit(dataOrg1, dataOrg2, true);
+    }
+
+    public void fillJobPositionForSplit(OrganizationTestData dataOrg1, OrganizationTestData dataOrg2, boolean proceed) {
+        logger.info("Step: Filling Job & Position for Organization 1");
+        addJobPositionModal.selectOrganizationTab("Organization 1");
+        fillJobPosition(dataOrg1, OrgMenuAction.SPLIT, false, false);
+
+        logger.info("Step: Filling Job & Position for Organization 2");
+        addJobPositionModal.selectOrganizationTab("Organization 2");
+        fillJobPosition(dataOrg2, OrgMenuAction.SPLIT, true, proceed);
     }
 
     private void setOrganizationName(OrganizationTestData data, OrgMenuAction orgMenuAction) {

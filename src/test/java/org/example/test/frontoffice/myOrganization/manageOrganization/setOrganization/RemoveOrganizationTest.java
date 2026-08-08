@@ -14,8 +14,8 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
-        // Initialize data from helper's default data
-        this.data.set(setOrganizationHelper().getTestData());
+        // Initialize data from Excel 'REMOVE' sheet
+        this.data.set(setOrganizationHelper().getTestData("REMOVE"));
     }
 
 
@@ -34,13 +34,15 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
     @Test(description = "Verify Remove organization with tag new")
     public void removeNewOrganizationTest(){
         logger.info("Starting test: removeNewOrganization");
-        String organizationToRemove = data.get().getNewOrganizationName();
+        
+        OrganizationTestData addNewData = setOrganizationHelper().getTestData("ADD_NEW");
+        String organizationToRemove = addNewData.getNewOrganizationName();
 
         manageOrganizationHelper().goToFlow1();
 
 //        KODE PRE CONDITION ADD NEW ORG
-        setOrganizationHelper().addNewOrganization(data.get());
-        setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.ADD_NEW);
+        setOrganizationHelper().addNewOrganization(addNewData);
+        setOrganizationHelper().fillJobPosition(addNewData, OrgMenuAction.ADD_NEW);
         setOrganizationHelper().confirmAction("Add");
 
 //        KODE REMOVE ORG

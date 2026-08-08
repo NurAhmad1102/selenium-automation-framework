@@ -15,8 +15,8 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
-        // Initialize data from helper's default data
-        this.data.set(setOrganizationHelper().getTestData());
+        // Initialize data from Excel 'MERGE' sheet
+        this.data.set(setOrganizationHelper().getTestData("MERGE"));
     }
 
     @Test(groups = {"smoke"}, description = "Verify that user can Merge organization")
@@ -34,16 +34,6 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
     }
 
     @Test
-    public void mergeOrganizationWithExisingOrganizationNameTest(){
-        logger.info("Starting test: Merge Organization with existing organization name");
-        manageOrganizationHelper().goToFlow1();
-
-        data.get().setNewOrganizationName(duplicateOrganizationName);
-        setOrganizationHelper().mergeOrganization(data.get());
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed when merging organization with existing organization name");
-    }
-
-    @Test
     public void mergeOrganizationWithExistingPositionTest(){
         logger.info("Starting test: Merge Organization with existing position");
         manageOrganizationHelper().goToFlow1();
@@ -53,5 +43,15 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().mergeOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.MERGE);
         CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicatePositionMessage), "Inline error message is not displayed when merging organization with existing position name");
+    }
+
+    @Test
+    public void mergeOrganizationWithExisingOrganizationNameTest(){
+        logger.info("Starting test: Merge Organization with existing organization name");
+        manageOrganizationHelper().goToFlow1();
+
+        data.get().setNewOrganizationName(duplicateOrganizationName);
+        setOrganizationHelper().mergeOrganization(data.get());
+        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed when merging organization with existing organization name");
     }
 }

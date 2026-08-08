@@ -119,4 +119,5 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
 
     protected String duplicateOrganizationMessage = "Organization name already exists";
     protected String duplicatePositionMessage = "Position name already exists";
+    protected String splitDuplicatePositionInBothOrg = "Position name must be unique across organizations";
 }
