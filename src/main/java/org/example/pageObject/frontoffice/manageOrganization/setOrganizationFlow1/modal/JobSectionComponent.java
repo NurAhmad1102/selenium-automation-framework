@@ -28,9 +28,10 @@ public class JobSectionComponent extends BasePage {
             return root;
         } catch (StaleElementReferenceException e) {
             logger.debug("JobSection root is stale, re-locating at index {}", index);
-            List<WebElement> sections = driver.findElements(
-                    By.xpath("//span[contains(.,'Job & Position')]/ancestor::div[contains(@class,'border rounded-lg')]")
-            );
+            String xpath = "(//div[@role='tabpanel' and @data-state='active'] | //div[@role='dialog'])" +
+                           "//*[self::span or self::button][contains(normalize-space(.),'Job & Position')]" +
+                           "/ancestor::div[contains(@class,'border') and contains(@class,'rounded')][1]";
+            List<WebElement> sections = driver.findElements(By.xpath(xpath));
             root = sections.get(index);
             return root;
         }
@@ -59,10 +60,10 @@ public class JobSectionComponent extends BasePage {
     }
 
     public List<PositionSectionComponent> getPositions() {
+        String xpath = ".//*[self::span or self::button][contains(normalize-space(.),'Position')]" +
+                       "/ancestor::div[contains(@class,'border') and contains(@class,'rounded')][1]";
 
-        List<WebElement> positions = getFreshRoot().findElements(
-                By.xpath(".//span[contains(.,'Position')]/ancestor::div[contains(@class,'border rounded-lg')]")
-        );
+        List<WebElement> positions = getFreshRoot().findElements(By.xpath(xpath));
 
         List<PositionSectionComponent> result = new ArrayList<>();
 

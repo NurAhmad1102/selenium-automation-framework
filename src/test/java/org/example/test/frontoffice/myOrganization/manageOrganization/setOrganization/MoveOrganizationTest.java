@@ -13,8 +13,8 @@ public class MoveOrganizationTest extends ManageOrganizationBaseTest {
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
-        // Initialize data from helper's default data
-        this.data.set(setOrganizationHelper().getTestData());
+        // Initialize data from Excel 'MOVE' sheet
+        this.data.set(setOrganizationHelper().getTestData("MOVE"));
     }
 
     @Test(groups = {"smoke"}, description = "Verify that user can Move organization")

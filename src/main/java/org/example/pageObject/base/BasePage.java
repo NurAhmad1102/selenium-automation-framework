@@ -59,8 +59,9 @@ public class BasePage {
             try {
                 element.click();
             } catch (Exception e) {
-                logger.warn("Standard click failed for locator [{}], attempting Javascript click.", locator);
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+                logger.warn("Standard click failed for locator [{}], attempting Javascript click with fresh element.", locator);
+                WebElement freshElement = driver.findElement(locator);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", freshElement);
             }
 
             ReportAPI.step("Action: Click locator [" + locator + "]");

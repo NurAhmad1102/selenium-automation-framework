@@ -15,8 +15,8 @@ public class RenameOrganizationTest extends ManageOrganizationBaseTest {
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
-        // Initialize data from helper's default data
-        this.data.set(setOrganizationHelper().getTestData());
+        // Initialize data from Excel 'RENAME' sheet
+        this.data.set(setOrganizationHelper().getTestData("RENAME"));
     }
 
     @Test(groups = {"smoke"},description = "Verify that user can Rename organization")

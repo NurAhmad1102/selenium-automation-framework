@@ -24,8 +24,7 @@ public class FrontOfficeSideMenu extends BasePage {
      */
     public void expandMainMenu(FrontOfficeMenu menu) {
         By locator = By.xpath(String.format("//a[.//span[normalize-space()='%s']]", menu.getLabel()));
-        WebElement menuElement = wait.until(ExpectedConditions.elementToBeClickable(locator));
-        click(menuElement);
+        click(locator);
     }
 
     /**
@@ -33,8 +32,7 @@ public class FrontOfficeSideMenu extends BasePage {
      * @param subMenu Enum dari FrontOfficeMenu (sub-menu)
      */
     public void clickSubMenu(FrontOfficeMenu subMenu) {
-        By locator = By.xpath(String.format("//*[contains(text(), '%s')]", subMenu.getLabel()));
-        WebElement subMenuElement = wait.until(ExpectedConditions.elementToBeClickable(locator));
-        click(subMenuElement);
+        By locator = By.xpath(String.format("//div[span[normalize-space(.)='%s']]", subMenu.getLabel()));
+        click(locator);
     }
 }

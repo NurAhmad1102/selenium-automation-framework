@@ -10,8 +10,45 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ManageOrganizationExcelReader {
+    private static final Map<String, List<OrganizationTestData>> DATA_CACHE = new ConcurrentHashMap<>();
+
+    public static OrganizationTestData getSingleData(String sheetName) {
+        DATA_CACHE.putIfAbsent(sheetName, readExcelData(sheetName));
+        List<OrganizationTestData> list = DATA_CACHE.get(sheetName);
+        if (list == null || list.isEmpty()) {
+            throw new IllegalStateException("No test data found in Excel sheet: " + sheetName);
+        }
+
+        OrganizationTestData data = list.get(0);
+
+        if (!"JOB_POSITION".equalsIgnoreCase(sheetName)) {
+            DATA_CACHE.putIfAbsent("JOB_POSITION", readExcelData("JOB_POSITION"));
+            List<OrganizationTestData> jobPositionList = DATA_CACHE.get("JOB_POSITION");
+            if (jobPositionList != null && !jobPositionList.isEmpty()) {
+                mergeJobPositionDefaults(data, jobPositionList.get(0));
+            }
+        }
+
+        return new OrganizationTestData(data);
+    }
+
+    private static void mergeJobPositionDefaults(OrganizationTestData target, OrganizationTestData defaults) {
+        if (target.getPositionNamingType() == null || target.getPositionNamingType().trim().isEmpty()) {
+            target.setPositionNamingType(defaults.getPositionNamingType());
+        }
+        if (target.getLocation() == null || target.getLocation().trim().isEmpty()) {
+            target.setLocation(defaults.getLocation());
+        }
+        if ((target.getFteNumbers() == null || target.getFteNumbers().trim().isEmpty()) && defaults.getFte() != null && !defaults.getFte().trim().isEmpty()) {
+            target.setFteNumbers(defaults.getFte());
+        }
+        if ((target.getJobName() == null || target.getJobName().trim().isEmpty()) && defaults.getJob() != null && !defaults.getJob().trim().isEmpty()) {
+            target.setJobName(defaults.getJob());
+        }
+    }
     public static List<OrganizationTestData> readExcelData(String sheetName) {
         Path filePath = ResourcePathResolver.resolve(
                 "data/frontoffice/Manage_organization_Data_Test.xlsx",
@@ -78,7 +115,9 @@ public class ManageOrganizationExcelReader {
 
                 // FIELD BARU HASIL UPDATE
                 if (headerMap.containsKey("NEW_PARENT_POSITION")) {
-                    data.setNewParentPosition(getCellValue(row, headerMap.get("NEW_PARENT_POSITION"), formatter));
+                    String val = getCellValue(row, headerMap.get("NEW_PARENT_POSITION"), formatter);
+                    data.setNewParentPosition(val);
+                    data.setParentPosition(val);
                 }
                 if (headerMap.containsKey("CHILD_ORGANIZATION")) {
                     data.setChildOrganization(getCellValue(row, headerMap.get("CHILD_ORGANIZATION"), formatter));
@@ -105,7 +144,11 @@ public class ManageOrganizationExcelReader {
                     data.setFte(getCellValue(row, headerMap.get("FTE"), formatter));
                 }
                 if (headerMap.containsKey("JOB")) {
-                    data.setJob(getCellValue(row, headerMap.get("JOB"), formatter));
+                    String jobVal = getCellValue(row, headerMap.get("JOB"), formatter);
+                    data.setJob(jobVal);
+                    if (data.getJobName() == null || data.getJobName().trim().isEmpty()) {
+                        data.setJobName(jobVal);
+                    }
                 }
                 if (headerMap.containsKey("JOB_NAME")) {
                     // Mendukung kolom 'JOB_NAME' jika ada di sheet utama
