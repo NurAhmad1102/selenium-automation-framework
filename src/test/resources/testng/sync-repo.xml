@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="FrontOffice - Debug Suite" parallel="false" thread-count="3">
+    <listeners>
+        <listener class-name="org.example.listener.Listeners"/>
+    </listeners>
+
+    <test name="Architecture Rules">
+        <classes>
+            <class name="org.example.ArchitectureTest"/>
+        </classes>
+    </test>
+</suite>
+
+<!--Hanya untuk trigger git pull dan update repo jenkins-->
