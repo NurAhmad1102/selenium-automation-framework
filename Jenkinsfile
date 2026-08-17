@@ -9,19 +9,7 @@ pipeline {
     choice(
       name: 'TESTNG_XML',
       choices: [
-        'master-all',
-        'master-fo',
-        'master-bo',
-        'fo-od-flow1-all',
-        'fo-od-flow2-assign-employee',
-        'fo-od-flow1-smoke',
-        'fo-od-flow1-single-action',
-        'fo-od-flow1-multi-action',
-        'bo-sla-setting',
-        'bo-approval-matrix',
-        'debug-fo',
-        'debug-local',
-        'src/test/resources/testng/master/testng-all.xml'
+        'sync-registry'
       ],
       description: 'Pilih file TestNG XML yang ingin dijalankan'
     )
@@ -127,20 +115,44 @@ pipeline {
       }
     }
 
-    stage('Resolve Suite Path') {
+    stage('Sync & Resolve Suite Path') {
       steps {
         script {
-          def targetXml = params.TESTNG_XML
+          def selectedSuiteId = (params.TESTNG_XML != null && !params.TESTNG_XML.toString().trim().isEmpty()) ? params.TESTNG_XML : 'sync-registry'
+          def targetXml = selectedSuiteId
           def registryPath = 'src/test/resources/testng/suite-registry.json'
-          
+
           if (fileExists(registryPath)) {
             try {
               def jsonText = readFile(file: registryPath)
               def slurper = new groovy.json.JsonSlurper()
               def registryData = slurper.parseText(jsonText)
-              
+
+              // Dynamic Self-Sync: Auto update Jenkins dropdown parameter definitions for future builds
+              def allSuiteIds = registryData.suites.collect { it.id }
+              if (allSuiteIds && !allSuiteIds.isEmpty()) {
+                properties([
+                  parameters([
+                    choice(name: 'TESTNG_XML', choices: allSuiteIds, description: 'Pilih suite TestNG XML (Di-sync otomatis dari suite-registry.json)'),
+                    choice(name: 'BROWSER', choices: ['chrome', 'firefox', 'edge'], description: 'Pilih browser untuk pengujian'),
+                    booleanParam(name: 'HEADLESS', defaultValue: true, description: 'Jalankan pengujian dalam mode Headless (tanpa GUI)')
+                  ])
+                ])
+              }
+
+              // Handle sync-registry shortcut execution or initial null parameter run
+              if (selectedSuiteId == 'sync-registry') {
+                echo "=========================================================================="
+                echo "[SYNC SUCCESS] Jenkins Dropdown UI parameter list has been updated!"
+                echo "Future builds will present all latest suite options from suite-registry.json."
+                echo "Skipping heavy test execution as requested."
+                echo "=========================================================================="
+                env.SKIP_TEST = 'true'
+                return
+              }
+
               def matchedSuite = registryData.suites.find { suite ->
-                suite.id == params.TESTNG_XML || suite.path == params.TESTNG_XML
+                suite.id == selectedSuiteId || suite.path == selectedSuiteId
               }
               
               if (matchedSuite) {
@@ -159,6 +171,9 @@ pipeline {
     }
 
     stage('Test') {
+      when {
+        expression { env.SKIP_TEST != 'true' }
+      }
       steps {
         script {
           int testExitCode = bat(

@@ -5,6 +5,11 @@
   "default_suite": "src/test/resources/testng/master/testng-all.xml",
   "suites": [
     {
+      "id": "sync-registry",
+      "name": "[SYNC] Refresh Jenkins Dropdown UI Only (No Test Execution)",
+      "path": "src/test/resources/testng/sync-repo.xml"
+    },
+    {
       "id": "master-all",
       "name": "[MASTER] All Suites (FrontOffice + BackOffice)",
       "path": "src/test/resources/testng/master/testng-all.xml"
