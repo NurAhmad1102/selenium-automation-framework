@@ -68,7 +68,7 @@ src/test/java/org/example/
   listener/               TestNG listener dan report bootstrap
   mainPagesFactory/       Entry factory Back Office / Front Office
   test/                   Test scenario per module
-  utils/                  Test data, account, assertion, table, network helper
+  utils/                  Test data, account, assertion, table, network helper, DevModeUtils
 
 src/test/resources/
   data/                   JSON, Excel login, dan data test
@@ -90,6 +90,7 @@ Gunakan sumber berikut saat ada ketidaksamaan informasi:
 - Data login dan URL: `src/test/resources/data/Data Userlogin.xlsx`.
 - Config domain dan fallback password: `src/test/resources/data/data.json`.
 - Account/session behavior: `docs/account-session-logic.md`.
+- Dev Mode configuration & helper: `DevModeUtils.java` dan `.env`.
 - Architecture boundary: `src/test/java/org/example/ArchitectureTest.java`.
 
 ## Lifecycle Test
@@ -99,20 +100,32 @@ Gunakan sumber berikut saat ada ketidaksamaan informasi:
 1. Menandai report sebagai dikelola oleh base test.
 2. Memulai step setup di `ReportAPI`.
 3. Mengalokasikan akun default berdasarkan `getRole()`.
-4. Membuat WebDriver sesuai system property `browser`.
+4. Membuat WebDriver sesuai system property `browser` (atau menempel ke browser berjalan jika `DevModeUtils.isDevMode()` aktif).
 5. Menyimpan driver ke `DriverManager`.
 6. Memulai network monitor jika driver mendukung DevTools.
-7. Membuka URL dari `getUrl()`.
+7. Membuka URL dari `getUrl()` (dilewati jika Dev Mode aktif untuk mempertahankan state URL/halaman saat ini).
 
 `BaseTest.tearDown()` melakukan hal berikut:
 
 1. Flush network error relevan saat test gagal.
 2. Finalisasi report pass/fail/skip/broken/blocked.
 3. Screenshot saat failure.
-4. Quit driver.
+4. Quit driver (dilewati jika `DevModeUtils.isDevMode()` aktif untuk membiarkan browser tetap terbuka).
 5. Clear office session, account allocation, ThreadLocal, dan Log4j ThreadContext.
 
 Jangan menambah lifecycle paralel di test class jika bisa ditaruh di module base. Jangan memanggil `DriverManager.quitDriver()` manual dari test.
+
+## Developer Mode (Dev Mode)
+
+Developer Mode (`DevModeUtils`) dirancang untuk mempercepat siklus debugging dan pengujian interaktif lokal:
+
+- **Attaching Browser**: Driver menempel ke browser Chrome/Edge yang sudah berjalan lewat `127.0.0.1:9222` (atau port dari `devPort`).
+- **Persistensi Sesi**: `resetBrowserSession()` dan `driver.quit()` dilewati agar cookie, session login, dan window browser pengguna/developer tidak tertutup/teriset di akhir test.
+- **Smart Bypass Login**: Module base test (`SlaSettingBaseTest`, `ManageOrganizationBaseTest`) dan `OfficeSessionSwitcher` mengecek apakah browser sudah berada di URL target atau sudah logged in; jika ya, langkah re-login dan navigasi ulang dilewati secara otomatis.
+- **Konfigurasi Flexible**:
+  1. System property: `-DdevMode=true`, `-DdevPort=9222`
+  2. Environment variable: `DEV_MODE=true`, `DEV_PORT=9222`
+  3. File `.env` di root project (`DEV_MODE=true`, `DEV_PORT=9222`)
 
 ## Account dan Session
 

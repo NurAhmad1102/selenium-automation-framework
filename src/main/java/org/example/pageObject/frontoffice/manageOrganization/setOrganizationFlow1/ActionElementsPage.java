@@ -1,6 +1,7 @@
 package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1;
 
 import org.example.pageObject.base.BasePage;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -28,6 +29,8 @@ public class ActionElementsPage extends BasePage {
     @FindBy(xpath = "//button[svg and contains(@id, 'radix-')]")
     private WebElement kebabButton;
 
+    private By yesButtonPopUp = By.xpath("//button[normalize-space()='Yes']");
+
 
 
     public void clickArrowBackButton() {
@@ -47,6 +50,10 @@ public class ActionElementsPage extends BasePage {
 
     public void clickKebabButton() {
         click(kebabButton);
+    }
+
+    public void clickYesButtonPopUp() {
+        click(yesButtonPopUp);
     }
 
 }

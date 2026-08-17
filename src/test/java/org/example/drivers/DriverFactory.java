@@ -10,6 +10,11 @@ import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
+import org.example.utils.DevModeUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class DriverFactory {
     private static final Logger logger = LogManager.getLogger(DriverFactory.class);
 
@@ -17,7 +22,11 @@ public class DriverFactory {
         String browser = System.getProperty("browser", "chrome").trim().toLowerCase();
         boolean headless = Boolean.parseBoolean(System.getProperty("headless", "false").trim());
 
-        logger.info("Initializing WebDriver: {} (Headless: {})", browser, headless);
+        if (DevModeUtils.isDevMode()) {
+            logger.info("[DEV-MODE] Active. Attaching to existing browser session.");
+        } else {
+            logger.info("Initializing WebDriver: {} (Headless: {})", browser, headless);
+        }
 
         switch (browser) {
             case "firefox":
@@ -57,9 +66,54 @@ public class DriverFactory {
         return profilePath;
     }
 
+    private static void switchToActiveDevTab(WebDriver driver) {
+        try {
+            java.util.Set<String> handles = driver.getWindowHandles();
+            if (handles.size() > 1) {
+                for (String handle : handles) {
+                    driver.switchTo().window(handle);
+                    String url = driver.getCurrentUrl();
+                    if (url != null && !url.equals("about:blank") && !url.startsWith("chrome://") && !url.startsWith("edge://")) {
+                        logger.info("[DEV-MODE] Switched focus to active application tab: {}", url);
+                        return;
+                    }
+                }
+            } else if (handles.size() == 1) {
+                driver.switchTo().window(handles.iterator().next());
+                logger.info("[DEV-MODE] Attached to single tab (URL: {})", driver.getCurrentUrl());
+            }
+        } catch (Exception e) {
+            logger.warn("[DEV-MODE] Could not switch to active tab: {}", e.getMessage());
+        }
+    }
+
     private static WebDriver createChromeDriver(boolean headless) {
+        if (DevModeUtils.isDevMode()) {
+            String devPort = DevModeUtils.getDevPort();
+            logger.info("[DEV-MODE] Attaching ChromeDriver to running browser on 127.0.0.1:{}", devPort);
+            ChromeOptions options = new ChromeOptions();
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:" + devPort);
+            options.setAcceptInsecureCerts(true);
+            try {
+                WebDriver driver = new ChromeDriver(options);
+                switchToActiveDevTab(driver);
+                return driver;
+            } catch (Exception e) {
+                logger.error("[DEV-MODE] Failed to attach to Chrome on port {}. Ensure Chrome is running with '--remote-debugging-port={}'", devPort, devPort, e);
+                throw e;
+            }
+        }
         String profile = createProfilePath("chrome");
         ChromeOptions options = new ChromeOptions();
+
+        Map<String, Object> prefs = new HashMap<>();
+        prefs.put("credentials_enable_service", false);
+        prefs.put("profile.password_manager_enabled", false);
+        prefs.put("profile.password_manager_leak_detection", false);
+        prefs.put("autofill.profile_enabled", false);
+        prefs.put("autofill.credit_card_enabled", false);
+        options.setExperimentalOption("prefs", prefs);
+
         options.addArguments("--user-data-dir=" + profile);
         options.setAcceptInsecureCerts(true);
         options.setExperimentalOption("excludeSwitches", new String[] { "enable-automation" });
@@ -93,6 +147,21 @@ public class DriverFactory {
     }
 
     private static WebDriver createEdgeDriver(boolean headless) {
+        if (DevModeUtils.isDevMode()) {
+            String devPort = DevModeUtils.getDevPort();
+            logger.info("[DEV-MODE] Attaching EdgeDriver to running browser on 127.0.0.1:{}", devPort);
+            EdgeOptions options = new EdgeOptions();
+            options.setExperimentalOption("debuggerAddress", "127.0.0.1:" + devPort);
+            options.setAcceptInsecureCerts(true);
+            try {
+                WebDriver driver = new EdgeDriver(options);
+                switchToActiveDevTab(driver);
+                return driver;
+            } catch (Exception e) {
+                logger.error("[DEV-MODE] Failed to attach to Edge on port {}. Ensure Edge is running with '--remote-debugging-port={}'", devPort, devPort, e);
+                throw e;
+            }
+        }
         String profile = createProfilePath("edge");
         EdgeOptions options = new EdgeOptions();
         options.addArguments("--user-data-dir=" + profile);

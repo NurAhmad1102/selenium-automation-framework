@@ -1,6 +1,8 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
@@ -16,7 +18,7 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
         // Initialize data from Excel 'MERGE' sheet
-        this.data.set(setOrganizationHelper().getTestData("MERGE"));
+        this.data.set(setOrganizationHelper().getTestData(OrgSheetName.MERGE));
     }
 
     @Test(groups = {"smoke"}, description = "Verify that user can Merge organization")
@@ -27,10 +29,13 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
         data.get().setParentPosition("Head of Branch Transformation & Network Planning 1222");
         setOrganizationHelper().mergeOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.MERGE);
-        setOrganizationHelper().confirmAction("Merge");
+        setOrganizationHelper().confirmAction(ConfirmAction.MERGE);
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "Merged Organization node is not displayed in the organization tree");
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(data.get().getPrimaryOrganization()), "Primary Organization node is still displayed in the organization tree after merge");
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(data.get().getMergeOrganizationWith()), "Merge Organization With node is still displayed in the organization tree after merge");
+
+        setOrganizationHelper().clickChangeLogButton();
+        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Merge Organization", data.get().getPrimaryOrganization(), data.get().getMergeOrganizationWith(), data.get().getNewOrganizationName()), "Changes Log for Merge Organization is not displayed correctly");
     }
 
     @Test

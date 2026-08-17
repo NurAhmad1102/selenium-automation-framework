@@ -14,6 +14,8 @@ import org.example.utils.account.AccountAllocator;
 import org.example.utils.account.UserRole;
 import org.example.utils.actionUtils.ActionUtils;
 import org.example.utils.tableUtils.TableUtils;
+import org.example.utils.DevModeUtils;
+import org.openqa.selenium.WebDriver;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
@@ -47,6 +49,22 @@ public abstract class SlaSettingBaseTest extends BackOfficeBaseTest {
     }
 
     protected void goToSlaSetting(String loginNip) {
+        WebDriver driver = DriverManager.getDriver();
+        String currentUrl = driver != null ? driver.getCurrentUrl() : "";
+
+        if (DevModeUtils.isDevMode() && currentUrl.contains("/sla-setting")) {
+            logger.info("[DEV-MODE] Active. Browser is already at SLA Setting page (URL: {}). Skipping login and side menu navigation.", currentUrl);
+            return;
+        }
+
+        if (DevModeUtils.isDevMode() && !currentUrl.contains("login") && !currentUrl.isEmpty() && !currentUrl.equals("about:blank")) {
+            logger.info("[DEV-MODE] Active. User is logged in but not on SLA Setting page. Navigating via side menu.");
+            sideMenu().getSideMenu().clickManageOrganizationMenu();
+            sideMenu().getSideMenu().clickSlaSettingSubMenu();
+            dashboardSlaSettingPage().isSlaSettingPage();
+            return;
+        }
+
         logger.info("Login Step is Running for user: {}", loginNip);
         String password = AccountAllocator.getPassword();
         if (password == null || password.isEmpty()) {

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Master All Modules Suite">
+    <listeners>
+        <listener class-name="org.example.listener.Listeners"/>
+    </listeners>
+
+    <suite-files>
+        <suite-file path="./testng-fo-all.xml"/>
+        <suite-file path="./testng-bo-all.xml"/>
+    </suite-files>
+</suite>

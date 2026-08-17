@@ -11,6 +11,7 @@ import org.example.utils.account.AccountAllocator;
 import org.example.utils.account.UserRole;
 import org.example.utils.config.UrlProvider;
 import org.example.utils.report.core.ReportAPI;
+import org.example.utils.DevModeUtils;
 import org.openqa.selenium.WebDriver;
 
 public class OfficeSessionSwitcher {
@@ -70,6 +71,13 @@ public class OfficeSessionSwitcher {
         ReportAPI.step("Switch Back Office user to alias: " + owner.currentAccountAlias()
                 + " role: " + account.getRole());
 
+        WebDriver driver = DriverManager.getDriver();
+        String currentUrl = driver != null ? driver.getCurrentUrl() : "";
+        if (DevModeUtils.isDevMode() && (currentUrl.contains("backoffice") || currentUrl.contains("dashboard") || (!currentUrl.contains("login") && !currentUrl.equals("about:blank") && !currentUrl.isEmpty()))) {
+            logger.info("[DEV-MODE] Active. Already logged in or on Back Office page (URL: {}). Skipping login.", currentUrl);
+            return;
+        }
+
         owner.resetBrowserSession();
         DriverManager.getDriver().get(requireUrl(UrlProvider.getBackOfficeUrl(), "Back Office"));
 
@@ -90,6 +98,13 @@ public class OfficeSessionSwitcher {
         UserloginConfig account = owner.currentAccount();
         ReportAPI.step("Switch Front Office user to alias: " + owner.currentAccountAlias()
                 + " role: " + account.getRole());
+
+        WebDriver driver = DriverManager.getDriver();
+        String currentUrl = driver != null ? driver.getCurrentUrl() : "";
+        if (DevModeUtils.isDevMode() && (currentUrl.contains("frontoffice") || currentUrl.contains("dashboard") || (!currentUrl.contains("login") && !currentUrl.equals("about:blank") && !currentUrl.isEmpty()))) {
+            logger.info("[DEV-MODE] Active. Already logged in or on Front Office page (URL: {}). Skipping login.", currentUrl);
+            return;
+        }
 
         owner.resetBrowserSession();
         DriverManager.getDriver().get(requireUrl(UrlProvider.getFrontOfficeUrl(), "Front Office"));

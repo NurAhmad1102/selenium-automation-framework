@@ -111,6 +111,28 @@ public class BasePage {
         }
     }
 
+    protected String getText(WebElement element) {
+        try {
+            String text = wait.until(ExpectedConditions.visibilityOf(element)).getText();
+            ReportAPI.step("Action: Get text from element [" + getElementDescription(element) + "]");
+            return text;
+        } catch (Exception e) {
+            handleActionFailure("get text from", element, e);
+            return null;
+        }
+    }
+
+    protected String getText(By locator) {
+        try {
+            String text = wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).getText();
+            ReportAPI.step("Action: Get text from locator [" + locator + "]");
+            return text;
+        } catch (Exception e) {
+            handleActionFailure("get text from", locator, e);
+            return null;
+        }
+    }
+
 //    IS VISIBLE
     protected boolean isVisible(WebElement element){
         try {

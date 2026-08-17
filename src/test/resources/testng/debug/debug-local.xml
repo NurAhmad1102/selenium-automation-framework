@@ -1,6 +1,6 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="Test End To End" parallel="false" thread-count="2">
+<suite name="Local Debug Suite" parallel="false" thread-count="2">
     <listeners>
         <listener class-name="org.example.listener.Listeners"/>
     </listeners>
@@ -12,18 +12,9 @@
     </test>
 
     <test verbose="2" preserve-order="true" name="SLA Setting">
-<!--        <classes>-->
-<!--            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaDetailTest">-->
-<!--                <methods>-->
-<!--                    <include name="deleteSlaDetail"/>-->
-<!--                    <include name="addSlaDetail"/>-->
-<!--                </methods>-->
-<!--            </class>-->
-<!--        </classes>-->
         <packages>
             <package name="org.example.test.backoffice.manageOrganization.slaSetting"/>
             <package name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization"/>
         </packages>
     </test>
-
 </suite>
