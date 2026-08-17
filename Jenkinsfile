@@ -1,14 +1,27 @@
 pipeline {
   agent any
 
+  options {
+    disableConcurrentBuilds()
+  }
+
   parameters {
     choice(
       name: 'TESTNG_XML',
       choices: [
-        'src/test/resources/testng/testng.xml',
-        'src/test/resources/testng/testng_debug.xml',
-        'src/test/resources/testng/testng_FO_debug.xml',
-        'src/test/resources/testng/testng_fo_od_smoke.xml'
+        'master-all',
+        'master-fo',
+        'master-bo',
+        'fo-od-flow1-all',
+        'fo-od-flow2-assign-employee',
+        'fo-od-flow1-smoke',
+        'fo-od-flow1-single-action',
+        'fo-od-flow1-multi-action',
+        'bo-sla-setting',
+        'bo-approval-matrix',
+        'debug-fo',
+        'debug-local',
+        'src/test/resources/testng/master/testng-all.xml'
       ],
       description: 'Pilih file TestNG XML yang ingin dijalankan'
     )
@@ -114,13 +127,44 @@ pipeline {
       }
     }
 
+    stage('Resolve Suite Path') {
+      steps {
+        script {
+          def targetXml = params.TESTNG_XML
+          def registryPath = 'src/test/resources/testng/suite-registry.json'
+          
+          if (fileExists(registryPath)) {
+            try {
+              def jsonText = readFile(file: registryPath)
+              def slurper = new groovy.json.JsonSlurper()
+              def registryData = slurper.parseText(jsonText)
+              
+              def matchedSuite = registryData.suites.find { suite ->
+                suite.id == params.TESTNG_XML || suite.path == params.TESTNG_XML
+              }
+              
+              if (matchedSuite) {
+                targetXml = matchedSuite.path
+                echo "Resolved TestNG Suite from Registry [${matchedSuite.id}]: ${targetXml}"
+              } else {
+                echo "Using custom TestNG XML path: ${targetXml}"
+              }
+            } catch (Exception e) {
+              echo "Warning: Could not parse ${registryPath}, using default path ${targetXml}. Error: ${e.message}"
+            }
+          }
+          env.RESOLVED_SUITE_XML = targetXml
+        }
+      }
+    }
+
     stage('Test') {
       steps {
         script {
           int testExitCode = bat(
             returnStatus: true,
             script: """
-              call mvn -B -ntp clean test -DsuiteXmlFile=${params.TESTNG_XML} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
+              call mvn -B -ntp clean test -DsuiteXmlFile=${env.RESOLVED_SUITE_XML} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
             """
           )
 

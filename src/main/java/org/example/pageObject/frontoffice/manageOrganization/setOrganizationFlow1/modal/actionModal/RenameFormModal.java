@@ -1,4 +1,5 @@
-package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal;
+package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.actionModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.BaseFormModal;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.PageFactory;

@@ -1,6 +1,8 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
@@ -16,7 +18,7 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
         // Initialize data from Excel 'ADD_NEW' sheet
-        this.data.set(setOrganizationHelper().getTestData("ADD_NEW"));
+        this.data.set(setOrganizationHelper().getTestData(OrgSheetName.ADD_NEW));
     }
 
     @Test(groups = {"smoke"},description = "Verify that user can add new organization with valid data")
@@ -27,8 +29,11 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().addNewOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.ADD_NEW);
 
-        setOrganizationHelper().confirmAction("Add");
+        setOrganizationHelper().confirmAction(ConfirmAction.ADD);
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
+
+        setOrganizationHelper().clickChangeLogButton();
+        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("New Organization", data.get().getNewOrganizationName(), data.get().getPrimaryOrganization()), "Changes Log for New Organization is not displayed correctly");
     }
 
     @Test(description = "Verify that user cannot add new organization with existing organization name")

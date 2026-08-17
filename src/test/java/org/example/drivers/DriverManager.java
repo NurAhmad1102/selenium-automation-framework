@@ -2,6 +2,8 @@ package org.example.drivers;
 
 import org.openqa.selenium.WebDriver;
 
+import org.example.utils.DevModeUtils;
+
 public class DriverManager {
     private static final org.apache.logging.log4j.Logger logger = 
         org.apache.logging.log4j.LogManager.getLogger(DriverManager.class);
@@ -19,6 +21,11 @@ public class DriverManager {
     public static void quitDriver() {
         WebDriver currentDriver = driver.get();
         if (currentDriver == null) {
+            driver.remove();
+            return;
+        }
+        if (DevModeUtils.isDevMode()) {
+            logger.info("[DEV-MODE] Skipping WebDriver.quit() to keep browser open for development.");
             driver.remove();
             return;
         }

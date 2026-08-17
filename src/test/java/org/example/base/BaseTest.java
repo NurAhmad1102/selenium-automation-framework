@@ -17,6 +17,7 @@ import org.example.utils.report.internal.model.OutcomeStatus;
 import org.example.utils.report.internal.model.TestOutcome;
 import org.example.utils.serviceUtils.NetworkMonitor;
 import org.example.utils.serviceUtils.SeleniumUtils;
+import org.example.utils.DevModeUtils;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -55,8 +56,10 @@ public abstract class BaseTest {
 
         DriverManager.setDriver(localDriver);
 
-        DriverManager.getDriver().manage().window().maximize();
-        DriverManager.getDriver().manage().timeouts().pageLoadTimeout(Duration.ofSeconds(300));
+        if (!DevModeUtils.isDevMode()) {
+            DriverManager.getDriver().manage().window().maximize();
+            DriverManager.getDriver().manage().timeouts().pageLoadTimeout(Duration.ofSeconds(300));
+        }
 
         try {
             if (localDriver instanceof org.openqa.selenium.devtools.HasDevTools) {
@@ -73,8 +76,12 @@ public abstract class BaseTest {
         }
 
         String targetUrl = getUrl();
-        logger.info("Navigating to URL: {}", targetUrl);
-        DriverManager.getDriver().get(targetUrl);
+        if (DevModeUtils.isDevMode()) {
+            logger.info("[DEV-MODE] Active. Skipping initial navigation to URL: {}", targetUrl);
+        } else {
+            logger.info("Navigating to URL: {}", targetUrl);
+            DriverManager.getDriver().get(targetUrl);
+        }
     }
 
     @Deprecated
@@ -172,6 +179,11 @@ public abstract class BaseTest {
     }
 
     protected void resetBrowserSession() {
+        if (DevModeUtils.isDevMode()) {
+            logger.info("[DEV-MODE] Skipping resetBrowserSession to preserve developer login session.");
+            return;
+        }
+
         WebDriver driver = DriverManager.getDriver();
         if (driver == null) {
             throw new IllegalStateException("WebDriver is not initialized. Cannot reset browser session.");
