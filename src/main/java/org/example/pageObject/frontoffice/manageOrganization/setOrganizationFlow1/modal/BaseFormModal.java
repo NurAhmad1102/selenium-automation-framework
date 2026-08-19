@@ -20,7 +20,8 @@ public class BaseFormModal extends BasePage {
 
 //    TODO CEK WEBELEMENT APA MASIH PERLU AATAU PAKAI MEHTOD HELPER ISVISIVLE
     private final By newOrgNameField = By.xpath("//label[contains(normalize-space(.), 'New Organization Name')]/following-sibling::input");
-    private final By selectRCCodeDropdown = By.xpath("//button[@role='combobox']");
+    private final By selectRCCodeDropdown = By.xpath(
+            "//div[label[contains(normalize-space(.), 'RC Code') and contains(normalize-space(.), 'Cost Center')]]//button[@role='combobox']");
 
     public String setOrgNewName(String newName) {
         logger.info("Step: Setting New Organization Name to: {}", newName);

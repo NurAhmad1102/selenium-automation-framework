@@ -1,5 +1,6 @@
-package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal;
+package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.actionModal;
 
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.BaseFormModal;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -34,12 +35,17 @@ public class AddJobPositionModal extends BaseFormModal {
 
 
 
-// =========================
     public List<JobSectionComponent> getJobSections() {
+        List<WebElement> activeTabPanels = driver.findElements(By.xpath("//div[@role='tabpanel' and @data-state='active']"));
 
-        List<WebElement> sections = driver.findElements(
-                By.xpath("//span[contains(.,'Job & Position')]/ancestor::div[contains(@class,'border rounded-lg')]")
-        );
+        String baseContext = !activeTabPanels.isEmpty()
+                ? "//div[@role='tabpanel' and @data-state='active']"
+                : "//div[@role='dialog']";
+
+        String xpath = baseContext + "//*[self::span or self::button][contains(normalize-space(.),'Job & Position')]" +
+                       "/ancestor::div[contains(@class,'border') and contains(@class,'rounded')][1]";
+
+        List<WebElement> sections = driver.findElements(By.xpath(xpath));
 
         List<JobSectionComponent> jobs = new ArrayList<>();
 
@@ -63,4 +69,10 @@ public class AddJobPositionModal extends BaseFormModal {
     }
     public void clickApplyButton() {click(applyButton);}
     public void clickMoveButton() {click(moveButton);}
+
+    public void selectOrganizationTab(String tabName) {
+        logger.info("Step: Selecting Organization Tab: {}", tabName);
+        By tabLocator = By.xpath(String.format("//div[@role='tablist']//button[@role='tab' and normalize-space()='%s']", tabName));
+        click(tabLocator);
+    }
 }

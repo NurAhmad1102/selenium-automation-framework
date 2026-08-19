@@ -1,14 +1,15 @@
 pipeline {
   agent any
 
+  options {
+    disableConcurrentBuilds()
+  }
+
   parameters {
     choice(
       name: 'TESTNG_XML',
       choices: [
-        'src/test/resources/testng/testng.xml',
-        'src/test/resources/testng/testng_debug.xml',
-        'src/test/resources/testng/testng_FO_debug.xml',
-        'src/test/resources/testng/testng_fo_od_smoke.xml'
+        'sync-registry'
       ],
       description: 'Pilih file TestNG XML yang ingin dijalankan'
     )
@@ -36,15 +37,156 @@ pipeline {
       }
     }
 
-    stage('Test') {
+    stage('Init Workspace Env') {
       steps {
-        bat """
-          call mvn -B -ntp clean test -DsuiteXmlFile=${params.TESTNG_XML} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
-          set EXIT_CODE=%ERRORLEVEL%
-          taskkill /F /IM chromedriver.exe /T 2>nul
-          taskkill /F /IM chrome.exe /T 2>nul
-          exit /b %EXIT_CODE%
-        """
+        script {
+          env.SELENIUM_PROFILE_ROOT = "${pwd()}\\.selenium"
+          echo "SELENIUM_PROFILE_ROOT=${env.SELENIUM_PROFILE_ROOT}"
+        }
+      }
+    }
+
+    stage('Pre-Cleanup') {
+      steps {
+        powershell '''
+          $marker = "$env:SELENIUM_PROFILE_ROOT"
+          if ([string]::IsNullOrWhiteSpace($marker)) {
+            Write-Host "SELENIUM_PROFILE_ROOT is empty. Skipping targeted cleanup."
+            exit 0
+          }
+          # Normalize path separators safely
+          $marker = $marker.Replace('\\', '/')
+          
+          # Defensive guard against unsafe root paths
+          if ($marker.Length -lt 10 -or -not ($marker -like "*/.selenium")) {
+            Write-Host "Invalid or unsafe cleanup marker: $marker. Skipping targeted cleanup."
+            exit 0
+          }
+          
+          Write-Host "Target cleanup marker: $marker"
+          $processFilter = "name='chrome.exe' or name='chromedriver.exe' or name='msedge.exe' or name='msedgedriver.exe' or name='firefox.exe' or name='geckodriver.exe'"
+          
+          # 1. Kill Leftover Processes
+          $allProcesses = Get-CimInstance Win32_Process -Filter $processFilter
+          
+          $allProcesses |
+            Where-Object {
+              if ([string]::IsNullOrWhiteSpace($_.CommandLine)) {
+                $false
+              } else {
+                $cmd = $_.CommandLine.Replace('\\', '/')
+                $cmd.IndexOf($marker, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+              }
+            } |
+            ForEach-Object {
+              Write-Host "Stopping leftover process: $($_.Name) PID=$($_.ProcessId)"
+              Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+            }
+            
+          # Refresh process list for directory safety check
+          $activeProcesses = Get-CimInstance Win32_Process -Filter $processFilter
+            
+          # 2. Cleanup Old Build Folders (> 2 Days) - Safety Checked against active processes
+          if (Test-Path "$env:SELENIUM_PROFILE_ROOT") {
+            Get-ChildItem "$env:SELENIUM_PROFILE_ROOT" -Directory |
+              Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-2) } |
+              ForEach-Object {
+                $folderMarker = $_.FullName.Replace('\\', '/')
+                
+                # Check if this folder is still referenced in any active command line
+                $isActive = @($activeProcesses | Where-Object {
+                  if ([string]::IsNullOrWhiteSpace($_.CommandLine)) {
+                    $false
+                  } else {
+                    $cmd = $_.CommandLine.Replace('\\', '/')
+                    $cmd.IndexOf($folderMarker, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+                  }
+                }).Count -gt 0
+                
+                if (-not $isActive) {
+                  Write-Host "Removing old Selenium build folder: $($_.FullName)"
+                  Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+                } else {
+                  Write-Host "Skipping active Selenium build folder: $($_.FullName)"
+                }
+              }
+          }
+        '''
+      }
+    }
+
+    stage('Sync & Resolve Suite Path') {
+      steps {
+        script {
+          def selectedSuiteId = (params.TESTNG_XML != null && !params.TESTNG_XML.toString().trim().isEmpty()) ? params.TESTNG_XML : 'sync-registry'
+          def targetXml = selectedSuiteId
+          def registryPath = 'src/test/resources/testng/suite-registry.json'
+
+          if (fileExists(registryPath)) {
+            try {
+              def jsonText = readFile(file: registryPath)
+              def slurper = new groovy.json.JsonSlurper()
+              def registryData = slurper.parseText(jsonText)
+
+              // Dynamic Self-Sync: Auto update Jenkins dropdown parameter definitions for future builds
+              def allSuiteIds = registryData.suites.collect { it.id }
+              if (allSuiteIds && !allSuiteIds.isEmpty()) {
+                properties([
+                  parameters([
+                    choice(name: 'TESTNG_XML', choices: allSuiteIds, description: 'Pilih suite TestNG XML (Di-sync otomatis dari suite-registry.json)'),
+                    choice(name: 'BROWSER', choices: ['chrome', 'firefox', 'edge'], description: 'Pilih browser untuk pengujian'),
+                    booleanParam(name: 'HEADLESS', defaultValue: true, description: 'Jalankan pengujian dalam mode Headless (tanpa GUI)')
+                  ])
+                ])
+              }
+
+              // Handle sync-registry shortcut execution or initial null parameter run
+              if (selectedSuiteId == 'sync-registry') {
+                echo "=========================================================================="
+                echo "[SYNC SUCCESS] Jenkins Dropdown UI parameter list has been updated!"
+                echo "Future builds will present all latest suite options from suite-registry.json."
+                echo "Skipping heavy test execution as requested."
+                echo "=========================================================================="
+                env.SKIP_TEST = 'true'
+                return
+              }
+
+              def matchedSuite = registryData.suites.find { suite ->
+                suite.id == selectedSuiteId || suite.path == selectedSuiteId
+              }
+              
+              if (matchedSuite) {
+                targetXml = matchedSuite.path
+                echo "Resolved TestNG Suite from Registry [${matchedSuite.id}]: ${targetXml}"
+              } else {
+                echo "Using custom TestNG XML path: ${targetXml}"
+              }
+            } catch (Exception e) {
+              echo "Warning: Could not parse ${registryPath}, using default path ${targetXml}. Error: ${e.message}"
+            }
+          }
+          env.RESOLVED_SUITE_XML = targetXml
+        }
+      }
+    }
+
+    stage('Test') {
+      when {
+        expression { env.SKIP_TEST != 'true' }
+      }
+      steps {
+        script {
+          int testExitCode = bat(
+            returnStatus: true,
+            script: """
+              call mvn -B -ntp clean test -DsuiteXmlFile=${env.RESOLVED_SUITE_XML} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
+            """
+          )
+
+          if (testExitCode != 0) {
+            currentBuild.result = 'FAILURE'
+          }
+        }
       }
     }
   }

@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TestNG Suite Registry Configuration",
+  "description": "Central registry for all TestNG suite XML files in the automation project.",
+  "default_suite": "src/test/resources/testng/master/testng-all.xml",
+  "suites": [
+    {
+      "id": "sync-registry",
+      "name": "[SYNC] Refresh Jenkins Dropdown UI Only (No Test Execution)",
+      "path": "src/test/resources/testng/sync-repo.xml"
+    },
+    {
+      "id": "master-all",
+      "name": "[MASTER] All Suites (FrontOffice + BackOffice)",
+      "path": "src/test/resources/testng/master/testng-all.xml"
+    },
+    {
+      "id": "master-fo",
+      "name": "[MASTER] FrontOffice All Suites",
+      "path": "src/test/resources/testng/master/testng-fo-all.xml"
+    },
+    {
+      "id": "master-bo",
+      "name": "[MASTER] BackOffice All Suites",
+      "path": "src/test/resources/testng/master/testng-bo-all.xml"
+    },
+    {
+      "id": "fo-od-flow1-all",
+      "name": "[FO] OD Flow 1 - All Tests",
+      "path": "src/test/resources/testng/frontoffice/od-flow1-all.xml"
+    },
+    {
+      "id": "fo-od-flow2-assign-employee",
+      "name": "[FO] OD Flow 2 - Assign Employee",
+      "path": "src/test/resources/testng/frontoffice/od-flow2-assign-employee.xml"
+    },
+    {
+      "id": "fo-od-flow1-smoke",
+      "name": "[FO] OD Flow 1 - Smoke Test",
+      "path": "src/test/resources/testng/frontoffice/od-flow1-smoke.xml"
+    },
+    {
+      "id": "fo-od-flow1-single-action",
+      "name": "[FO] OD Flow 1 - Single Action Tests",
+      "path": "src/test/resources/testng/frontoffice/od-flow1-single-action.xml"
+    },
+    {
+      "id": "fo-od-flow1-multi-action",
+      "name": "[FO] OD Flow 1 - Multi Action Tests",
+      "path": "src/test/resources/testng/frontoffice/od-flow1-multi-action.xml"
+    },
+    {
+      "id": "bo-sla-setting",
+      "name": "[BO] SLA Setting",
+      "path": "src/test/resources/testng/backoffice/sla-setting.xml"
+    },
+    {
+      "id": "bo-approval-matrix",
+      "name": "[BO] Workflow Engine - Approval Matrix",
+      "path": "src/test/resources/testng/backoffice/approval-matrix.xml"
+    },
+    {
+      "id": "debug-fo",
+      "name": "[DEBUG] FrontOffice Debug Suite",
+      "path": "src/test/resources/testng/debug/debug-fo.xml"
+    },
+    {
+      "id": "debug-local",
+      "name": "[DEBUG] Local Debug Suite",
+      "path": "src/test/resources/testng/debug/debug-local.xml"
+    }
+  ]
+}

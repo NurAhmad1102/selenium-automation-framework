@@ -3,9 +3,17 @@ package org.example.test.frontoffice.myOrganization.manageOrganization;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.*;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ChangesLogModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ConfirmationActionModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.NodeOrganizationModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.PreviewProposedOrg;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.SuccessModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.actionModal.*;
+import org.example.test.frontoffice.myOrganization.manageOrganization.data.ManageOrganizationExcelReader;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
 import org.testng.Assert;
@@ -22,7 +30,10 @@ public class SetOrganizationHelper {
     private final AddJobPositionModal addJobPositionModal;
     private final ConfirmationActionModal confirmationActionModal;
     private final SuccessModal successModal;
-    private OrganizationTestData data;
+    private final ChangesLogModal changesLogModal;
+    private final NodeOrganizationModal nodeOrganizationModal;
+    private final EditJobsPositionsModal editJobsPositionsModal;
+    private final PreviewProposedOrg previewProposedOrg;
 
     public SetOrganizationHelper(FrontOfficeMainPagesFactory mainPagesFactory) {
         this.setOrganizationPage = mainPagesFactory.manageOrganization()
@@ -52,28 +63,42 @@ public class SetOrganizationHelper {
         this.successModal = mainPagesFactory.manageOrganization()
                 .modals()
                 .getSuccessModal();
-        initializeDefaultData();
+        this.changesLogModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getChangesLogModal();
+        this.nodeOrganizationModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getNodeOrganizationModal();
+        this.editJobsPositionsModal = mainPagesFactory.manageOrganization()
+                .modals()
+                .getEditJobsPositionsModal();
+        this.previewProposedOrg = mainPagesFactory.manageOrganization()
+                .modals()
+                .getPreviewProposedOrg();
     }
 
-    private void initializeDefaultData() {
-        data = new OrganizationTestData();
-        data.setPrimaryOrganization("O223 Network Sales Digitalization D2 ID");
-        data.setMergeOrganizationWith("O223 Network Specialist D2 ID");
-        data.setNewOrganizationName("New Organization");
-        data.setRcCode("1611.00007.0401");
-
-        data.setJobIndex(0);
-        data.setPositionIndex(0);
-        data.setJobName("Head of Advisory & Legal");
-        data.setPositionNamingType("Same as Job");
-        data.setLocation("Kantor Pusat - Menara Asia");
-        data.setParentPosition("Network Sales Digitalization Head O223");
-        data.setFteNumbers("2");
-        data.setDottedMatrix(false);
+    public NodeOrganizationModal nodeOrganizationModal() {
+        return nodeOrganizationModal;
     }
 
-    public OrganizationTestData getTestData() {
-        return data;
+    public EditJobsPositionsModal editJobsPositionsModal() {
+        return editJobsPositionsModal;
+    }
+
+    public PreviewProposedOrg previewProposedOrg() {
+        return previewProposedOrg;
+    }
+
+    public OrganizationTestData getTestData(OrgSheetName sheet) {
+        return ManageOrganizationExcelReader.getSingleData(sheet);
+    }
+
+    public OrganizationTestData getTestData(OrgSheetName sheet, int rowIndex) {
+        return ManageOrganizationExcelReader.getDataByRow(sheet, rowIndex);
+    }
+
+    public OrganizationTestData getTestData(OrgSheetName sheet, String actionName) {
+        return ManageOrganizationExcelReader.getDataByAction(sheet, actionName);
     }
 
     private void clickOrganizationNode(String nodeName) {
@@ -104,6 +129,14 @@ public class SetOrganizationHelper {
 
 //    PERFORM ACTION
     public void fillJobPosition(OrganizationTestData data, OrgMenuAction action) {
+        fillJobPosition(data, action, action == OrgMenuAction.ADD_NEW || action == OrgMenuAction.MERGE || action == OrgMenuAction.SPLIT, true);
+    }
+
+    public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte) {
+        fillJobPosition(data, action, setFte, true);
+    }
+
+    public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte, boolean proceed) {
 
         if (action == OrgMenuAction.RENAME){
             CustomAssert.assertTrue(renameFormModal.isRenameJobPositionVisible(), "Rename Job Position modal header is not displayed after click next to modal Job & Position details");
@@ -131,7 +164,7 @@ public class SetOrganizationHelper {
         logger.info("Step: Selecting Parent Position [{}]", data.getParentPosition());
         positionSection.selectParentPositionName(data.getParentPosition());
 
-        if (action == OrgMenuAction.ADD_NEW || action == OrgMenuAction.MERGE || action == OrgMenuAction.SPLIT) {
+        if (setFte) {
             logger.info("Step: Setting FTE to [{}]", data.getFteNumbers());
             positionSection.setFTE(data.getFteNumbers());
         }
@@ -141,7 +174,9 @@ public class SetOrganizationHelper {
             positionSection.selectDottedMatrix(data.isDottedMatrix());
         }
 
-        clickButtonProceedJobPosition(action);
+        if (proceed) {
+            clickButtonProceedJobPosition(action);
+        }
     }
 
     private void clickButtonProceedJobPosition(OrgMenuAction action) {
@@ -195,6 +230,54 @@ public class SetOrganizationHelper {
         setOrganizationName(data, OrgMenuAction.MERGE);
     }
 
+    public void moveOrganization(OrganizationTestData data) {
+        logger.info("Phase: --- Move Organization: {}---", data.getPrimaryOrganization());
+        clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.MOVE);
+
+        logger.info("Step: Selecting Organization Level [{}]", data.getLevel());
+        moveFormModal.clickOrganizationLevelDropdown(data.getLevel());
+
+        logger.info("Step: Inputting New Organization Name [{}]", data.getNewOrganizationName());
+        moveFormModal.setOrgNewName(data.getNewOrganizationName());
+
+        logger.info("Step: Selecting New Parent Organization [{}]", data.getNewParentOrganization());
+        moveFormModal.clickNewParentOrgName(data.getNewParentOrganization());
+
+        logger.info("Step: Selecting RC Code [{}]", data.getRcCode());
+        moveFormModal.clickRCCodeDropdown(data.getRcCode());
+
+        logger.info("Action: Clicking Next to proceed to Job Position modal");
+        moveFormModal.clickNext();
+    }
+
+    public void splitOrganization(OrganizationTestData dataOrg1, OrganizationTestData dataOrg2) {
+        logger.info("Phase: --- Split Organization: {} ---", dataOrg1.getPrimaryOrganization());
+        clickKebabButtonOfNode(dataOrg1.getPrimaryOrganization(), OrgMenuAction.SPLIT);
+
+        logger.info("Step: Filling Organization 1 Details");
+        splitFormModal.fillOrganization1Details(dataOrg1.getNewOrganizationName1(), dataOrg1.getRcCode());
+
+        logger.info("Step: Filling Organization 2 Details");
+        splitFormModal.fillOrganization2Details(dataOrg2.getNewOrganizationName2(), dataOrg2.getRcCode());
+
+        logger.info("Action: Clicking Next to proceed to Job & Position modal");
+        splitFormModal.clickNext();
+    }
+
+    public void fillJobPositionForSplit(OrganizationTestData dataOrg1, OrganizationTestData dataOrg2) {
+        fillJobPositionForSplit(dataOrg1, dataOrg2, true);
+    }
+
+    public void fillJobPositionForSplit(OrganizationTestData dataOrg1, OrganizationTestData dataOrg2, boolean proceed) {
+        logger.info("Step: Filling Job & Position for Organization 1");
+        addJobPositionModal.selectOrganizationTab("Organization 1");
+        fillJobPosition(dataOrg1, OrgMenuAction.SPLIT, false, false);
+
+        logger.info("Step: Filling Job & Position for Organization 2");
+        addJobPositionModal.selectOrganizationTab("Organization 2");
+        fillJobPosition(dataOrg2, OrgMenuAction.SPLIT, true, proceed);
+    }
+
     private void setOrganizationName(OrganizationTestData data, OrgMenuAction orgMenuAction) {
         logger.info("Phase: --- Set Organization Name: {}---", data.getPrimaryOrganization());
         logger.info("Step: Inputting New Organization Name: {}", data.getNewOrganizationName());
@@ -217,13 +300,12 @@ public class SetOrganizationHelper {
 
 
 //    AFTER ACTIONS
-    public void confirmAction(String actionName) {
-        logger.info("Step: Confirming action: {}", actionName);
-        Assert.assertTrue(confirmationActionModal.isConfirmationModalActionDisplayed(actionName),
-                "Confirmation Action modal header is not displayed for action: " + actionName);
+    public void confirmAction(ConfirmAction action) {
+        logger.info("Step: Confirming action: {}", action.getActionName());
+        Assert.assertTrue(confirmationActionModal.isConfirmationModalActionDisplayed(action.getActionName()),
+                "Confirmation Action modal header is not displayed for action: " + action.getActionName());
         confirmationActionModal.clickYesButton();
-        String actionMessage = validateAction(actionName);
-        verifySuccessAndContinue(actionMessage);
+        verifySuccessAndContinue(action.getSuccessPastTense());
     }
 
     private void verifySuccessAndContinue(String successAction) {
@@ -236,28 +318,55 @@ public class SetOrganizationHelper {
         successModal.clickContinueButton();
     }
 
-    private String validateAction(String actionName) {
-        logger.info("Step: Validating action: {}", actionName);
-        String message = "";
-        if(actionName.equals("Add")){
-            message = "Added";
+    @Deprecated
+    public void confirmAction(String actionName) {
+        for (ConfirmAction action : ConfirmAction.values()) {
+            if (action.getActionName().equalsIgnoreCase(actionName)) {
+                confirmAction(action);
+                return;
+            }
         }
-        else if(actionName.equals("Merge")){
-            message = "Merged";
+        throw new IllegalArgumentException("Unknown confirm action: " + actionName);
+    }
+
+    public void clickChangeLogButton() {
+        logger.info("Step: Clicking Changelog button");
+        changesLogModal.openChangesLogModal();
+        changesLogModal.selectOrganizationChangesTab();
+    }
+
+    public boolean verifyOrganizationChangesLog(String actionTitle, String... dynamicOrgKeywords) {
+        logger.info("Step: Verifying Changes Log for Action [{}] with Keywords {}", actionTitle, dynamicOrgKeywords);
+        return changesLogModal.isOrganizationChangeLogDisplayed(actionTitle, dynamicOrgKeywords);
+    }
+
+    /**
+     * Resolves 'Missing parent position' on child organization nodes by selecting the specified parent position name.
+     *
+     * @param parentPositionName Name of the parent position to select in the child node modal
+     */
+    public void setParentPositionToNode(String parentPositionName) {
+        while (verifyMissingParentPositionDisplayed()){
+            setOrganizationPage.clickNodeMissingParentPosition();
+            nodeOrganizationModal.clickEditButton();
+
+            // get Job & Position section di Child org paling pertama (default index 0)
+            var jobSection = editJobsPositionsModal.getJobSection(0);
+            var positionSection = jobSection.getPosition(0);
+
+            logger.info("Step: Setting Child Node Parent Position to [{}]", parentPositionName);
+            positionSection.selectParentPositionName(parentPositionName);
+
+            editJobsPositionsModal.clickSaveButton();
+            confirmationActionModal.clickYesButton();
+            successModal.clickContinueButton();
+            nodeOrganizationModal.clickCloseButton();
         }
-        else if(actionName.equals("Rename")){
-            message = "Renamed";
-        }
-        else if(actionName.equals("Split")){
-            message = "Split";
-        }
-        else if(actionName.equals("Move")){
-            message = "Moved";
-        }
-        else if(actionName.equals("Remove")){
-            message = "Removed";
-        }
-        return message;
+    }
+
+    public void nextToAssignEmployee(){
+        previewProposedOrg.isModalDisplayed();
+        previewProposedOrg.clickNextButton();
     }
 
 }

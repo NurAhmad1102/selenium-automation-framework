@@ -1,6 +1,7 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.data;
 
 import org.apache.poi.ss.usermodel.*;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.resource.ResourcePathResolver;
 
@@ -10,9 +11,72 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ManageOrganizationExcelReader {
-    public static List<OrganizationTestData> readExcelData(String sheetName) {
+    private static final Map<String, List<OrganizationTestData>> DATA_CACHE = new ConcurrentHashMap<>();
+
+    public static OrganizationTestData getSingleData(OrgSheetName sheet) {
+        return getDataByRow(sheet, 0);
+    }
+
+    public static OrganizationTestData getDataByRow(OrgSheetName sheet, int rowIndex) {
+        String sheetName = sheet.getSheetName();
+        DATA_CACHE.putIfAbsent(sheetName, readExcelData(sheet));
+        List<OrganizationTestData> list = DATA_CACHE.get(sheetName);
+        if (list == null || list.isEmpty()) {
+            throw new IllegalStateException("No test data found in Excel sheet: " + sheetName);
+        }
+        if (rowIndex < 0 || rowIndex >= list.size()) {
+            throw new IndexOutOfBoundsException("Row index " + rowIndex + " is out of bounds for sheet: " + sheetName + " (total rows: " + list.size() + ")");
+        }
+
+        OrganizationTestData data = list.get(rowIndex);
+
+        if (sheet != OrgSheetName.JOB_POSITION) {
+            DATA_CACHE.putIfAbsent(OrgSheetName.JOB_POSITION.getSheetName(), readExcelData(OrgSheetName.JOB_POSITION));
+            List<OrganizationTestData> jobPositionList = DATA_CACHE.get(OrgSheetName.JOB_POSITION.getSheetName());
+            if (jobPositionList != null && !jobPositionList.isEmpty()) {
+                int jobPosIndex = Math.min(rowIndex, jobPositionList.size() - 1);
+                mergeJobPositionDefaults(data, jobPositionList.get(jobPosIndex));
+            }
+        }
+
+        return new OrganizationTestData(data);
+    }
+
+    public static OrganizationTestData getDataByAction(OrgSheetName sheet, String actionName) {
+        String sheetName = sheet.getSheetName();
+        DATA_CACHE.putIfAbsent(sheetName, readExcelData(sheet));
+        List<OrganizationTestData> list = DATA_CACHE.get(sheetName);
+        if (list == null || list.isEmpty()) {
+            throw new IllegalStateException("No test data found in Excel sheet: " + sheetName);
+        }
+        for (int i = 0; i < list.size(); i++) {
+            OrganizationTestData item = list.get(i);
+            if (item.getAction() != null && item.getAction().equalsIgnoreCase(actionName.trim())) {
+                return getDataByRow(sheet, i);
+            }
+        }
+        throw new IllegalArgumentException("Action '" + actionName + "' not found in sheet: " + sheetName);
+    }
+
+    private static void mergeJobPositionDefaults(OrganizationTestData target, OrganizationTestData defaults) {
+        if (target.getPositionNamingType() == null || target.getPositionNamingType().trim().isEmpty()) {
+            target.setPositionNamingType(defaults.getPositionNamingType());
+        }
+        if (target.getLocation() == null || target.getLocation().trim().isEmpty()) {
+            target.setLocation(defaults.getLocation());
+        }
+        if ((target.getFteNumbers() == null || target.getFteNumbers().trim().isEmpty()) && defaults.getFte() != null && !defaults.getFte().trim().isEmpty()) {
+            target.setFteNumbers(defaults.getFte());
+        }
+        if ((target.getJobName() == null || target.getJobName().trim().isEmpty()) && defaults.getJob() != null && !defaults.getJob().trim().isEmpty()) {
+            target.setJobName(defaults.getJob());
+        }
+    }
+    public static List<OrganizationTestData> readExcelData(OrgSheetName sheet) {
+        String sheetName = sheet.getSheetName();
         Path filePath = ResourcePathResolver.resolve(
                 "data/frontoffice/Manage_organization_Data_Test.xlsx",
                 "src/test/resources/data/frontoffice/Manage_organization_Data_Test.xlsx",
@@ -25,12 +89,12 @@ public class ManageOrganizationExcelReader {
         try (FileInputStream fis = new FileInputStream(filePath.toFile());
              Workbook workbook = WorkbookFactory.create(fis)) {
 
-            Sheet sheet = workbook.getSheet(sheetName);
-            if (sheet == null) {
+            Sheet excelSheet = workbook.getSheet(sheetName);
+            if (excelSheet == null) {
                 throw new IllegalArgumentException("Sheet '" + sheetName + "' tidak ditemukan di file: " + filePath);
             }
 
-            Row headerRow = sheet.getRow(0);
+            Row headerRow = excelSheet.getRow(0);
             if (headerRow == null) return dataList;
 
             // Map index kolom berdasarkan nama Header
@@ -41,11 +105,18 @@ public class ManageOrganizationExcelReader {
             }
 
             // Iterasi baris data
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
+            for (int i = 1; i <= excelSheet.getLastRowNum(); i++) {
+                Row row = excelSheet.getRow(i);
                 if (row == null) continue;
 
                 OrganizationTestData data = new OrganizationTestData();
+
+                // Pemetaan Kolom ACTION
+                if (headerMap.containsKey("ACTION")) {
+                    data.setAction(getCellValue(row, headerMap.get("ACTION"), formatter));
+                } else if (headerMap.containsKey("ACTION_TYPE")) {
+                    data.setAction(getCellValue(row, headerMap.get("ACTION_TYPE"), formatter));
+                }
 
                 // Pemetaan Kolom Existing & Kolom Baru
                 if (headerMap.containsKey("PRIMARY_ORGANIZATION")) {
@@ -78,7 +149,9 @@ public class ManageOrganizationExcelReader {
 
                 // FIELD BARU HASIL UPDATE
                 if (headerMap.containsKey("NEW_PARENT_POSITION")) {
-                    data.setNewParentPosition(getCellValue(row, headerMap.get("NEW_PARENT_POSITION"), formatter));
+                    String val = getCellValue(row, headerMap.get("NEW_PARENT_POSITION"), formatter);
+                    data.setNewParentPosition(val);
+                    data.setParentPosition(val);
                 }
                 if (headerMap.containsKey("CHILD_ORGANIZATION")) {
                     data.setChildOrganization(getCellValue(row, headerMap.get("CHILD_ORGANIZATION"), formatter));
@@ -105,11 +178,18 @@ public class ManageOrganizationExcelReader {
                     data.setFte(getCellValue(row, headerMap.get("FTE"), formatter));
                 }
                 if (headerMap.containsKey("JOB")) {
-                    data.setJob(getCellValue(row, headerMap.get("JOB"), formatter));
+                    String jobVal = getCellValue(row, headerMap.get("JOB"), formatter);
+                    data.setJob(jobVal);
+                    if (data.getJobName() == null || data.getJobName().trim().isEmpty()) {
+                        data.setJobName(jobVal);
+                    }
                 }
                 if (headerMap.containsKey("JOB_NAME")) {
                     // Mendukung kolom 'JOB_NAME' jika ada di sheet utama
                     data.setJobName(getCellValue(row, headerMap.get("JOB_NAME"), formatter));
+                }
+                if (headerMap.containsKey("JOB_NAME_2")) {
+                    data.setJobName2(getCellValue(row, headerMap.get("JOB_NAME_2"), formatter));
                 }
 
                 // Field dari SET_FILTER
@@ -129,6 +209,32 @@ public class ManageOrganizationExcelReader {
                     data.setDepartment(getCellValue(row, headerMap.get("DEPARTEMENT"), formatter));
                 }
 
+                // Field dari Sheet ASSIGN_EMPLOYEE
+                if (headerMap.containsKey("TYPE")) {
+                    data.setType(getCellValue(row, headerMap.get("TYPE"), formatter));
+                }
+                if (headerMap.containsKey("NIP")) {
+                    data.setNip(getCellValue(row, headerMap.get("NIP"), formatter));
+                }
+                if (headerMap.containsKey("CURRENT_ORG_LEVEL")) {
+                    data.setCurrentOrgLevel(getCellValue(row, headerMap.get("CURRENT_ORG_LEVEL"), formatter));
+                }
+                if (headerMap.containsKey("CURRENT_ORG")) {
+                    data.setCurrentOrg(getCellValue(row, headerMap.get("CURRENT_ORG"), formatter));
+                }
+                if (headerMap.containsKey("CURRENT_JOB")) {
+                    data.setCurrentJob(getCellValue(row, headerMap.get("CURRENT_JOB"), formatter));
+                }
+                if (headerMap.containsKey("CURRENT_POSITION")) {
+                    data.setCurrentPosition(getCellValue(row, headerMap.get("CURRENT_POSITION"), formatter));
+                }
+                if (headerMap.containsKey("MOVEMENT_MOBILITY")) {
+                    data.setMovementMobility(getCellValue(row, headerMap.get("MOVEMENT_MOBILITY"), formatter));
+                }
+                if (headerMap.containsKey("MOVEMENT_CATEGORY")) {
+                    data.setMovementCategory(getCellValue(row, headerMap.get("MOVEMENT_CATEGORY"), formatter));
+                }
+
                 dataList.add(data);
             }
 
@@ -137,6 +243,22 @@ public class ManageOrganizationExcelReader {
         }
 
         return dataList;
+    }
+
+    public static OrganizationTestData getDataByType(OrgSheetName sheet, String typeName) {
+        String sheetName = sheet.getSheetName();
+        DATA_CACHE.putIfAbsent(sheetName, readExcelData(sheet));
+        List<OrganizationTestData> list = DATA_CACHE.get(sheetName);
+        if (list == null || list.isEmpty()) {
+            throw new IllegalStateException("No test data found in Excel sheet: " + sheetName);
+        }
+        for (int i = 0; i < list.size(); i++) {
+            OrganizationTestData item = list.get(i);
+            if (item.getType() != null && item.getType().equalsIgnoreCase(typeName.trim())) {
+                return new OrganizationTestData(item);
+            }
+        }
+        throw new IllegalArgumentException("Type '" + typeName + "' not found in sheet: " + sheetName);
     }
 
     private static String getCellValue(Row row, Integer columnIndex, DataFormatter formatter) {

@@ -19,7 +19,7 @@ public class SetOrganizationPage extends BasePage {
     @FindBy(xpath = "//span[text()='Set Organization']")
     private WebElement setOrganizationHeader;
 
-    private final By isMissingParentPositionNodeDisplayed = By.xpath("//div[@data-orientation='vertical'][.//span[normalize-space()='Missing Parent Position']]");
+    private final By MissingParentPositionNode = By.xpath("//div[@data-orientation='vertical'][.//span[normalize-space()='Missing Parent Position']]");
 
     public boolean isSetOrganizationHeaderDisplayed() {
         return isVisible(setOrganizationHeader);
@@ -60,7 +60,11 @@ public class SetOrganizationPage extends BasePage {
     }
 
     public boolean isMissingParentPositionNodeDisplayed() {
-        return isVisible(isMissingParentPositionNodeDisplayed);
+        return isVisible(MissingParentPositionNode);
+    }
+
+    public void clickNodeMissingParentPosition() {
+        click(MissingParentPositionNode);
     }
 
 }

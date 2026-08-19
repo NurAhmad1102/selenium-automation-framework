@@ -1,6 +1,11 @@
 package org.example.factories.frontoffice.manageOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.*;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ChangesLogModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ConfirmationActionModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.NodeOrganizationModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.PreviewProposedOrg;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.SuccessModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.actionModal.*;
 import org.openqa.selenium.WebDriver;
 
 public class SetOrganizationModalFactory {
@@ -13,6 +18,10 @@ public class SetOrganizationModalFactory {
     private AddJobPositionModal addJobPositionModal;
     private ConfirmationActionModal confirmationActionModal;
     private SuccessModal successModal;
+    private ChangesLogModal changesLogModal;
+    private NodeOrganizationModal nodeOrganizationModal;
+    private EditJobsPositionsModal editJobsPositionsModal;
+    private PreviewProposedOrg previewProposedOrg;
 
     public SetOrganizationModalFactory(WebDriver driver) {
         this.driver = driver;
@@ -72,5 +81,33 @@ public class SetOrganizationModalFactory {
             successModal = new SuccessModal(driver);
         }
         return successModal;
+    }
+
+    public ChangesLogModal getChangesLogModal() {
+        if (changesLogModal == null) {
+            changesLogModal = new ChangesLogModal(driver);
+        }
+        return changesLogModal;
+    }
+
+    public NodeOrganizationModal getNodeOrganizationModal() {
+        if (nodeOrganizationModal == null) {
+            nodeOrganizationModal = new NodeOrganizationModal(driver);
+        }
+        return nodeOrganizationModal;
+    }
+
+    public EditJobsPositionsModal getEditJobsPositionsModal() {
+        if (editJobsPositionsModal == null) {
+            editJobsPositionsModal = new EditJobsPositionsModal(driver);
+        }
+        return editJobsPositionsModal;
+    }
+
+    public PreviewProposedOrg getPreviewProposedOrg() {
+        if (previewProposedOrg == null) {
+            previewProposedOrg = new PreviewProposedOrg(driver);
+        }
+        return previewProposedOrg;
     }
 }

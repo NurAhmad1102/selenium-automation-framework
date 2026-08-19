@@ -58,10 +58,18 @@ src/test/resources/
     Data Userlogin.xlsx
     frontoffice/Manage_organization_Data_Test.xlsx
   testng/
-    testng.xml
-    testng_debug.xml
-    testng_FO_debug.xml
-    testng_fo_od_smoke.xml
+    master/
+      testng-all.xml
+    frontoffice/
+      od-flow1-all.xml
+      od-flow1-single-action.xml
+      od-flow1-multi-action.xml
+      od-flow1-smoke.xml
+    backoffice/
+      sla-setting.xml
+    debug/
+      debug-local.xml
+      debug-fo.xml
   log4j2.xml
 ```
 
@@ -79,6 +87,7 @@ Test Class
 
 Komponen utama:
 - `DriverManager`: menyimpan `WebDriver` per thread.
+- `DevModeUtils`: mengelola status & port Developer Mode (Dev Mode) untuk menempelkan driver ke browser lokal yang sedang berjalan.
 - `LoginDataRepository`: membaca `Data Userlogin.xlsx` sekali untuk account dan URL.
 - `AccountAllocator`: mengalokasikan akun per role, menyimpan alias akun per test thread, dan melepas semua akun saat teardown.
 - `UrlProvider`: mengambil URL Back Office / Front Office dari sheet `URL`.
@@ -90,7 +99,7 @@ Komponen utama:
 ## Menjalankan Test
 
 ```bash
-# Suite default dari pom.xml
+# Suite default dari pom.xml (master/testng-all.xml)
 mvn test
 
 # Architecture rules saja
@@ -106,14 +115,56 @@ mvn test -Dbrowser=firefox
 Suite default:
 
 ```text
-src/test/resources/testng/testng.xml
+src/test/resources/testng/master/testng-all.xml
 ```
 
 Suite Front Office OD smoke:
 
 ```text
-src/test/resources/testng/testng_fo_od_smoke.xml
+src/test/resources/testng/frontoffice/od-flow1-smoke.xml
 ```
+
+## Developer Mode (Dev Mode)
+
+Developer Mode memungkinkan pengujian UI berjalan langsung di browser Chrome/Edge lokal yang sudah terbuka tanpa membuka browser baru, tanpa melakukan re-login di setiap eksekusi, dan tanpa menutup window browser setelah test selesai (`driver.quit()` dilewati).
+
+### 1. Menjalankan Browser dengan Remote Debugging Port
+
+Jalankan Chrome/Edge melalui terminal/command line dengan flag remote debugging (default port `9222`):
+
+```bash
+# Windows Chrome
+chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\chrome-dev-profile"
+
+# Edge
+msedge.exe --remote-debugging-port=9222 --user-data-dir="C:\edge-dev-profile"
+```
+
+### 2. Memfungsikan Dev Mode
+
+Konfigurasi Dev Mode dibaca dengan urutan prioritas:
+1. **System Property**: `-DdevMode=true` atau `-DdevPort=9222`
+2. **Environment Variable**: `DEV_MODE=true` atau `DEV_PORT=9222`
+3. **File `.env`** pada root project:
+   ```env
+   DEV_MODE=true
+   DEV_PORT=9222
+   ```
+
+### 3. Eksekusi Test dalam Dev Mode
+
+```bash
+# Menggunakan System Property
+mvn test -DdevMode=true -Dtest=MoveOrganizationTest
+
+# Jika menggunakan file .env (DEV_MODE=true)
+mvn test -Dtest=MoveOrganizationTest
+```
+
+Perilaku utama saat Dev Mode aktif:
+- `DriverFactory` akan menempel (attach) ke instance browser yang berjalan di `127.0.0.1:9222`.
+- Base navigation & login dilewati jika browser sudah berada pada halaman target atau sudah dalam keadaan logged in.
+- `resetBrowserSession()` dan `driver.quit()` dilewati sehingga sesi login dan window browser tetap terbuka untuk mempercepat siklus debugging.
 
 ## Konfigurasi Data
 
@@ -182,7 +233,11 @@ public void approvalTrxUpdateEmployee() {
 
 Alias seperti `submitter` dan `approver` hanya berlaku dalam satu test method dan tidak perlu ditambahkan ke Excel. Semua akun yang pernah dialokasikan dalam test thread akan dilepas oleh `BaseTest.tearDown()` melalui `releaseAllAccounts()`.
 
-Dokumentasi teknis lengkap: [`docs/account-session-logic.md`](docs/account-session-logic.md).
+Dokumentasi teknis lengkap:
+- **Account & Session Logic:** [`docs/account-session-logic.md`](docs/account-session-logic.md)
+- **Business Flow 1 (Set Organization):** [`docs/business-flow-1-set-organization.md`](src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/data/businessLogic/Business-Flow-1-Set-Organization.md)
+- **Business Flow 2 (Assign Employee):** [`docs/Business_Flow_2-Assign_Employee.md`](src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/data/businessLogic/Business_Flow_2-Assign_Employee.md)
+- **Project Alignment Guide:** [`docs/project-alignment-guide.md`](docs/project-alignment-guide.md)
 
 ## Password Override
 

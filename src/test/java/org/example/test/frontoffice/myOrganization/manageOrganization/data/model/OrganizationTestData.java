@@ -1,6 +1,9 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.data.model;
 
 public class OrganizationTestData {
+    // Action Type Identifier (PRIMARY, CHILD_MERGE, CHILD_SPLIT, CHILD_RENAME)
+    private String action;
+
     // Organization Section Data
     private String primaryOrganization;
     private String mergeOrganizationWith; // MERGE_ORG_1
@@ -33,6 +36,7 @@ public class OrganizationTestData {
 
     // Job Section Data Existing
     private String jobName;
+    private String jobName2; // Untuk SPLIT (Organization 2)
     private int jobIndex = 0;
 
     // Position Section Data Existing
@@ -42,6 +46,103 @@ public class OrganizationTestData {
     private String parentPosition;
     private String fteNumbers;
     private boolean isDottedMatrix;
+
+    // Flow 2 Assign Employee Sheet Fields
+    private String type;
+    private String nip;
+    private String currentOrgLevel;
+    private String currentOrg;
+    private String currentJob;
+    private String currentPosition;
+    private String movementMobility;
+    private boolean isMobility = false;
+    private String movementCategory = "Career Progression / Job Enlargement";
+    private boolean isPJS = false;
+
+    public OrganizationTestData() {}
+
+    public OrganizationTestData(OrganizationTestData other) {
+        this.action = other.action;
+        this.primaryOrganization = other.primaryOrganization;
+        this.mergeOrganizationWith = other.mergeOrganizationWith;
+        this.newOrganizationName = other.newOrganizationName;
+        this.rcCode = other.rcCode;
+        this.level = other.level;
+        this.newParentOrganization = other.newParentOrganization;
+        this.expandOrganization = other.expandOrganization;
+        this.newOrganizationName1 = other.newOrganizationName1;
+        this.newOrganizationName2 = other.newOrganizationName2;
+        this.newParentPosition = other.newParentPosition;
+        this.childOrganization = other.childOrganization;
+        this.affected = other.affected;
+        this.employeeNumber = other.employeeNumber;
+        this.directorate = other.directorate;
+        this.subDirectorate = other.subDirectorate;
+        this.group = other.group;
+        this.division = other.division;
+        this.department = other.department;
+        this.positionName = other.positionName;
+        this.organizationName = other.organizationName;
+        this.fte = other.fte;
+        this.job = other.job;
+        this.jobName = other.jobName;
+        this.jobName2 = other.jobName2;
+        this.jobIndex = other.jobIndex;
+        this.positionIndex = other.positionIndex;
+        this.positionNamingType = other.positionNamingType;
+        this.location = other.location;
+        this.parentPosition = other.parentPosition;
+        this.fteNumbers = other.fteNumbers;
+        this.isDottedMatrix = other.isDottedMatrix;
+        this.type = other.type;
+        this.nip = other.nip;
+        this.currentOrgLevel = other.currentOrgLevel;
+        this.currentOrg = other.currentOrg;
+        this.currentJob = other.currentJob;
+        this.currentPosition = other.currentPosition;
+        this.movementMobility = other.movementMobility;
+        this.isMobility = other.isMobility;
+        this.movementCategory = other.movementCategory;
+        this.isPJS = other.isPJS;
+    }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
+    public String getNip() { return nip; }
+    public void setNip(String nip) { this.nip = nip; }
+
+    public String getCurrentOrgLevel() { return currentOrgLevel; }
+    public void setCurrentOrgLevel(String currentOrgLevel) { this.currentOrgLevel = currentOrgLevel; }
+
+    public String getCurrentOrg() { return currentOrg; }
+    public void setCurrentOrg(String currentOrg) { this.currentOrg = currentOrg; }
+
+    public String getCurrentJob() { return currentJob; }
+    public void setCurrentJob(String currentJob) { this.currentJob = currentJob; }
+
+    public String getCurrentPosition() { return currentPosition; }
+    public void setCurrentPosition(String currentPosition) { this.currentPosition = currentPosition; }
+
+    public String getMovementMobility() { return movementMobility; }
+    public void setMovementMobility(String movementMobility) { 
+        this.movementMobility = movementMobility;
+        if (movementMobility != null) {
+            this.isMobility = "YES".equalsIgnoreCase(movementMobility.trim());
+        }
+    }
+
+    public boolean isMobility() { return isMobility; }
+    public void setMobility(boolean mobility) { isMobility = mobility; }
+
+    public String getMovementCategory() { return movementCategory; }
+    public void setMovementCategory(String movementCategory) { this.movementCategory = movementCategory; }
+
+    public boolean isPJS() { return isPJS; }
+    public void setPJS(boolean PJS) { isPJS = PJS; }
+
+    public String getAction() { return action; }
+    public void setAction(String action) { this.action = action; }
 
     public String getPrimaryOrganization() { return primaryOrganization; }
     public void setPrimaryOrganization(String primaryOrganization) { this.primaryOrganization = primaryOrganization; }
@@ -111,6 +212,9 @@ public class OrganizationTestData {
 
     public String getJobName() { return jobName; }
     public void setJobName(String jobName) { this.jobName = jobName; }
+
+    public String getJobName2() { return jobName2; }
+    public void setJobName2(String jobName2) { this.jobName2 = jobName2; }
 
     public int getJobIndex() { return jobIndex; }
     public void setJobIndex(int jobIndex) { this.jobIndex = jobIndex; }

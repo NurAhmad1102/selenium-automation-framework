@@ -15,7 +15,7 @@
     <project.compiler.source>17</project.compiler.source>
     <project.compiler.target>17</project.compiler.target>
     <selenium.version>4.44.0</selenium.version>
-    <suiteXmlFile>src/test/resources/testng/testng.xml</suiteXmlFile>
+    <suiteXmlFile>src/test/resources/testng/master/testng-all.xml</suiteXmlFile>
   </properties>
 
   <dependencies>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="BackOffice - Approval Matrix Suite" parallel="false">
+    <listeners>
+        <listener class-name="org.example.listener.Listeners"/>
+    </listeners>
+
+    <test name="Architecture Rules">
+        <classes>
+            <class name="org.example.ArchitectureTest"/>
+        </classes>
+    </test>
+
+    <test verbose="2" name="Workflow Engine - Approval Matrix Test">
+        <classes>
+            <class name="org.example.test.backoffice.workflowEngine.approvalMatrix.AddApprovalMatrix"/>
+        </classes>
+    </test>
+</suite>

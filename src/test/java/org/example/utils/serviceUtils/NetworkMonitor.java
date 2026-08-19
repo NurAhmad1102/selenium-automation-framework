@@ -27,6 +27,7 @@ public class NetworkMonitor {
 
     private final DevTools devTools;
     private final CdpVersionHelper cdpHelper;
+    private final WebDriver webDriver;
     private final AtomicBoolean monitoringStarted = new AtomicBoolean(false);
     private final Map<String, RequestMetadata> requestMetadataById = new ConcurrentHashMap<>();
     private final Map<String, RequestMetadata> latestRequestMetadataByUrl = new ConcurrentHashMap<>();
@@ -35,7 +36,8 @@ public class NetworkMonitor {
 
     public NetworkMonitor(HasDevTools driver) {
         this.devTools = driver.getDevTools();
-        this.cdpHelper = new CdpVersionHelper((WebDriver) driver);
+        this.webDriver = (WebDriver) driver;
+        this.cdpHelper = new CdpVersionHelper(this.webDriver);
     }
 
     public static NetworkMonitor getCurrentMonitor() {
@@ -57,7 +59,20 @@ public class NetworkMonitor {
             return;
         }
 
-        devTools.createSession();
+        try {
+            if (webDriver != null) {
+                String windowHandle = webDriver.getWindowHandle();
+                devTools.createSessionIfThereIsNotOne(windowHandle);
+            } else {
+                devTools.createSession();
+            }
+        } catch (Exception e) {
+            try {
+                devTools.createSession();
+            } catch (Exception ex) {
+                logger.warn("Could not create CDP session for network monitoring", ex);
+            }
+        }
         devTools.send(cdpHelper.enableNetwork());
 
         // Listen for requestWillBeSent event

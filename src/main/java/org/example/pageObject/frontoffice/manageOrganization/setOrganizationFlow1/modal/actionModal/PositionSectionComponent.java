@@ -1,4 +1,4 @@
-package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal;
+package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.actionModal;
 
 import org.example.pageObject.base.BasePage;
 import org.openqa.selenium.By;
@@ -6,7 +6,6 @@ import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.pagefactory.AjaxElementLocatorFactory;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -30,9 +29,9 @@ public class PositionSectionComponent extends BasePage {
             return root;
         } catch (StaleElementReferenceException e) {
             logger.debug("PositionSection root is stale, re-locating at index {}", index);
-            List<WebElement> positions = parentRootSupplier.get().findElements(
-                    By.xpath(".//span[contains(.,'Position')]/ancestor::div[contains(@class,'border rounded-lg')]")
-            );
+            String xpath = ".//*[self::span or self::button][contains(normalize-space(.),'Position')]" +
+                           "/ancestor::div[contains(@class,'border') and contains(@class,'rounded')][1]";
+            List<WebElement> positions = parentRootSupplier.get().findElements(By.xpath(xpath));
             root = positions.get(index);
             return root;
         }

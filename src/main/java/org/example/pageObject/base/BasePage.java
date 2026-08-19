@@ -59,8 +59,9 @@ public class BasePage {
             try {
                 element.click();
             } catch (Exception e) {
-                logger.warn("Standard click failed for locator [{}], attempting Javascript click.", locator);
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+                logger.warn("Standard click failed for locator [{}], attempting Javascript click with fresh element.", locator);
+                WebElement freshElement = driver.findElement(locator);
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", freshElement);
             }
 
             ReportAPI.step("Action: Click locator [" + locator + "]");
@@ -106,6 +107,28 @@ public class BasePage {
             return value;
         } catch (Exception e) {
             handleActionFailure("get attribute '" + attribute + "' from", element, e);
+            return null;
+        }
+    }
+
+    protected String getText(WebElement element) {
+        try {
+            String text = wait.until(ExpectedConditions.visibilityOf(element)).getText();
+            ReportAPI.step("Action: Get text from element [" + getElementDescription(element) + "]");
+            return text;
+        } catch (Exception e) {
+            handleActionFailure("get text from", element, e);
+            return null;
+        }
+    }
+
+    protected String getText(By locator) {
+        try {
+            String text = wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).getText();
+            ReportAPI.step("Action: Get text from locator [" + locator + "]");
+            return text;
+        } catch (Exception e) {
+            handleActionFailure("get text from", locator, e);
             return null;
         }
     }
