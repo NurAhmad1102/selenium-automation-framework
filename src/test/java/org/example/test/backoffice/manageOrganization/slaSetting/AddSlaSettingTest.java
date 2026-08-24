@@ -4,7 +4,7 @@ import org.example.config.slaSettingStructure.MultipleConfig;
 import org.example.config.slaSettingStructure.SingleConfig;
 import org.example.model.SlaSettingModel;
 import org.example.pageObject.backoffice.slaSettingMenu.checkboxAction.ActionType;
-import org.example.utils.AssertionUtils;
+import org.example.test.backoffice.manageOrganization.AssertionUtils;
 import org.example.utils.CustomAssert;
 import org.example.utils.TestDataFactory;
 import org.example.utils.generateName.SlaPeriodNameService;

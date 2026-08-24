@@ -60,13 +60,38 @@ public class ManageIncumbentModal extends BasePage {
         return isVisible(By.xpath(xpath));
     }
 
+    public boolean isIncumbentNotDisplayed(String employeeNameOrId) {
+        String xpath = String.format("//main[contains(@class, 'bg-neutral-100')]//section[.//h1[contains(., '%s')] or .//h2[contains(., '%s')]]", employeeNameOrId, employeeNameOrId);
+        return isNotVisible(By.xpath(xpath));
+    }
+
     public void clickIncumbentKebabMenu(String employeeNameOrId) {
-        String xpath = String.format("//main[contains(@class, 'bg-neutral-100')]//section[.//h1[contains(., '%s')] or .//h2[contains(., '%s')]]//button", employeeNameOrId, employeeNameOrId);
+        String xpath = String.format(
+                "//main[contains(@class, 'bg-neutral-100')]//section[.//h1[contains(., '%s')] or .//h2[contains(., '%s')]]//button",
+                employeeNameOrId,
+                employeeNameOrId);
+
         click(By.xpath(xpath));
     }
 
     public void selectKebabAction(String actionName) {
         String xpath = String.format("//*[@role='menuitem' and normalize-space()='%s']", actionName);
         click(By.xpath(xpath));
+    }
+
+    public boolean isKebabActionDisplayed(String actionName) {
+        String xpath = String.format("//*[@role='menuitem' and normalize-space()='%s']", actionName);
+        return isVisible(By.xpath(xpath));
+    }
+
+    public boolean isAddIncumbentButtonDisabled(String positionName) {
+        expandPositionAccordion(positionName);
+        String xpath = String.format("//div[contains(@id, 'radix-') and .//div[contains(text(), '%s')]]//button[contains(., 'Add Incumbent')]", positionName);
+        By btnBy = By.xpath(xpath);
+        if (isVisible(btnBy)) {
+            WebElement btn = driver.findElement(btnBy);
+            return btn.getAttribute("disabled") != null || "true".equalsIgnoreCase(btn.getAttribute("aria-disabled"));
+        }
+        return false;
     }
 }

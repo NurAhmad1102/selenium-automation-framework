@@ -41,8 +41,8 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
 
         goToManageOrganization(nip);
 
-        manageOrganizationHelper.set(new ManageOrganizationHelper(getFrontOfficePages()));
         setOrganizationHelper.set(new SetOrganizationHelper(getFrontOfficePages()));
+        manageOrganizationHelper.set(new ManageOrganizationHelper(getFrontOfficePages(), setOrganizationHelper.get()));
         assignEmployeeHelper.set(new AssignEmployeeHelper(getFrontOfficePages(), manageOrganizationHelper.get(), setOrganizationHelper.get()));
         actionUtils.set(new ActionUtils(DriverManager.getDriver()));
     }
@@ -77,6 +77,7 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
         getFrontOfficePages().login().getLoginPage().clickSignInButton();
 
         logger.info("Navigating to Manage Organization page");
+        getFrontOfficePages().sideMenu().getFrontOfficeSideMenu().closeModalIfVisible(); //jika ada modal blocking
         getFrontOfficePages().sideMenu().getFrontOfficeSideMenu().expandMainMenu(FrontOfficeMenu.MY_ORGANIZATION);
         getFrontOfficePages().sideMenu().getFrontOfficeSideMenu().clickSubMenu(FrontOfficeMenu.MANAGE_ORGANIZATION);
         if (!dashboardManageOrganizationPage().isManageOrganizationHeaderDisplayed()) {
@@ -142,6 +143,7 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
     protected String duplicatePositionName = "Head of Foreclosed Asset & Business Planning";
 
     protected String duplicateOrganizationMessage = "Organization name already exists";
+    protected String duplicateOrganizationNameInBothOrg = "Organization name is duplicated within split organizations";
     protected String duplicatePositionMessage = "Position name already exists";
     protected String splitDuplicatePositionInBothOrg = "Position name must be unique across organizations";
 }

@@ -76,9 +76,13 @@ public class NodeOrganizationModal extends BasePage {
         return isVisible(xpath);
     }
 
-    public void togglePositionAccordion(String positionName) {
-        By xpath = By.xpath(String.format("//button[contains(@class,'group') and contains(.,'%s')]", positionName));
-        click(xpath);
+    public void clickTogglePositionAccordion(String positionName) {
+        String xpath = "//button[@type='button' " +
+                "and @aria-expanded " +
+                "and contains(normalize-space(.), \"" +
+                positionName +
+                "\")]";
+        click(By.xpath(xpath));
     }
 
     public String getJobNameOfPosition(String positionName) {

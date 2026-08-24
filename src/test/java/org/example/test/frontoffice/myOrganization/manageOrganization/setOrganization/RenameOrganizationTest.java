@@ -1,8 +1,8 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
@@ -26,7 +26,6 @@ public class RenameOrganizationTest extends ManageOrganizationBaseTest {
         logger.debug("Starting test: RenameOrganizationTest");
         manageOrganizationHelper().goToFlow1();
 
-        data.get().setParentPosition("Head of Branch Transformation & Network Planning 1222");
         setOrganizationHelper().renameOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.RENAME);
         setOrganizationHelper().confirmAction(ConfirmAction.RENAME);
@@ -34,8 +33,30 @@ public class RenameOrganizationTest extends ManageOrganizationBaseTest {
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(data.get().getPrimaryOrganization()), "Primary Organization node is still displayed in the organization tree after rename");
         CustomAssert.assertTrue(setOrganizationHelper().verifyMissingParentPositionDisplayed(), "Missing parent position is not displayed after rename organization");
 
+        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
         setOrganizationHelper().clickChangeLogButton();
         CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Rename Organization", data.get().getPrimaryOrganization(), data.get().getNewOrganizationName()), "Changes Log for Rename Organization is not displayed correctly");
+    }
+
+    @Test(groups = {"smoke"},description = "Verify that user can't Rename organization with existing organization name")
+    public void renameOrganizationWithExistingOrganizationNameTest(){
+        logger.debug("Starting test: RenameOrganizationTest");
+        manageOrganizationHelper().goToFlow1();
+        data.get().setNewOrganizationName(duplicateOrganizationName);
+
+        setOrganizationHelper().renameOrganization(data.get());
+        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed when renaming organization with existing organization name");
+    }
+
+    @Test(groups = {"smoke"},description = "Verify that user can't Rename organization with existing position name")
+    public void renameOrganizationWithExistingPositionNameTest(){
+        logger.debug("Starting test: RenameOrganizationTest");
+        manageOrganizationHelper().goToFlow1();
+        data.get().setJobName(duplicatePositionName);
+
+        setOrganizationHelper().renameOrganization(data.get());
+        setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.RENAME);
+        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicatePositionMessage), "Inline error message is not displayed when renaming organization with existing position name");
     }
 
 

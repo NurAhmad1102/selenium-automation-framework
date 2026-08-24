@@ -1,8 +1,8 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
@@ -31,6 +31,8 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
 
         setOrganizationHelper().confirmAction(ConfirmAction.ADD);
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
+
+        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
 
         setOrganizationHelper().clickChangeLogButton();
         CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("New Organization", data.get().getNewOrganizationName(), data.get().getPrimaryOrganization()), "Changes Log for New Organization is not displayed correctly");

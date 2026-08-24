@@ -13,7 +13,17 @@
 
     <test verbose="2" name="My Organization - Update Organization Test">
         <classes>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.MoveIncumbentTest"/>
+<!--            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.RemoveIncumbentTest">-->
+<!--                <methods>-->
+<!--                    <include name="removePrimaryIncumbentTest"/>-->
+<!--&lt;!&ndash;                    <include name="removeNewSecondaryPjsIncumbentTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="removeExisitingSecondaryPjsIncumbentTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="verifyPjsCannotBeMovedTest"/>&ndash;&gt;-->
+<!--                </methods>-->
+<!--            </class>-->
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.MoveIncumbentTest">
+
+            </class>
         </classes>
     </test>
 </suite>

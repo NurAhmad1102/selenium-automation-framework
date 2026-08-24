@@ -1,8 +1,8 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;

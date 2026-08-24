@@ -9,9 +9,9 @@ import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.ManageIncumbentModal;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.UnassignedEmployeeListModal;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ActionElementsPage;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ChangesLogModal;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ConfirmationActionModal;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.SuccessModal;
@@ -87,6 +87,11 @@ public class AssignEmployeeHelper {
         return ManageOrganizationExcelReader.getDataByRow(OrgSheetName.ASSIGN_EMPLOYEE, rowIndex);
     }
 
+    public void closeManageIncumbentModal() {
+        logger.info("Closing Manage Incumbent Modal");
+        manageIncumbentModal.clickCloseButton();
+    }
+
     /**
      * Reusable Helper: Pake ini baut Pre-Condition Flow 1 > Flow 2.
      * Data masih dari excel Manage_orgaization_data_test
@@ -142,11 +147,7 @@ public class AssignEmployeeHelper {
 
         setOrganizationHelper.setParentPositionToNode(flow1Data.getJobName());
 
-        logger.info("Step: Navigating from Flow 1 Canvas to Flow 2 (Assign Employee)");
-        actionElementsPage.clickNextButton();
-        setOrganizationHelper.nextToAssignEmployee();
-        actionElementsPage.clickYesButtonPopUp();
-
+        manageOrganizationHelper.nextToAssignEmployee();
         return flow1Data;
     }
 
@@ -157,8 +158,7 @@ public class AssignEmployeeHelper {
         logger.info("Step: Fetching First Unassigned Employee Name dynamically from UI");
         assignEmployeePage.clickViewUnassignedButton();
         String employeeName = unassignedEmployeeListModal.getFirstEmployeeName();
-        unassignedEmployeeListModal.clickCloseButton();
-        logger.info("Dynamically retrieved Unassigned Employee: [{}]", employeeName);
+        logger.info("Get unassigned employee name from UI: [{}]", employeeName);
         return employeeName;
     }
 
@@ -220,15 +220,13 @@ public class AssignEmployeeHelper {
         successModal.clickContinueButton();
     }
 
-    @Deprecated
-    public void confirmAction(String actionName) {
-        for (ConfirmAction action : ConfirmAction.values()) {
-            if (action.getActionName().equalsIgnoreCase(actionName)) {
-                confirmAction(action);
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Unknown confirm action: " + actionName);
+/**
+     * Checks if the 'View Unassigned' button is clickable.
+     * @return true if there is at least one unassigned employee, false otherwise
+     */
+    public boolean isViewUnassignedButtonClickable() {
+        logger.info("Step: Checking if 'View Unassigned' button is clickable");
+        return assignEmployeePage.isViewUnassignedButtonClickable();
     }
 
     public boolean verifyEmployeeAssignmentLog(String actionTitle, String... dynamicKeywords) {
@@ -237,4 +235,35 @@ public class AssignEmployeeHelper {
         changesLogModal.selectEmployeeAssignmentTab();
         return changesLogModal.isOrganizationChangeLogDisplayed(actionTitle, dynamicKeywords);
     }
+
+    public boolean verifyEmployeeInUnassignedList(String employeeName){
+        logger.info("Step: Verifying if Employee [{}] is displayed in Unassigned Employee List", employeeName);
+        assignEmployeePage.clickViewUnassignedButton();
+        unassignedEmployeeListModal.searchUnassignedEmployee(employeeName);
+        boolean isDisplayed = unassignedEmployeeListModal.isEmployeeDisplayed(employeeName);
+        unassignedEmployeeListModal.clickCloseButton();
+        return isDisplayed;
+    }
+
+    public boolean verifyEmployeeInPositionVisible(String orgName, String positionName, String employeeNameOrId) {
+        logger.info("Step: Verifying if Employee [{}] is displayed in Org: {} Position: {}", employeeNameOrId, orgName, positionName);
+        assignEmployeePage.clickManageIncumbentOfNode(orgName);
+        manageIncumbentModal.expandPositionAccordion(positionName);
+        boolean isDisplayed = manageIncumbentModal.isIncumbentDisplayed(employeeNameOrId);
+        manageIncumbentModal.clickCloseButton();
+        return isDisplayed;
+    }
+
+    public boolean verifyEmployeeInPositionNotVisible(String orgName, String positionName, String employeeNameOrId) {
+        logger.info("Step: Verifying if Employee [{}] is NOT displayed in Org: {} Position: {}", employeeNameOrId, orgName, positionName);
+        assignEmployeePage.clickManageIncumbentOfNode(orgName);
+        manageIncumbentModal.expandPositionAccordion(positionName);
+        boolean isNotDisplayed = manageIncumbentModal.isIncumbentNotDisplayed(employeeNameOrId);
+        manageIncumbentModal.clickCloseButton();
+        return isNotDisplayed;
+    }
+
+
+
+
 }

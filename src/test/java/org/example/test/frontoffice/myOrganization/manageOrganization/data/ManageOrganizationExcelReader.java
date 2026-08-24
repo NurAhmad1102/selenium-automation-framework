@@ -1,7 +1,7 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.data;
 
 import org.apache.poi.ss.usermodel.*;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.resource.ResourcePathResolver;
 

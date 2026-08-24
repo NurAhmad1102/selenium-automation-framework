@@ -30,22 +30,6 @@ public class TestDataFactory{
         return config.getUserlogin().getPassword();
     }
 
-    /**
-     * @deprecated Use {@link UrlProvider#getBackOfficeUrl()} instead.
-     */
-    @Deprecated
-    public static String getBackOfficeUrl(){
-        return UrlProvider.getBackOfficeUrl();
-    }
-
-    /**
-     * @deprecated Use {@link UrlProvider#getFrontOfficeUrl()} instead.
-     */
-    @Deprecated
-    public static String getFrontOfficeUrl(){
-        return UrlProvider.getFrontOfficeUrl();
-    }
-
 //    rest for nip, username kalo butuh
 
 

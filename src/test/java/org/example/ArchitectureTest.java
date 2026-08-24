@@ -83,6 +83,21 @@ public class ArchitectureTest {
         rule.check(importedClasses);
     }
 
+    @Test(description = "Ensure UI test classes use CustomAssert or CustomSoftAssert instead of standard TestNG Assert")
+    public void uiTestsShouldUseCustomAssert() {
+        JavaClasses importedClasses = new ClassFileImporter().importPackages("org.example");
+
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("org.example.test.frontoffice..")
+                .or().resideInAPackage("org.example.test.backoffice..")
+                .and().resideOutsideOfPackage("..data..")
+                .should().dependOnClassesThat().haveFullyQualifiedName("org.testng.Assert")
+                .orShould().dependOnClassesThat().haveFullyQualifiedName("org.testng.asserts.SoftAssert")
+                .because("UI/E2E Automation Tests must use CustomAssert or CustomSoftAssert to ensure failure context is logged into ExtentReports.");
+
+        rule.check(importedClasses);
+    }
+
     /**
      * Helper untuk mengecek apakah target owner constructor adalah class tertentu.
      */

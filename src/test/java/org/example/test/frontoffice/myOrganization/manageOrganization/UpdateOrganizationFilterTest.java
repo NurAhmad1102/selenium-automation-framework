@@ -1,6 +1,6 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization;
 
-import org.testng.Assert;
+import org.example.utils.CustomAssert;
 import org.testng.annotations.Test;
 
 public class UpdateOrganizationFilterTest extends ManageOrganizationBaseTest{
@@ -10,6 +10,6 @@ public class UpdateOrganizationFilterTest extends ManageOrganizationBaseTest{
         logger.info("Starting test: filterUpdateOrganizationTest");
         manageOrganizationHelper().navigateToUpdateOrganization();
         manageOrganizationHelper().setFilterUpdateOrganizationPage(true);
-        Assert.assertTrue(filterUpdateOrganizationPage().isOrganizationTreeDisplayed(), "Organization Tree is not generated");
+        CustomAssert.assertTrue(filterUpdateOrganizationPage().isOrganizationTreeDisplayed(), "Organization Tree is not generated");
     }
 }

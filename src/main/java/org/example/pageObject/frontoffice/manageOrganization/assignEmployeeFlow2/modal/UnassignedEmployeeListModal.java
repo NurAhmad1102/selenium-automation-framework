@@ -26,7 +26,7 @@ public class UnassignedEmployeeListModal extends BasePage {
     @FindBy(xpath = "//button[@role='tab' and contains(., 'Secondary')]")
     private WebElement secondaryTab;
 
-    @FindBy(xpath = "//div[@role='dialog']//button[svg and contains(@class, 'hover:text-primary-500')] | //div[@role='dialog']//button[normalize-space()='Close']")
+    @FindBy(xpath = "//div[@role='dialog'][.//h2[normalize-space()='Unassigned Employee List']]//div[contains(@class,'ui-modal-header-theme')]/button")
     private WebElement closeButton;
 
     public boolean isModalDisplayed() {
@@ -37,8 +37,8 @@ public class UnassignedEmployeeListModal extends BasePage {
         click(closeButton);
     }
 
-    public void searchUnassignedEmployee(String query) {
-        typeText(searchInput, query);
+    public void searchUnassignedEmployee(String employeeName) {
+        typeText(searchInput, employeeName);
     }
 
     public void switchTab(String tabName) {

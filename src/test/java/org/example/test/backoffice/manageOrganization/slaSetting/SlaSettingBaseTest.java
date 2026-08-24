@@ -59,8 +59,8 @@ public abstract class SlaSettingBaseTest extends BackOfficeBaseTest {
 
         if (DevModeUtils.isDevMode() && !currentUrl.contains("login") && !currentUrl.isEmpty() && !currentUrl.equals("about:blank")) {
             logger.info("[DEV-MODE] Active. User is logged in but not on SLA Setting page. Navigating via side menu.");
-            sideMenu().getSideMenu().clickManageOrganizationMenu();
-            sideMenu().getSideMenu().clickSlaSettingSubMenu();
+            getMainPages().sideMenu().getSideMenu().clickManageOrganizationMenu();
+            getMainPages().sideMenu().getSideMenu().clickSlaSettingSubMenu();
             dashboardSlaSettingPage().isSlaSettingPage();
             return;
         }
@@ -71,14 +71,14 @@ public abstract class SlaSettingBaseTest extends BackOfficeBaseTest {
             password = TestDataFactory.getPassword();
         }
 
-        loginPages().getLoginPage().setUsernameField(loginNip);
-        loginPages().getLoginPage().setPasswordField(password);
-        loginPages().getLoginPage().clickLoginButton();
-        loginPages().getLoginPage().isHeaderWelcomeVisible();
+        getMainPages().login().getLoginPage().setUsernameField(loginNip);
+        getMainPages().login().getLoginPage().setPasswordField(password);
+        getMainPages().login().getLoginPage().clickLoginButton();
+        getMainPages().login().getLoginPage().isHeaderWelcomeVisible();
         logger.info("Login successfully with user: {}", loginNip);
 
-        sideMenu().getSideMenu().clickManageOrganizationMenu();
-        sideMenu().getSideMenu().clickSlaSettingSubMenu();
+        getMainPages().sideMenu().getSideMenu().clickManageOrganizationMenu();
+        getMainPages().sideMenu().getSideMenu().clickSlaSettingSubMenu();
         dashboardSlaSettingPage().isSlaSettingPage();
         logger.info("Success into Sla Setting Menu");
     }

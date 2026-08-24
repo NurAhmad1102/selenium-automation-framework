@@ -1,7 +1,7 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
@@ -42,17 +42,20 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().fillJobPositionForSplit(org1Data, org2Data);
         setOrganizationHelper().confirmAction(ConfirmAction.SPLIT);
 
-        String org1Name = org1Data.getNewOrganizationName1() != null ? org1Data.getNewOrganizationName1() : org1Data.getNewOrganizationName();
-        String org2Name = org2Data.getNewOrganizationName2() != null ? org2Data.getNewOrganizationName2() : org2Data.getNewOrganizationName();
+        String org1Name = org1Data.getNewOrganizationName1();
+        String org2Name = org2Data.getNewOrganizationName2();
 
-        if (org1Name != null) {
-            CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(org1Name),
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(org1Name),
                     "Split Organization 1 node is not displayed in the organization tree");
-        }
-        if (org2Name != null) {
-            CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(org2Name),
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(org2Name),
                     "Split Organization 2 node is not displayed in the organization tree");
-        }
+
+//        ORG 1 verification
+        convertNewOrganizationNameForSplit(org1Data, 1);
+        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
+//        ORG 2 verification
+        convertNewOrganizationNameForSplit(org2Data, 2);
+        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
 
         setOrganizationHelper().clickChangeLogButton();
         CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Split Organization", org1Data.getPrimaryOrganization(), org1Name, org2Name),
@@ -66,7 +69,7 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
 
         OrganizationTestData org1Data = data.get();
         OrganizationTestData org2Data = new OrganizationTestData(org1Data);
-        org2Data.setNewOrganizationName(duplicateOrganizationName);
+        org2Data.setNewOrganizationName2(duplicateOrganizationName);
 
         setOrganizationHelper().splitOrganization(org1Data, org2Data);
         CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed");
@@ -79,10 +82,10 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
 
         OrganizationTestData org1Data = data.get();
         OrganizationTestData org2Data = new OrganizationTestData(org1Data);
-        org2Data.setNewOrganizationName(org1Data.getNewOrganizationName1());
+        org2Data.setNewOrganizationName2(org1Data.getNewOrganizationName1());
 
         setOrganizationHelper().splitOrganization(org1Data, org2Data);
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed");
+        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationNameInBothOrg), "Inline error message is not displayed");
     }
 
     @Test(groups = {"smoke"}, description = "Verify that user cannot split organization with duplicate position")
@@ -96,5 +99,19 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().splitOrganization(org1Data, org2Data);
         setOrganizationHelper().fillJobPositionForSplit(org1Data, org2Data, true);
         CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(splitDuplicatePositionInBothOrg), "Inline error message is not displayed");
+    }
+
+    //to convert the new organization name for split based on the organization number (1 or 2)
+    private OrganizationTestData convertNewOrganizationNameForSplit(OrganizationTestData orgData, int OrgNumber) {
+        if(OrgNumber == 1) {
+            orgData.setNewOrganizationName(orgData.getNewOrganizationName1());
+            logger.debug("New Organization 1 Name is: " + orgData.getNewOrganizationName());
+        } else if(OrgNumber == 2) {
+            orgData.setNewOrganizationName(orgData.getNewOrganizationName2());
+            logger.debug("New Organization 2 Name is: " + orgData.getNewOrganizationName());
+        } else {
+            throw new IllegalArgumentException("Invalid organization number: " + OrgNumber + ", must be 1 or 2");
+        }
+        return orgData;
     }
 }

@@ -30,7 +30,7 @@ public class BasePage {
     protected void click(WebElement element){
         String description = getElementDescription(element);
         try {
-            logger.debug("Clicking element: {}", description);
+            logger.info("Clicking element: {}", description);
             // Ensure element is stable and clickable
             wait.until(ExpectedConditions.elementToBeClickable(element));
             
@@ -49,12 +49,13 @@ public class BasePage {
 
     protected void click(By locator){
         try {
-            logger.debug("Clicking locator: {}", locator);
             WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
-            
+            String description = getElementDescription(element);
+            logger.info("Clicking locator: {}", description);
+
             // Stabilization wait to handle async UI state changes (False Clicks)
-            try { Thread.sleep(500); }
-            catch (InterruptedException ignored) {}
+//            try { Thread.sleep(500); }
+//            catch (InterruptedException ignored) {}
 
             try {
                 element.click();
@@ -76,6 +77,9 @@ public class BasePage {
             logger.debug("Forcing JS Click on locator: {}", locator);
             // tunggu sampai elemen ada di sialan muncul DOM, tidak buthu nunggu clickable
             WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+            String description = getElementDescription(element);
+            logger.info("Click on: {}", description);
+
 
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
             ReportAPI.step("Action: JS Click locator [" + locator + "]");
@@ -91,7 +95,7 @@ public class BasePage {
             String displayText = (text != null && text.length() > 4)
                     ? text.substring(0, 2) + "****" + text.substring(text.length() - 2)
                     : "****";
-            logger.debug("Typing '{}' into element: {}", displayText, description);
+            logger.info("Typing '{}' into element: {}", displayText, description);
             wait.until(ExpectedConditions.visibilityOf(element)).clear();
             element.sendKeys(text);
             ReportAPI.step("Action: Type text into element [" + description + "]");
@@ -229,7 +233,7 @@ public class BasePage {
         click(element);
 
         // Wait a bit for dropdown to potentially stabilize
-        try { Thread.sleep(200); } catch (InterruptedException ignored) {}
+//        try { Thread.sleep(200); } catch (InterruptedException ignored) {}
 
         if(isSearchableDropdown()){
             selectSearchableDropdown(option);
@@ -299,6 +303,28 @@ public class BasePage {
             return false;
         }
     }
-//
+
+    protected boolean isElementClickable(WebElement element) {
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(element));
+            return true;
+        } catch (TimeoutException e) {
+            logger.debug("Element not clickable: {}", getElementDescription(element));
+            ReportAPI.elementWarning("clickability check", element.toString(), e);
+            return false;
+        }
+    }
+
+    protected boolean isElementClickable(By element) {
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(element));
+            return true;
+        } catch (TimeoutException e) {
+            logger.debug("Element not clickable: {}", getElementDescription(driver.findElement(element)));
+            ReportAPI.elementWarning("clickability check", element.toString(), e);
+            return false;
+        }
+    }
+
 
 }

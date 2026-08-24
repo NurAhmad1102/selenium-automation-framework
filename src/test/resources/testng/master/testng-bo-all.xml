@@ -6,7 +6,7 @@
     </listeners>
 
     <suite-files>
-        <suite-file path="../backoffice/sla-setting.xml"/>
+        <suite-file path="../backoffice/manageOrganization/slaSetting/sla-setting.xml"/>
         <suite-file path="../backoffice/approval-matrix.xml"/>
     </suite-files>
 </suite>

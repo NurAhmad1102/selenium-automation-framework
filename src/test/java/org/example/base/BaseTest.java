@@ -84,11 +84,6 @@ public abstract class BaseTest {
         }
     }
 
-    @Deprecated
-    public WebDriver getDriver() {
-        return DriverManager.getDriver();
-    }
-
     protected String currentTestName() {
         String testName = currentTestName.get();
         if (testName == null || testName.isEmpty()) {

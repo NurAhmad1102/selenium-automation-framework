@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="FrontOffice - Assign Employee Suite" parallel="false">
+<suite name="FrontOffice - Assign Employee Suite" parallel="methods" thread-count="3">
     <listeners>
         <listener class-name="org.example.listener.Listeners"/>
     </listeners>
@@ -16,6 +16,7 @@
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.AddIncumbentTest"/>
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.MoveIncumbentTest"/>
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.RemoveIncumbentTest"/>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.GateValidationTest"/>
         </classes>
     </test>
 </suite>

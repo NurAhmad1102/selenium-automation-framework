@@ -1,4 +1,4 @@
-package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1;
+package org.example.pageObject.frontoffice.manageOrganization.enums;
 
 public enum OrgSheetName {
     SET_FILTER("SET_FILTER"),

@@ -1,8 +1,10 @@
 package org.example.utils.account;
 
 public enum UserRole {
-    HR_OD("HR OD"),
-    HR_PSOM("HR PSOM");
+    HR_OD("HR_OD"),
+    HR_PSOM("HR_PSOM"),
+    USER_MOBILE("USER_MOBILE"),
+    ADMIN_ARJUNA("ADMIN_ARJUNA");
 
     private final String value;
 

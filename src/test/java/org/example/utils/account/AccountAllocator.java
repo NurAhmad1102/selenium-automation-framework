@@ -174,46 +174,6 @@ public class AccountAllocator {
         return currentAccount.get() != null ? currentAccount.get().getPassword() : null;
     }
 
-    /**
-     * @deprecated Use {@link UrlProvider#getUrl(String)} instead.
-     */
-    @Deprecated
-    public static String getUrl(String interfaceType) {
-        return UrlProvider.getUrl(interfaceType);
-    }
-
-    /**
-     * @deprecated Use {@link UrlProvider#getBackOfficeUrl()} instead.
-     */
-    @Deprecated
-    public static String getUrlBackOffice() {
-        return getUrl("backoffice");
-    }
-
-    /**
-     * @deprecated Use {@link UrlProvider#getFrontOfficeUrl()} instead.
-     */
-    @Deprecated
-    public static String getUrlFrontOffice() {
-        return getUrl("frontoffice");
-    }
-
-    /**
-     * @deprecated Use {@link #releaseAllAccounts()} to release every account alias
-     * allocated in the current test thread.
-     */
-    @Deprecated
-    public static void releaseAccount() {
-        UserloginConfig account = currentAccount.get();
-        if (account != null) {
-            accountAliases.get().entrySet().removeIf(entry -> entry.getValue() == account);
-            allocatedAccounts.remove(account);
-            logger.info("Released account: [Role: {}, Username: {}]", account.getRole(), account.getUsername());
-        }
-        currentAccount.remove();
-        currentAlias.remove();
-    }
-
     public static void releaseAllAccounts() {
         Set<UserloginConfig> accountsToRelease = new LinkedHashSet<>(accountAliases.get().values());
         if (currentAccount.get() != null) {

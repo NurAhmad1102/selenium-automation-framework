@@ -1,8 +1,8 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
@@ -37,9 +37,34 @@ public class MoveOrganizationTest extends ManageOrganizationBaseTest {
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(data.get().getPrimaryOrganization()),
                 "Primary Organization node is still displayed in the organization tree");
 
+        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
         setOrganizationHelper().clickChangeLogButton();
         CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Move Organization", data.get().getPrimaryOrganization(), data.get().getNewOrganizationName()),
                 "Changes Log for Move Organization is not displayed correctly");
+    }
+
+    @Test(groups = {"smoke"}, description = "Verify that user can't Move organization with existing organization name")
+    public void moveOrganizationWithExistingOrganizationNameTest(){
+        logger.info("Starting test: Move Organization");
+        manageOrganizationHelper().goToFlow1();
+        data.get().setNewOrganizationName(duplicateOrganizationName);
+
+        setOrganizationHelper().moveOrganization(data.get());
+        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage),
+                "Inline error message is not displayed when moving organization with existing organization name");
+    }
+
+    @Test(groups = {"smoke"}, description = "Verify that user can't Move organization with existing position name")
+    public void moveOrganizationDuplicatePositionNameTest() {
+        logger.info("Starting test: Move Organization");
+        manageOrganizationHelper().goToFlow1();
+        data.get().setJobName(duplicatePositionName);
+
+        setOrganizationHelper().moveOrganization(data.get());
+        setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.MOVE);
+        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicatePositionMessage),
+                "Inline error message is not displayed when moving organization with existing position name");
+
     }
 
 }
