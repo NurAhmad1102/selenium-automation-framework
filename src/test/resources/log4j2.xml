@@ -28,6 +28,7 @@
         </RollingFile>
 
         <ExtentReportAppender name="extent">
+            <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="%msg%n" />
         </ExtentReportAppender>
     </Appenders>

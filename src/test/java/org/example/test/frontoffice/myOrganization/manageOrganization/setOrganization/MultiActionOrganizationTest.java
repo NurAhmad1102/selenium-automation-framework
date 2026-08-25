@@ -32,7 +32,7 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"regression", "multi-action"}, description = "1. Verify Move Primary Organization and Split Child Organization sequentially")
     public void movePrimaryAndSplitChildTest() {
         logger.info("Starting test: movePrimaryAndSplitChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         // 1. Eksekusi Aksi 1: Move Primary Organization (Sheet MOVE, Action: PRIMARY)
         OrganizationTestData primaryMoveData = setOrganizationHelper().getTestData(OrgSheetName.MOVE, "PRIMARY");
@@ -64,7 +64,7 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"regression", "multi-action"}, description = "2. Verify Move Primary Organization and Merge Child Organization sequentially")
     public void movePrimaryAndMergeChildTest() {
         logger.info("Starting test: movePrimaryAndMergeChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         // 1. Eksekusi Aksi 1: Move Primary Organization (Sheet MOVE, Action: PRIMARY)
         OrganizationTestData primaryMoveData = setOrganizationHelper().getTestData(OrgSheetName.MOVE, "PRIMARY");
@@ -94,7 +94,7 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"regression", "multi-action"}, description = "3. Verify Move Primary Organization and Rename Child Organization sequentially")
     public void movePrimaryAndRenameChildTest() {
         logger.info("Starting test: movePrimaryAndRenameChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         // 1. Eksekusi Aksi 1: Move Primary Organization (Sheet MOVE, Action: PRIMARY)
         OrganizationTestData primaryMoveData = setOrganizationHelper().getTestData(OrgSheetName.MOVE, "PRIMARY");
@@ -124,7 +124,7 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"regression", "multi-action"}, description = "4. Verify Rename Primary Organization and Merge Child Organization sequentially")
     public void renamePrimaryAndMergeChildTest() {
         logger.info("Starting test: renamePrimaryAndMergeChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         // 1. Eksekusi Aksi 1: Rename Primary Organization (Sheet RENAME, Action: PRIMARY)
         OrganizationTestData primaryRenameData = setOrganizationHelper().getTestData(OrgSheetName.RENAME, "PRIMARY");
@@ -154,7 +154,7 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"regression", "multi-action"}, description = "5. Verify Rename Primary Organization and Split Child Organization sequentially")
     public void renamePrimaryAndSplitChildTest() {
         logger.info("Starting test: renamePrimaryAndSplitChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         // 1. Eksekusi Aksi 1: Rename Primary Organization (Sheet RENAME, Action: PRIMARY)
         OrganizationTestData primaryRenameData = setOrganizationHelper().getTestData(OrgSheetName.RENAME, "PRIMARY");
@@ -183,7 +183,7 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"regression", "multi-action"}, description = "6. Verify Split Primary Organization and Split Child Organization sequentially")
     public void splitPrimaryAndSplitChildTest() {
         logger.info("Starting test: splitPrimaryAndSplitChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         // 1. Eksekusi Aksi 1: Split Primary Organization (Sheet SPLIT, Action: PRIMARY)
         OrganizationTestData primarySplit1 = setOrganizationHelper().getTestData(OrgSheetName.SPLIT, "PRIMARY");
@@ -212,7 +212,7 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"regression", "multi-action"}, description = "7. Verify Split Primary Organization and Rename Child Organization sequentially")
     public void splitPrimaryAndRenameChildTest() {
         logger.info("Starting test: splitPrimaryAndRenameChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         // 1. Eksekusi Aksi 1: Split Primary Organization (Sheet SPLIT, Action: PRIMARY)
         OrganizationTestData primarySplit1 = setOrganizationHelper().getTestData(OrgSheetName.SPLIT, "PRIMARY");
@@ -244,7 +244,7 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"regression", "multi-action"}, description = "8. Verify Split Primary Organization and Merge Child Organization sequentially")
     public void splitPrimaryAndMergeChildTest() {
         logger.info("Starting test: splitPrimaryAndMergeChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         // 1. Eksekusi Aksi 1: Split Primary Organization (Sheet SPLIT, Action: PRIMARY)
         OrganizationTestData primarySplit1 = setOrganizationHelper().getTestData(OrgSheetName.SPLIT, "PRIMARY");

@@ -24,7 +24,7 @@ public class RenameOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"},description = "Verify that user can Rename organization")
     public void renameOrganizationTest(){
         logger.debug("Starting test: RenameOrganizationTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         setOrganizationHelper().renameOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.RENAME);
@@ -41,7 +41,7 @@ public class RenameOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"},description = "Verify that user can't Rename organization with existing organization name")
     public void renameOrganizationWithExistingOrganizationNameTest(){
         logger.debug("Starting test: RenameOrganizationTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
         data.get().setNewOrganizationName(duplicateOrganizationName);
 
         setOrganizationHelper().renameOrganization(data.get());
@@ -51,7 +51,7 @@ public class RenameOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"},description = "Verify that user can't Rename organization with existing position name")
     public void renameOrganizationWithExistingPositionNameTest(){
         logger.debug("Starting test: RenameOrganizationTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
         data.get().setJobName(duplicatePositionName);
 
         setOrganizationHelper().renameOrganization(data.get());

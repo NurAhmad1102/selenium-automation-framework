@@ -92,6 +92,11 @@ public class AssignEmployeeHelper {
         manageIncumbentModal.clickCloseButton();
     }
 
+    public void closeUnassignedEmployeeListModal() {
+        logger.info("Closing Unassigned Employee List Modal");
+        unassignedEmployeeListModal.clickCloseButton();
+    }
+
     /**
      * Reusable Helper: Pake ini baut Pre-Condition Flow 1 > Flow 2.
      * Data masih dari excel Manage_orgaization_data_test
@@ -100,7 +105,7 @@ public class AssignEmployeeHelper {
         logger.info("Phase: --- Running Pre-Condition Flow 1 ({}) for Flow 2 Context ---", action.getActionName());
 
         OrganizationTestData flow1Data = setOrganizationHelper.getTestData(sheet);
-        manageOrganizationHelper.goToFlow1();
+        manageOrganizationHelper.goToFlow1SetOrganization();
 
         switch (action) {
             case ADD_NEW:
@@ -146,8 +151,7 @@ public class AssignEmployeeHelper {
         }
 
         setOrganizationHelper.setParentPositionToNode(flow1Data.getJobName());
-
-        manageOrganizationHelper.nextToAssignEmployee();
+        manageOrganizationHelper.goToFlow2AssignEmployee();
         return flow1Data;
     }
 
@@ -189,10 +193,10 @@ public class AssignEmployeeHelper {
         employeeMovementModal.clickApplyButton();
     }
 
-    public void moveIncumbentFromPosition(String sourceOrgName, String positionName, String employeeNameOrId, String targetLevel, String targetOrgName, String targetJobName, String targetPositionName, boolean isMobility, String category, boolean isPJS) {
-        logger.info("Phase: --- Moving Employee: {} from Org: {} Position: {} ---", employeeNameOrId, sourceOrgName, positionName);
+    public void moveIncumbentFromPosition(String sourceOrgName, String sourcePositionName, String employeeNameOrId, String targetLevel, String targetOrgName, String targetJobName, String targetPositionName, boolean isMobility, String category, boolean isPJS) {
+        logger.info("Phase: --- Moving Employee: {} from Org: {} Position: {} ---", employeeNameOrId, sourceOrgName, sourcePositionName);
         assignEmployeePage.clickManageIncumbentOfNode(sourceOrgName);
-        manageIncumbentModal.expandPositionAccordion(positionName);
+        manageIncumbentModal.expandPositionAccordion(sourcePositionName);
         manageIncumbentModal.clickIncumbentKebabMenu(employeeNameOrId);
         manageIncumbentModal.selectKebabAction("Move");
 
@@ -204,6 +208,32 @@ public class AssignEmployeeHelper {
         employeeMovementModal.selectMovementCategory(category);
         employeeMovementModal.setAsPJS(isPJS);
         employeeMovementModal.clickApplyButton();
+    }
+
+    public boolean moveIncumbentIntoFTEFullPosition(String employeeName, String targetLevel, String targetOrgName, String targetJobName) {
+        logger.info("Phase: --- Moving Employee from Unassigned: {} to Target Org: {} ---", employeeName, targetOrgName);
+        assignEmployeePage.clickViewUnassignedButton();
+        unassignedEmployeeListModal.clickMoveEmployee(employeeName);
+
+        employeeMovementModal.selectOrganizationLevel(targetLevel);
+        employeeMovementModal.selectOrganizationName(targetOrgName);
+        employeeMovementModal.selectJobName(targetJobName);
+        employeeMovementModal.clickPositionNameDropdown();
+
+        return employeeMovementModal.isTextDisplayed("No data found");
+    }
+    public boolean moveIncumbentIntoFTEFullPosition(String sourceOrgName, String sourcePositionName, String employeeNameOrId, String targetLevel, String targetOrgName, String targetJobName) {
+        logger.info("Phase: --- Moving Employee: {} from Org: {} Position: {} ---", employeeNameOrId, sourceOrgName, sourcePositionName);
+        assignEmployeePage.clickManageIncumbentOfNode(sourceOrgName);
+        manageIncumbentModal.expandPositionAccordion(sourcePositionName);
+        manageIncumbentModal.clickIncumbentKebabMenu(employeeNameOrId);
+        manageIncumbentModal.selectKebabAction("Move");
+
+        employeeMovementModal.selectOrganizationLevel(targetLevel);
+        employeeMovementModal.selectOrganizationName(targetOrgName);
+        employeeMovementModal.selectJobName(targetJobName);
+        employeeMovementModal.clickPositionNameDropdown();
+        return employeeMovementModal.isTextDisplayed("No data found");
     }
 
     public void removeIncumbent(String orgName, String positionName, String employeeNameOrId) {

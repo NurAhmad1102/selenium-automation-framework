@@ -24,7 +24,7 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
     @Test( groups = {"smoke"},description = "Verify Remove existing organization")
     public void removeExistingOrganizationTest() {
         logger.info("Starting test: removeOrganization");
-        String organizationToRemove = data.get().getPrimaryOrganization();        manageOrganizationHelper().goToFlow1();
+        String organizationToRemove = data.get().getPrimaryOrganization();        manageOrganizationHelper().goToFlow1SetOrganization();
         CustomAssert.assertTrue(setOrganizationFlow1Page().isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
 
         setOrganizationHelper().removeOrganization(organizationToRemove);
@@ -45,7 +45,7 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
         OrganizationTestData addNewData = setOrganizationHelper().getTestData(OrgSheetName.ADD_NEW);
         String organizationToRemove = addNewData.getNewOrganizationName();
 
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
 //        KODE PRE CONDITION ADD NEW ORG
         setOrganizationHelper().addNewOrganization(addNewData);

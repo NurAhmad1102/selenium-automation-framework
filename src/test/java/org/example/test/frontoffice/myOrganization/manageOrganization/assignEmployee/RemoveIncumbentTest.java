@@ -7,7 +7,6 @@ import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
-import org.example.utils.CustomSoftAssert;
 import org.testng.annotations.Test;
 
 public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
@@ -18,8 +17,8 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
         logger.info("Starting test: removePrimaryIncumbentTest");
 
         OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("INSIDE");
-        manageOrganizationHelper().goToFlow1();
-        manageOrganizationHelper().nextToAssignEmployee();
+        manageOrganizationHelper().goToFlow1SetOrganization();
+        manageOrganizationHelper().goToFlow2AssignEmployee();
 
         String sourceOrg = currentAssignData.getCurrentOrg();
         String sourcePosition = currentAssignData.getCurrentPosition();
@@ -101,8 +100,8 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
         String employeeIdentifier = currentAssignData.getNip();
 
 //        to navigate
-        manageOrganizationHelper().goToFlow1();
-        manageOrganizationHelper().nextToAssignEmployee();
+        manageOrganizationHelper().goToFlow1SetOrganization();
+        manageOrganizationHelper().goToFlow2AssignEmployee();
 
         assignEmployeeHelper().removeIncumbent(targetOrg, targetPosition, employeeIdentifier);
         assignEmployeeHelper().confirmAction(ConfirmAction.REMOVE);
@@ -132,8 +131,8 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
         String employeeIdentifier = currentAssignData.getNip();
 
 //        to navigate
-        manageOrganizationHelper().goToFlow1();
-        manageOrganizationHelper().nextToAssignEmployee();
+        manageOrganizationHelper().goToFlow1SetOrganization();
+        manageOrganizationHelper().goToFlow2AssignEmployee();
 
         assignEmployeeHelper().assignEmployeePage().clickManageIncumbentOfNode(targetOrg);
         assignEmployeeHelper().manageIncumbentModal().expandPositionAccordion(targetPosition);
