@@ -24,7 +24,7 @@ public class MoveOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"}, description = "Verify that user can Move organization")
     public void moveOrganizationTest(){
         logger.info("Starting test: Move Organization");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         setOrganizationHelper().moveOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.MOVE);
@@ -46,7 +46,7 @@ public class MoveOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"}, description = "Verify that user can't Move organization with existing organization name")
     public void moveOrganizationWithExistingOrganizationNameTest(){
         logger.info("Starting test: Move Organization");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
         data.get().setNewOrganizationName(duplicateOrganizationName);
 
         setOrganizationHelper().moveOrganization(data.get());
@@ -57,7 +57,7 @@ public class MoveOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"}, description = "Verify that user can't Move organization with existing position name")
     public void moveOrganizationDuplicatePositionNameTest() {
         logger.info("Starting test: Move Organization");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
         data.get().setJobName(duplicatePositionName);
 
         setOrganizationHelper().moveOrganization(data.get());

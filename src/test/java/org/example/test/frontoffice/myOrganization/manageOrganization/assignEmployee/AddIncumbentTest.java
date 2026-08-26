@@ -7,28 +7,34 @@ import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
+import org.example.utils.CustomSoftAssert;
 import org.testng.annotations.Test;
 
 public class AddIncumbentTest extends AssignEmployeeBaseTest {
     private final Logger logger = LogManager.getLogger(getClass());
 
-    @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Add Incumbent to Open Position using Unassigned Employee")
-    public void addIncumbentFromUnassignedTest() {
-        logger.info("Starting test: addIncumbentFromUnassignedTest");
+    @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Add Incumbent to Open Position in Added Organization using Employee Removed from Existing Position")
+    public void addIncumbentFromUnassignedAfterRemovingIntoAddedOrgTest() {
+        logger.info("Starting test: addIncumbentFromUnassignedAfterRemovingIntoAddedOrgTest");
 
-        // 1. Data CURRENT & MOVEMENT: Membaca dari Sheet 'ASSIGN_EMPLOYEE' (Type: UNASSIGNED)
-        OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("UNASSIGNED");
+        OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("INSIDE");
 
-        // 2. Data PROPOSED & PRE-CONDITION FLOW 1: Membaca dari Sheet 'ADD_NEW'
         OrganizationTestData proposedFlow1Data = assignEmployeeHelper().prepareFlow2ContextWithFlow1Precondition(OrgSheetName.ADD_NEW, OrgMenuAction.ADD_NEW);
+
+        String sourceOrg = currentAssignData.getCurrentOrg();
+        String sourcePosition = currentAssignData.getCurrentPosition();
 
         String targetOrg = proposedFlow1Data.getNewOrganizationName();
         String targetPosition = proposedFlow1Data.getJobName();
-        String employeeIdentifier = currentAssignData.getNip() != null && !currentAssignData.getNip().isEmpty()
-                ? currentAssignData.getNip()
-                : assignEmployeeHelper().getFirstUnassignedEmployeeName();
+        String employeeIdentifier = currentAssignData.getNip();
 
-        // 3. Eksekusi Flow 2: Add Incumbent
+        assignEmployeeHelper().removeIncumbent(
+                sourceOrg,
+                sourcePosition,
+                employeeIdentifier
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.REMOVE);
+
         assignEmployeeHelper().addIncumbent(
                 targetOrg,
                 targetPosition,
@@ -39,30 +45,104 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         );
         assignEmployeeHelper().confirmAction(ConfirmAction.ADD);
 
-        // 4. Validasi Changes Log
-        CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Add Incumbent", employeeIdentifier, targetOrg),
-                "Audit Log Employee Assignment untuk Add Incumbent tidak sesuai!"
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                "Employee " + employeeIdentifier +
+                        " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
+                        " pada org " + targetOrg + "!"
         );
 
-        logger.info("Test Completed Successfully: addIncumbentFromUnassignedTest");
+        assignEmployeeHelper().closeManageIncumbentModal();
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionNotVisible(sourceOrg, sourcePosition, employeeIdentifier),
+                "Employee " + employeeIdentifier +
+                        " masih muncul di Manage Incumbent di position: " + sourcePosition +
+                        " pada org " + sourceOrg + "!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                "Audit Log Employee Assignment untuk Add Incumbent setelah remove tidak sesuai!"
+        );
+
+        softAssert.assertAll();
+
+        logger.info("Test Completed Successfully: addIncumbentFromUnassignedAfterRemovingIntoAddedOrgTest");
+    }
+
+    @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Change Assignment Type to PJS in the same Organization")
+    public void changeAssignmentTypeInTheSameOrgTest() {
+//        TODO: bedain dari Primary ke PJS, dan dari PJS ke Primary
+        logger.info("Starting test: changeAssignmentTypeInTheSameOrgTest");
+
+        OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("INSIDE");
+
+        String sourceOrg = currentAssignData.getCurrentOrg();
+        String sourcePosition = currentAssignData.getCurrentPosition();
+        String employeeIdentifier = currentAssignData.getNip();
+
+        manageOrganizationHelper().goToFlow1SetOrganization();
+        manageOrganizationHelper().goToFlow2AssignEmployee();
+
+        assignEmployeeHelper().removeIncumbent(
+                sourceOrg,
+                sourcePosition,
+                employeeIdentifier
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.REMOVE);
+
+        assignEmployeeHelper().addIncumbent(
+                sourceOrg,
+                sourcePosition,
+                employeeIdentifier,
+                currentAssignData.isMobility(),
+                currentAssignData.getMovementCategory(),
+                true // PJS Assignment
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.ADD);
+
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier),
+                "Employee " + employeeIdentifier +
+                        " tidak muncul di Manage Incumbent di position: " + sourcePosition +
+                        " pada org " + sourceOrg + "!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInUnassignedListVisible(employeeIdentifier),
+                "Employee " + employeeIdentifier +
+                        " tidak muncul di Unassigned List!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, sourceOrg),
+                "Audit Log Employee Assignment untuk Change Assignment Type tidak sesuai!"
+        );
+
+        softAssert.assertAll();
+
+        logger.info("Test Completed Successfully: changeAssignmentTypeInTheSameOrgTest");
     }
 
     @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Add Incumbent to Open Position using Existing Employee")
     public void addIncumbentFromExistingEmployeeTest() {
         logger.info("Starting test: addIncumbentFromExistingEmployeeTest");
 
-        // 1. Data CURRENT & MOVEMENT: Membaca dari Sheet 'ASSIGN_EMPLOYEE' (Type: INSIDE)
         OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("INSIDE");
 
-        // 2. Data PROPOSED & PRE-CONDITION FLOW 1: Membaca dari Sheet 'ADD_NEW'
         OrganizationTestData proposedFlow1Data = assignEmployeeHelper().prepareFlow2ContextWithFlow1Precondition(OrgSheetName.ADD_NEW, OrgMenuAction.ADD_NEW);
+
+        String sourceOrg = currentAssignData.getCurrentOrg();
+        String sourcePosition = currentAssignData.getCurrentPosition();
 
         String targetOrg = proposedFlow1Data.getNewOrganizationName();
         String targetPosition = proposedFlow1Data.getJobName();
         String employeeIdentifier = currentAssignData.getNip();
 
-        // 3. Eksekusi Flow 2: Add Incumbent from Existing Employee
         assignEmployeeHelper().addIncumbent(
                 targetOrg,
                 targetPosition,
@@ -73,12 +153,28 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         );
         assignEmployeeHelper().confirmAction(ConfirmAction.ADD);
 
-        // 4. Validasi Changes Log
-        CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Add Incumbent", employeeIdentifier, targetOrg),
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                "Employee " + employeeIdentifier +
+                        " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
+                        " pada org " + targetOrg + "!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionNotVisible(sourceOrg, sourcePosition, employeeIdentifier),
+                "Employee " + employeeIdentifier +
+                        " masih muncul di Manage Incumbent di position: " + sourcePosition +
+                        " pada org " + sourceOrg + "!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add Existing Incumbent tidak sesuai!"
         );
 
+        softAssert.assertAll();
         logger.info("Test Completed Successfully: addIncumbentFromExistingEmployeeTest");
     }
 
@@ -86,17 +182,17 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
     public void addIncumbentAsPjsTest() {
         logger.info("Starting test: addIncumbentAsPjsTest");
 
-        // 1. Data CURRENT & MOVEMENT: Membaca dari Sheet 'ASSIGN_EMPLOYEE' (Type: INSIDE)
         OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("INSIDE");
 
-        // 2. Data PROPOSED & PRE-CONDITION FLOW 1: Membaca dari Sheet 'ADD_NEW'
         OrganizationTestData proposedFlow1Data = assignEmployeeHelper().prepareFlow2ContextWithFlow1Precondition(OrgSheetName.ADD_NEW, OrgMenuAction.ADD_NEW);
+
+        String sourceOrg = currentAssignData.getCurrentOrg();
+        String sourcePosition = currentAssignData.getCurrentPosition();
 
         String targetOrg = proposedFlow1Data.getNewOrganizationName();
         String targetPosition = proposedFlow1Data.getJobName();
         String employeeIdentifier = currentAssignData.getNip();
 
-        // 3. Eksekusi Flow 2: Add Incumbent with Set as PJS = TRUE
         assignEmployeeHelper().addIncumbent(
                 targetOrg,
                 targetPosition,
@@ -107,12 +203,28 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         );
         assignEmployeeHelper().confirmAction(ConfirmAction.ADD);
 
-        // 4. Validasi Changes Log
-        CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Add Incumbent", employeeIdentifier, targetOrg),
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier),
+                "Incumbent tidak muncul di primary position: " + sourcePosition +
+                        " pada org: " + sourceOrg
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                "Incumbent tidak muncul as PJS di target position: " + targetPosition +
+                        " pada org: " + targetOrg
+        );
+
+        assignEmployeeHelper().closeManageIncumbentModal();
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add PJS tidak sesuai!"
         );
 
+        softAssert.assertAll();
         logger.info("Test Completed Successfully: addIncumbentAsPjsTest");
     }
 
@@ -120,22 +232,208 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
     public void addIncumbentWhenFteFullNegativeTest() {
         logger.info("Starting test: addIncumbentWhenFteFullNegativeTest");
 
-        // 1. Data PRE-CONDITION FLOW 1: Membaca dari Sheet 'RENAME'
-        OrganizationTestData proposedFlow1Data = assignEmployeeHelper().prepareFlow2ContextWithFlow1Precondition(OrgSheetName.RENAME, OrgMenuAction.RENAME);
+        OrganizationTestData currentData = assignEmployeeHelper().getAssignEmployeeData("INSIDE");
 
-        String targetOrg = proposedFlow1Data.getPrimaryOrganization();
-        String targetPosition = proposedFlow1Data.getPositionName();
+        String sourceOrg = currentData.getCurrentOrg();
+        String sourcePosition = currentData.getCurrentPosition();
 
-        // 2. Buka Manage Incumbent pada Org yang FTE-nya sudah penuh
-        assignEmployeeHelper().assignEmployeePage().clickManageIncumbentOfNode(targetOrg);
+        manageOrganizationHelper().goToFlow1SetOrganization();
+        manageOrganizationHelper().goToFlow2AssignEmployee();
+        assignEmployeeHelper().assignEmployeePage().clickManageIncumbentOfNode(sourceOrg);
 
-        // 3. Validasi bahwa tombol 'Add Incumbent' berstatus DISABLED
         CustomAssert.assertTrue(
-                assignEmployeeHelper().manageIncumbentModal().isAddIncumbentButtonDisabled(targetPosition),
-                "Tombol Add Incumbent seharusnya Disabled saat kapasitas FTE sudah penuh!"
+                assignEmployeeHelper().manageIncumbentModal().isAddIncumbentButtonDisabled(sourcePosition),
+                "Tombol Add Incumbent di position: " + sourcePosition +
+                        " pada org: " + sourceOrg +
+                        " seharusnya Disabled saat kapasitas FTE sudah penuh!"
         );
 
-        assignEmployeeHelper().manageIncumbentModal().clickCloseButton();
         logger.info("Test Completed Successfully: addIncumbentWhenFteFullNegativeTest");
     }
+
+    @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Add Incumbent to Open Position in Renamed Organization using Unassigned Employee")
+    public void addIncumbentFromUnassignedToRenamedOrgTest() {
+        logger.info("Starting test: addIncumbentFromUnassignedToRenamedOrgTest");
+
+        OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("UNASSIGNED");
+
+        OrganizationTestData proposedFlow1Data = assignEmployeeHelper().prepareFlow2ContextWithFlow1Precondition(OrgSheetName.RENAME, OrgMenuAction.RENAME);
+
+        String targetOrg = proposedFlow1Data.getNewOrganizationName();
+        String targetPosition = proposedFlow1Data.getJobName();
+        String employeeIdentifier = currentAssignData.getNip();
+
+        assignEmployeeHelper().addIncumbent(
+                targetOrg,
+                targetPosition,
+                employeeIdentifier,
+                currentAssignData.isMobility(),
+                currentAssignData.getMovementCategory(),
+                false // Primary Assignment
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.ADD);
+
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                "Employee " + employeeIdentifier +
+                        " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
+                        " pada org " + targetOrg + "!"
+        );
+
+        softAssert.assertFalse(
+                assignEmployeeHelper().isViewUnassignedButtonClickable(),
+                "Tombol View Unassigned seharusnya disable ketika tidak ada Unassigned Employee!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                "Audit Log Employee Assignment untuk Add Incumbent ke Renamed Org tidak sesuai!"
+        );
+
+        softAssert.assertAll();
+
+        logger.info("Test Completed Successfully: addIncumbentFromUnassignedToRenamedOrgTest");
+    }
+
+    @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Add Incumbent to Open Position in Moved Organization using Unassigned Employee")
+    public void addIncumbentFromUnassignedToMovedOrgTest() {
+        logger.info("Starting test: addIncumbentFromUnassignedToMovedOrgTest");
+
+        OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("UNASSIGNED");
+
+        OrganizationTestData proposedFlow1Data = assignEmployeeHelper().prepareFlow2ContextWithFlow1Precondition(OrgSheetName.MOVE, OrgMenuAction.MOVE);
+
+        String targetOrg = proposedFlow1Data.getNewOrganizationName();
+        String targetPosition = proposedFlow1Data.getJobName();
+        String employeeIdentifier = currentAssignData.getNip();
+
+        assignEmployeeHelper().addIncumbent(
+                targetOrg,
+                targetPosition,
+                employeeIdentifier,
+                currentAssignData.isMobility(),
+                currentAssignData.getMovementCategory(),
+                false // Primary Assignment
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.ADD);
+
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                "Employee " + employeeIdentifier +
+                        " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
+                        " pada org " + targetOrg + "!"
+        );
+
+        softAssert.assertFalse(
+                assignEmployeeHelper().isViewUnassignedButtonClickable(),
+                "Tombol View Unassigned seharusnya disable ketika tidak ada Unassigned Employee!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                "Audit Log Employee Assignment untuk Add Incumbent ke Moved Org tidak sesuai!"
+        );
+
+        softAssert.assertAll();
+
+        logger.info("Test Completed Successfully: addIncumbentFromUnassignedToMovedOrgTest");
+    }
+
+    @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Add Incumbent to Open Position in Merged Organization using Unassigned Employee")
+    public void addIncumbentFromUnassignedToMergedOrgTest() {
+        logger.info("Starting test: addIncumbentFromUnassignedToMergedOrgTest");
+
+        OrganizationTestData proposedFlow1Data = assignEmployeeHelper().prepareFlow2ContextWithFlow1Precondition(OrgSheetName.MERGE, OrgMenuAction.MERGE);
+        String employeeIdentifier = assignEmployeeHelper().getFirstUnassignedEmployeeName();
+        String targetOrg = proposedFlow1Data.getNewOrganizationName();
+        String targetPosition = proposedFlow1Data.getJobName();
+
+        String[] employee = employeeIdentifier.split(" - ");
+        String employeeName = employee[0];
+
+        assignEmployeeHelper().closeUnassignedEmployeeListModal();
+        assignEmployeeHelper().addIncumbent(
+                targetOrg,
+                targetPosition,
+                employeeName,
+                true,
+                "Change Position",
+                false // Primary Assignment
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.ADD);
+
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeName),
+                "Employee " + employeeName +
+                        " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
+                        " pada org " + targetOrg + "!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInUnassignedListNotVisible(employeeName),
+                "Employee " + employeeName +
+                        " masih muncul di Unassigned List!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                "Audit Log Employee Assignment untuk Add Incumbent ke Merged Org tidak sesuai!"
+        );
+
+        softAssert.assertAll();
+        logger.info("Test Completed Successfully: addIncumbentFromUnassignedToMergedOrgTest");
+    }
+
+    @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Add Incumbent to Open Position in Split Organization using Unassigned Employee")
+    public void addIncumbentFromUnassignedToSplitOrgTest() {
+        logger.info("Starting test: addIncumbentFromUnassignedToSplitOrgTest");
+
+        OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("UNASSIGNED");
+
+        OrganizationTestData proposedFlow1Data = assignEmployeeHelper().prepareFlow2ContextWithFlow1Precondition(OrgSheetName.SPLIT, OrgMenuAction.SPLIT);
+
+        String targetOrg = proposedFlow1Data.getNewOrganizationName1();
+        String targetPosition = proposedFlow1Data.getJobName();
+        String employeeIdentifier = currentAssignData.getNip();
+
+        assignEmployeeHelper().addIncumbent(
+                targetOrg,
+                targetPosition,
+                employeeIdentifier,
+                currentAssignData.isMobility(),
+                currentAssignData.getMovementCategory(),
+                false // Primary Assignment
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.ADD);
+
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                "Employee " + employeeIdentifier +
+                        " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
+                        " pada org " + targetOrg + "!"
+        );
+
+        softAssert.assertFalse(
+                assignEmployeeHelper().isViewUnassignedButtonClickable(),
+                "Tombol View Unassigned seharusnya disable ketika tidak ada Unassigned Employee!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                "Audit Log Employee Assignment untuk Add Incumbent ke Split Org tidak sesuai!"
+        );
+
+        softAssert.assertAll();
+
+        logger.info("Test Completed Successfully: addIncumbentFromUnassignedToSplitOrgTest");
+    }
+
 }

@@ -7,7 +7,6 @@ import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
-import org.example.utils.CustomSoftAssert;
 import org.testng.annotations.Test;
 
 public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
@@ -18,8 +17,8 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
         logger.info("Starting test: removePrimaryIncumbentTest");
 
         OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("INSIDE");
-        manageOrganizationHelper().goToFlow1();
-        manageOrganizationHelper().nextToAssignEmployee();
+        manageOrganizationHelper().goToFlow1SetOrganization();
+        manageOrganizationHelper().goToFlow2AssignEmployee();
 
         String sourceOrg = currentAssignData.getCurrentOrg();
         String sourcePosition = currentAssignData.getCurrentPosition();
@@ -33,7 +32,7 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
                 "Employee still exist in existing position");
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInUnassignedList(employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInUnassignedListVisible(employeeIdentifier),
                 "Employee does not exist in unassigned list"
         );
 
@@ -101,8 +100,8 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
         String employeeIdentifier = currentAssignData.getNip();
 
 //        to navigate
-        manageOrganizationHelper().goToFlow1();
-        manageOrganizationHelper().nextToAssignEmployee();
+        manageOrganizationHelper().goToFlow1SetOrganization();
+        manageOrganizationHelper().goToFlow2AssignEmployee();
 
         assignEmployeeHelper().removeIncumbent(targetOrg, targetPosition, employeeIdentifier);
         assignEmployeeHelper().confirmAction(ConfirmAction.REMOVE);
@@ -113,12 +112,11 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
         );
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Remove Incumbent", employeeIdentifier, targetOrg),
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Remove Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Remove PJS tidak sesuai!"
         );
 
         logger.info("Test Completed Successfully: removeSecondaryPjsIncumbentTest");
-//        TODO: cek saat pjs diremove, di position lama: ilangan, masuk ke log
     }
 
     @Test(groups = {"smoke", "assignEmployee"}, description = "Verify that PJS Employee only has Remove option and cannot be Moved (BR-04)")
@@ -132,8 +130,8 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
         String employeeIdentifier = currentAssignData.getNip();
 
 //        to navigate
-        manageOrganizationHelper().goToFlow1();
-        manageOrganizationHelper().nextToAssignEmployee();
+        manageOrganizationHelper().goToFlow1SetOrganization();
+        manageOrganizationHelper().goToFlow2AssignEmployee();
 
         assignEmployeeHelper().assignEmployeePage().clickManageIncumbentOfNode(targetOrg);
         assignEmployeeHelper().manageIncumbentModal().expandPositionAccordion(targetPosition);

@@ -24,7 +24,7 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"}, description = "Verify that user can Merge organization")
     public void mergeOrganizationTest(){
         logger.info("Starting test: Merge Organization");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         data.get().setParentPosition("Head of Branch Transformation & Network Planning 1222");
         setOrganizationHelper().mergeOrganization(data.get());
@@ -42,7 +42,7 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
     @Test
     public void mergeOrganizationWithExistingPositionTest(){
         logger.info("Starting test: Merge Organization with existing position");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
         data.get().setJobName(duplicatePositionName);
 
         setOrganizationHelper().mergeOrganization(data.get());
@@ -53,7 +53,7 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
     @Test
     public void mergeOrganizationWithExisingOrganizationNameTest(){
         logger.info("Starting test: Merge Organization with existing organization name");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         data.get().setNewOrganizationName(duplicateOrganizationName);
         setOrganizationHelper().mergeOrganization(data.get());

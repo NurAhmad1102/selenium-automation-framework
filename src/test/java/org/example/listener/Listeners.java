@@ -3,6 +3,7 @@ package org.example.listener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
+import com.aventstack.extentreports.ExtentReports;
 import org.example.drivers.DriverManager;
 import org.example.utils.ExtentReportNg;
 import org.example.utils.report.core.ReportAPI;
@@ -38,6 +39,25 @@ public class Listeners implements ITestListener, IExecutionListener {
     public void onStart(ITestContext context) {
         // Initialize reporting system
         ExtentImplementation.init();
+
+        if (context != null && context.getSuite() != null) {
+            ExtentReports extent = ExtentReportNg.getReportObject();
+            extent.setSystemInfo("Suite Name", context.getSuite().getName());
+            if (context.getCurrentXmlTest() != null) {
+                extent.setSystemInfo("Test Name", context.getCurrentXmlTest().getName());
+            }
+            extent.setSystemInfo("User", System.getProperty("user.name"));
+            extent.setSystemInfo("OS", System.getProperty("os.name"));
+            extent.setSystemInfo("Java Version", System.getProperty("java.version"));
+            extent.setSystemInfo("Java Home", System.getProperty("java.home"));
+            extent.setSystemInfo("Java VM", System.getProperty("java.vm.name"));
+
+            String browserParam = context.getSuite().getParameter("browser");
+            if (browserParam != null) {
+                extent.setSystemInfo("Browser", browserParam);
+            }
+            extent.setSystemInfo("-----","---------");
+        }
     }
 
     @Override

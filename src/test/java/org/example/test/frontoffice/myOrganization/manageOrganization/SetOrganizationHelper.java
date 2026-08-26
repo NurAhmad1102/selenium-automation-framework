@@ -368,8 +368,6 @@ public class SetOrganizationHelper {
         }
     }
 
-
-
     public void nextToAssignEmployee(){
         previewProposedOrg.isModalDisplayed();
         previewProposedOrg.clickNextButton();

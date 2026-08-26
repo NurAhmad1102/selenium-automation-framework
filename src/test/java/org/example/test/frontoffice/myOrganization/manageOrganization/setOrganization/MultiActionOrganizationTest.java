@@ -6,6 +6,7 @@ import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
+import org.example.utils.CustomSoftAssert;
 import org.testng.annotations.Test;
 
 public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
@@ -32,18 +33,16 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"regression", "multi-action"}, description = "1. Verify Move Primary Organization and Split Child Organization sequentially")
     public void movePrimaryAndSplitChildTest() {
         logger.info("Starting test: movePrimaryAndSplitChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
-        // 1. Eksekusi Aksi 1: Move Primary Organization (Sheet MOVE, Action: PRIMARY)
         OrganizationTestData primaryMoveData = setOrganizationHelper().getTestData(OrgSheetName.MOVE, "PRIMARY");
         setOrganizationHelper().moveOrganization(primaryMoveData);
         setOrganizationHelper().fillJobPosition(primaryMoveData, OrgMenuAction.MOVE);
         setOrganizationHelper().confirmAction(ConfirmAction.MOVE);
 
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primaryMoveData.getNewOrganizationName()),
-                "Moved Primary Organization node is not displayed");
+                "Moved Primary Organization node is not displayed in tree: " + primaryMoveData.getNewOrganizationName());
 
-        // 2. Eksekusi Aksi 2: Split Child Organization dalam Subtree yang sama (Sheet MOVE, Action: CHILD_SPLIT)
         OrganizationTestData childSplit1 = setOrganizationHelper().getTestData(OrgSheetName.MOVE, "CHILD_SPLIT");
         OrganizationTestData childSplit2 = getSecondarySplitData(childSplit1);
 
@@ -51,118 +50,146 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().fillJobPositionForSplit(childSplit1, childSplit2);
         setOrganizationHelper().confirmAction(ConfirmAction.SPLIT);
 
-        // 3. Verifikasi Log Perubahan untuk kedua aksi
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childSplit1.getPrimaryOrganization()),
+                "Original organization node is still displayed in tree after split action: " + childSplit1.getPrimaryOrganization());
+
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childSplit1.getNewOrganizationName1()),
+                "Child Split Organization 1 node is not displayed in tree: " + childSplit1.getNewOrganizationName1());
+
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childSplit2.getNewOrganizationName2()),
+                "Child Split Organization 2 node is not displayed in tree: " + childSplit2.getNewOrganizationName2());
+
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Move Organization", primaryMoveData.getPrimaryOrganization(), primaryMoveData.getNewOrganizationName()),
-                "Changes Log for Move Organization is not displayed correctly");
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+                "Changes Log for Move Organization is not displayed correctly: " + primaryMoveData.getPrimaryOrganization() + " -> " + primaryMoveData.getNewOrganizationName());
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Split Organization", childSplit1.getPrimaryOrganization()),
-                "Changes Log for Split Organization is not displayed correctly");
+                "Changes Log for Split Organization is not displayed correctly: " + childSplit1.getPrimaryOrganization());
+        softAssert.assertAll();
     }
 
     @Test(groups = {"regression", "multi-action"}, description = "2. Verify Move Primary Organization and Merge Child Organization sequentially")
     public void movePrimaryAndMergeChildTest() {
         logger.info("Starting test: movePrimaryAndMergeChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
-        // 1. Eksekusi Aksi 1: Move Primary Organization (Sheet MOVE, Action: PRIMARY)
         OrganizationTestData primaryMoveData = setOrganizationHelper().getTestData(OrgSheetName.MOVE, "PRIMARY");
         setOrganizationHelper().moveOrganization(primaryMoveData);
         setOrganizationHelper().fillJobPosition(primaryMoveData, OrgMenuAction.MOVE);
         setOrganizationHelper().confirmAction(ConfirmAction.MOVE);
 
-        // 2. Eksekusi Aksi 2: Merge Child Organization dalam Subtree yang sama (Sheet MOVE, Action: CHILD_MERGE)
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primaryMoveData.getNewOrganizationName()),
+                "Moved Primary Organization node is not displayed in tree: " + primaryMoveData.getNewOrganizationName());
+
         OrganizationTestData childMergeData = setOrganizationHelper().getTestData(OrgSheetName.MOVE, "CHILD_MERGE");
         setOrganizationHelper().mergeOrganization(childMergeData);
         setOrganizationHelper().fillJobPosition(childMergeData, OrgMenuAction.MERGE);
         setOrganizationHelper().confirmAction(ConfirmAction.MERGE);
 
-        // 3. Verifikasi Node & Log Perubahan
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childMergeData.getPrimaryOrganization()),
+                "Source merge organization node is still displayed in tree after merge action: " + childMergeData.getPrimaryOrganization());
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childMergeData.getMergeOrganizationWith()),
+                "Secondary merge organization node is still displayed in tree after merge action: " + childMergeData.getMergeOrganizationWith());
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childMergeData.getNewOrganizationName()),
-                "Merged Child Organization node is not displayed");
+                "New merged organization node is not displayed in tree: " + childMergeData.getNewOrganizationName());
 
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Move Organization", primaryMoveData.getPrimaryOrganization(), primaryMoveData.getNewOrganizationName()),
-                "Changes Log for Move Organization is not displayed correctly");
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+                "Changes Log for Move Organization is not displayed correctly: " + primaryMoveData.getPrimaryOrganization() + " -> " + primaryMoveData.getNewOrganizationName());
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Merge Organization", childMergeData.getPrimaryOrganization(), childMergeData.getMergeOrganizationWith()),
-                "Changes Log for Merge Organization is not displayed correctly");
+                "Changes Log for Merge Organization is not displayed correctly: " + childMergeData.getPrimaryOrganization());
+
+        softAssert.assertAll();
     }
 
     @Test(groups = {"regression", "multi-action"}, description = "3. Verify Move Primary Organization and Rename Child Organization sequentially")
     public void movePrimaryAndRenameChildTest() {
         logger.info("Starting test: movePrimaryAndRenameChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
-        // 1. Eksekusi Aksi 1: Move Primary Organization (Sheet MOVE, Action: PRIMARY)
         OrganizationTestData primaryMoveData = setOrganizationHelper().getTestData(OrgSheetName.MOVE, "PRIMARY");
         setOrganizationHelper().moveOrganization(primaryMoveData);
         setOrganizationHelper().fillJobPosition(primaryMoveData, OrgMenuAction.MOVE);
         setOrganizationHelper().confirmAction(ConfirmAction.MOVE);
 
-        // 2. Eksekusi Aksi 2: Rename Child Organization dalam Subtree yang sama (Sheet MOVE, Action: CHILD_RENAME)
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primaryMoveData.getNewOrganizationName()),
+                "Moved Primary Organization node is not displayed in tree: " + primaryMoveData.getNewOrganizationName());
+
         OrganizationTestData childRenameData = setOrganizationHelper().getTestData(OrgSheetName.MOVE, "CHILD_RENAME");
         setOrganizationHelper().renameOrganization(childRenameData);
         setOrganizationHelper().fillJobPosition(childRenameData, OrgMenuAction.RENAME);
         setOrganizationHelper().confirmAction(ConfirmAction.RENAME);
 
-        // 3. Verifikasi Node & Log Perubahan
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childRenameData.getPrimaryOrganization()),
+                "Original organization node is still displayed in tree after rename action: " + childRenameData.getPrimaryOrganization());
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childRenameData.getNewOrganizationName()),
-                "Renamed Child Organization node is not displayed");
+                "Renamed organization node is not displayed in tree: " + childRenameData.getNewOrganizationName());
 
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Move Organization", primaryMoveData.getPrimaryOrganization(), primaryMoveData.getNewOrganizationName()),
-                "Changes Log for Move Organization is not displayed correctly");
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+                "Changes Log for Move Organization is not displayed correctly: " + primaryMoveData.getPrimaryOrganization() + " -> " + primaryMoveData.getNewOrganizationName());
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Rename Organization", childRenameData.getPrimaryOrganization(), childRenameData.getNewOrganizationName()),
-                "Changes Log for Rename Organization is not displayed correctly");
+                "Changes Log for Rename Organization is not displayed correctly: " + childRenameData.getPrimaryOrganization() + " -> " + childRenameData.getNewOrganizationName());
+        softAssert.assertAll();
     }
 
     @Test(groups = {"regression", "multi-action"}, description = "4. Verify Rename Primary Organization and Merge Child Organization sequentially")
     public void renamePrimaryAndMergeChildTest() {
         logger.info("Starting test: renamePrimaryAndMergeChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
-        // 1. Eksekusi Aksi 1: Rename Primary Organization (Sheet RENAME, Action: PRIMARY)
         OrganizationTestData primaryRenameData = setOrganizationHelper().getTestData(OrgSheetName.RENAME, "PRIMARY");
         setOrganizationHelper().renameOrganization(primaryRenameData);
         setOrganizationHelper().fillJobPosition(primaryRenameData, OrgMenuAction.RENAME);
         setOrganizationHelper().confirmAction(ConfirmAction.RENAME);
 
-        // 2. Eksekusi Aksi 2: Merge Child Organization dalam Subtree yang sama (Sheet RENAME, Action: CHILD_MERGE)
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primaryRenameData.getNewOrganizationName()),
+                "Renamed Primary Organization node is not displayed in tree: " + primaryRenameData.getNewOrganizationName());
+
         OrganizationTestData childMergeData = setOrganizationHelper().getTestData(OrgSheetName.RENAME, "CHILD_MERGE");
         setOrganizationHelper().mergeOrganization(childMergeData);
         setOrganizationHelper().fillJobPosition(childMergeData, OrgMenuAction.MERGE);
         setOrganizationHelper().confirmAction(ConfirmAction.MERGE);
 
-        // 3. Verifikasi Node & Log Perubahan
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childMergeData.getPrimaryOrganization()),
+                "Source merge organization node is still displayed in tree after merge action: " + childMergeData.getPrimaryOrganization());
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childMergeData.getMergeOrganizationWith()),
+                "Secondary merge organization node is still displayed in tree after merge action: " + childMergeData.getMergeOrganizationWith());
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childMergeData.getNewOrganizationName()),
-                "Merged Child Organization node is not displayed");
+                "New merged organization node is not displayed in tree: " + childMergeData.getNewOrganizationName());
 
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Rename Organization", primaryRenameData.getPrimaryOrganization(), primaryRenameData.getNewOrganizationName()),
-                "Changes Log for Rename Organization is not displayed correctly");
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+                "Changes Log for Rename Organization is not displayed correctly: " + primaryRenameData.getPrimaryOrganization() + " -> " + primaryRenameData.getNewOrganizationName());
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Merge Organization", childMergeData.getPrimaryOrganization(), childMergeData.getMergeOrganizationWith()),
-                "Changes Log for Merge Organization is not displayed correctly");
+                "Changes Log for Merge Organization is not displayed correctly: " + childMergeData.getPrimaryOrganization());
+        softAssert.assertAll();
     }
 
     @Test(groups = {"regression", "multi-action"}, description = "5. Verify Rename Primary Organization and Split Child Organization sequentially")
     public void renamePrimaryAndSplitChildTest() {
         logger.info("Starting test: renamePrimaryAndSplitChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
-        // 1. Eksekusi Aksi 1: Rename Primary Organization (Sheet RENAME, Action: PRIMARY)
         OrganizationTestData primaryRenameData = setOrganizationHelper().getTestData(OrgSheetName.RENAME, "PRIMARY");
         setOrganizationHelper().renameOrganization(primaryRenameData);
         setOrganizationHelper().fillJobPosition(primaryRenameData, OrgMenuAction.RENAME);
         setOrganizationHelper().confirmAction(ConfirmAction.RENAME);
 
-        // 2. Eksekusi Aksi 2: Split Child Organization dalam Subtree yang sama (Sheet RENAME, Action: CHILD_SPLIT)
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primaryRenameData.getNewOrganizationName()),
+                "Renamed Primary Organization node is not displayed in tree: " + primaryRenameData.getNewOrganizationName());
+
         OrganizationTestData childSplit1 = setOrganizationHelper().getTestData(OrgSheetName.RENAME, "CHILD_SPLIT");
         OrganizationTestData childSplit2 = getSecondarySplitData(childSplit1);
 
@@ -170,22 +197,29 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().fillJobPositionForSplit(childSplit1, childSplit2);
         setOrganizationHelper().confirmAction(ConfirmAction.SPLIT);
 
-        // 3. Verifikasi Log Perubahan
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childSplit1.getPrimaryOrganization()),
+                "Original organization node is still displayed in tree after split action: " + childSplit1.getPrimaryOrganization());
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childSplit1.getNewOrganizationName1()),
+                "Child Split Organization 1 node is not displayed in tree: " + childSplit1.getNewOrganizationName1());
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childSplit2.getNewOrganizationName2()),
+                "Child Split Organization 2 node is not displayed in tree: " + childSplit2.getNewOrganizationName2());
+
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Rename Organization", primaryRenameData.getPrimaryOrganization(), primaryRenameData.getNewOrganizationName()),
-                "Changes Log for Rename Organization is not displayed correctly");
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+                "Changes Log for Rename Organization is not displayed correctly: " + primaryRenameData.getPrimaryOrganization() + " -> " + primaryRenameData.getNewOrganizationName());
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Split Organization", childSplit1.getPrimaryOrganization()),
-                "Changes Log for Split Organization is not displayed correctly");
+                "Changes Log for Split Organization is not displayed correctly: " + childSplit1.getPrimaryOrganization());
+        softAssert.assertAll();
     }
 
     @Test(groups = {"regression", "multi-action"}, description = "6. Verify Split Primary Organization and Split Child Organization sequentially")
     public void splitPrimaryAndSplitChildTest() {
         logger.info("Starting test: splitPrimaryAndSplitChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
-        // 1. Eksekusi Aksi 1: Split Primary Organization (Sheet SPLIT, Action: PRIMARY)
         OrganizationTestData primarySplit1 = setOrganizationHelper().getTestData(OrgSheetName.SPLIT, "PRIMARY");
         OrganizationTestData primarySplit2 = getSecondarySplitData(primarySplit1);
 
@@ -193,7 +227,11 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().fillJobPositionForSplit(primarySplit1, primarySplit2);
         setOrganizationHelper().confirmAction(ConfirmAction.SPLIT);
 
-        // 2. Eksekusi Aksi 2: Split Child Organization dalam Subtree yang sama (Sheet SPLIT, Action: CHILD_SPLIT)
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primarySplit1.getNewOrganizationName1()),
+                "Primary Split organization 1 node is not displayed in tree: " + primarySplit1.getNewOrganizationName1());
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primarySplit2.getNewOrganizationName2()),
+                "Primary Split organization 2 node is not displayed in tree: " + primarySplit2.getNewOrganizationName2());
+
         OrganizationTestData childSplit1 = setOrganizationHelper().getTestData(OrgSheetName.SPLIT, "CHILD_SPLIT");
         OrganizationTestData childSplit2 = getSecondarySplitData(childSplit1);
 
@@ -201,20 +239,29 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().fillJobPositionForSplit(childSplit1, childSplit2);
         setOrganizationHelper().confirmAction(ConfirmAction.SPLIT);
 
-        // 3. Verifikasi Log Perubahan
-        //TODO: cek kenapa hanya ada 1 validasi?
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childSplit1.getPrimaryOrganization()),
+                "Original organization node is still displayed in tree after split action: " + childSplit1.getPrimaryOrganization());
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childSplit1.getNewOrganizationName1()),
+                "Child Split organization 1 node is not displayed in tree: " + childSplit1.getNewOrganizationName1());
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childSplit2.getNewOrganizationName2()),
+                "Child Split organization 2 node is not displayed in tree: " + childSplit2.getNewOrganizationName2());
+
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Split Organization", primarySplit1.getPrimaryOrganization()),
-                "Changes Log for Primary Split Organization is not displayed correctly");
+                "Changes Log for Primary Split Organization is not displayed correctly: " + primarySplit1.getPrimaryOrganization());
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+                "Split Organization", childSplit1.getPrimaryOrganization()),
+                "Changes Log for Child Split Organization is not displayed correctly: " + childSplit1.getPrimaryOrganization());
+        softAssert.assertAll();
     }
 
     @Test(groups = {"regression", "multi-action"}, description = "7. Verify Split Primary Organization and Rename Child Organization sequentially")
     public void splitPrimaryAndRenameChildTest() {
         logger.info("Starting test: splitPrimaryAndRenameChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
-        // 1. Eksekusi Aksi 1: Split Primary Organization (Sheet SPLIT, Action: PRIMARY)
         OrganizationTestData primarySplit1 = setOrganizationHelper().getTestData(OrgSheetName.SPLIT, "PRIMARY");
         OrganizationTestData primarySplit2 = getSecondarySplitData(primarySplit1);
 
@@ -222,31 +269,37 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().fillJobPositionForSplit(primarySplit1, primarySplit2);
         setOrganizationHelper().confirmAction(ConfirmAction.SPLIT);
 
-        // 2. Eksekusi Aksi 2: Rename Child Organization dalam Subtree yang sama (Sheet SPLIT, Action: CHILD_RENAME)
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primarySplit1.getNewOrganizationName1()),
+                "Primary Split organization 1 node is not displayed in tree: " + primarySplit1.getNewOrganizationName1());
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primarySplit2.getNewOrganizationName2()),
+                "Primary Split organization 2 node is not displayed in tree: " + primarySplit2.getNewOrganizationName2());
+
         OrganizationTestData childRenameData = setOrganizationHelper().getTestData(OrgSheetName.SPLIT, "CHILD_RENAME");
         setOrganizationHelper().renameOrganization(childRenameData);
         setOrganizationHelper().fillJobPosition(childRenameData, OrgMenuAction.RENAME);
         setOrganizationHelper().confirmAction(ConfirmAction.RENAME);
 
-        // 3. Verifikasi Node & Log Perubahan
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childRenameData.getPrimaryOrganization()),
+                "Original organization node is still displayed in tree after rename action: " + childRenameData.getPrimaryOrganization());
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childRenameData.getNewOrganizationName()),
-                "Renamed Child Organization node is not displayed");
+                "Renamed organization node is not displayed in tree: " + childRenameData.getNewOrganizationName());
 
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Split Organization", primarySplit1.getPrimaryOrganization()),
-                "Changes Log for Split Organization is not displayed correctly");
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+                "Changes Log for Primary Split Organization is not displayed correctly: " + primarySplit1.getPrimaryOrganization());
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Rename Organization", childRenameData.getPrimaryOrganization(), childRenameData.getNewOrganizationName()),
-                "Changes Log for Rename Organization is not displayed correctly");
+                "Changes Log for Rename Organization is not displayed correctly: " + childRenameData.getPrimaryOrganization() + " -> " + childRenameData.getNewOrganizationName());
+        softAssert.assertAll();
     }
 
     @Test(groups = {"regression", "multi-action"}, description = "8. Verify Split Primary Organization and Merge Child Organization sequentially")
     public void splitPrimaryAndMergeChildTest() {
         logger.info("Starting test: splitPrimaryAndMergeChildTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
-        // 1. Eksekusi Aksi 1: Split Primary Organization (Sheet SPLIT, Action: PRIMARY)
         OrganizationTestData primarySplit1 = setOrganizationHelper().getTestData(OrgSheetName.SPLIT, "PRIMARY");
         OrganizationTestData primarySplit2 = getSecondarySplitData(primarySplit1);
 
@@ -254,22 +307,31 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().fillJobPositionForSplit(primarySplit1, primarySplit2);
         setOrganizationHelper().confirmAction(ConfirmAction.SPLIT);
 
-        // 2. Eksekusi Aksi 2: Merge Child Organization dalam Subtree yang sama (Sheet SPLIT, Action: CHILD_MERGE)
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primarySplit1.getNewOrganizationName1()),
+                "Primary Split organization 1 node is not displayed in tree: " + primarySplit1.getNewOrganizationName1());
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(primarySplit2.getNewOrganizationName2()),
+                "Primary Split organization 2 node is not displayed in tree: " + primarySplit2.getNewOrganizationName2());
+
         OrganizationTestData childMergeData = setOrganizationHelper().getTestData(OrgSheetName.SPLIT, "CHILD_MERGE");
         setOrganizationHelper().mergeOrganization(childMergeData);
         setOrganizationHelper().fillJobPosition(childMergeData, OrgMenuAction.MERGE);
         setOrganizationHelper().confirmAction(ConfirmAction.MERGE);
 
-        // 3. Verifikasi Node & Log Perubahan
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childMergeData.getPrimaryOrganization()),
+                "Source merge organization node is still displayed in tree after merge action: " + childMergeData.getPrimaryOrganization());
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(childMergeData.getMergeOrganizationWith()),
+                "Secondary merge organization node is still displayed in tree after merge action: " + childMergeData.getMergeOrganizationWith());
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(childMergeData.getNewOrganizationName()),
-                "Merged Child Organization node is not displayed");
+                "New merged organization node is not displayed in tree: " + childMergeData.getNewOrganizationName());
 
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Split Organization", primarySplit1.getPrimaryOrganization()),
-                "Changes Log for Split Organization is not displayed correctly");
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
+                "Changes Log for Primary Split Organization is not displayed correctly: " + primarySplit1.getPrimaryOrganization());
+        softAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog(
                 "Merge Organization", childMergeData.getPrimaryOrganization(), childMergeData.getMergeOrganizationWith()),
-                "Changes Log for Merge Organization is not displayed correctly");
+                "Changes Log for Merge Organization is not displayed correctly: " + childMergeData.getPrimaryOrganization());
+        softAssert.assertAll();
     }
 }

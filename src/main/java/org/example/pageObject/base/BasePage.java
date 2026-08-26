@@ -31,7 +31,7 @@ public class BasePage {
         String description = getElementDescription(element);
         try {
             logger.info("Clicking element: {}", description);
-            // Ensure element is stable and clickable
+
             wait.until(ExpectedConditions.elementToBeClickable(element));
             
             try {
@@ -51,11 +51,7 @@ public class BasePage {
         try {
             WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
             String description = getElementDescription(element);
-            logger.info("Clicking locator: {}", description);
-
-            // Stabilization wait to handle async UI state changes (False Clicks)
-//            try { Thread.sleep(500); }
-//            catch (InterruptedException ignored) {}
+            logger.info("Clicking locator [{}]: {}", locator, description);
 
             try {
                 element.click();
@@ -65,7 +61,7 @@ public class BasePage {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", freshElement);
             }
 
-            ReportAPI.step("Action: Click locator [" + locator + "]");
+            ReportAPI.step("Action: Click element [" + description + "]");
         } catch (Exception e) {
             handleActionFailure("click", locator, e);
         }
@@ -75,19 +71,16 @@ public class BasePage {
     protected void clickWithJS(By locator) {
         try {
             logger.debug("Forcing JS Click on locator: {}", locator);
-            // tunggu sampai elemen ada di sialan muncul DOM, tidak buthu nunggu clickable
             WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
             String description = getElementDescription(element);
-            logger.info("Click on: {}", description);
-
+            logger.info("JS Click on element: {}", description);
 
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
-            ReportAPI.step("Action: JS Click locator [" + locator + "]");
+            ReportAPI.step("Action: JS Click element [" + description + "]");
         } catch (Exception e) {
             handleActionFailure("clickWithJS", locator, e);
         }
     }
-
 
     protected void typeText(WebElement element, String text){
         String description = getElementDescription(element);
@@ -106,6 +99,7 @@ public class BasePage {
 
     protected String getAttributeValue(WebElement element, String attribute){
         try {
+            logger.debug("Getting attribute '{}' from element: {}", attribute, getElementDescription(element));
             String value = element.getAttribute(attribute);
             ReportAPI.step("Action: Get attribute [" + attribute + "] from element [" + getElementDescription(element) + "]");
             return value;
@@ -117,6 +111,7 @@ public class BasePage {
 
     protected String getText(WebElement element) {
         try {
+            logger.debug("Getting text from element: {}", getElementDescription(element));
             String text = wait.until(ExpectedConditions.visibilityOf(element)).getText();
             ReportAPI.step("Action: Get text from element [" + getElementDescription(element) + "]");
             return text;
@@ -128,8 +123,11 @@ public class BasePage {
 
     protected String getText(By locator) {
         try {
-            String text = wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).getText();
-            ReportAPI.step("Action: Get text from locator [" + locator + "]");
+            WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            String description = getElementDescription(element);
+            String text = element.getText();
+            logger.debug("Getting text from locator [{}]: {}", locator, text);
+            ReportAPI.step("Action: Get text from element [" + description + "]");
             return text;
         } catch (Exception e) {
             handleActionFailure("get text from", locator, e);
@@ -139,47 +137,58 @@ public class BasePage {
 
 //    IS VISIBLE
     protected boolean isVisible(WebElement element){
+        String description = getElementDescription(element);
         try {
-            return wait.until(ExpectedConditions.visibilityOf(element)).isDisplayed();
+            boolean visible = wait.until(ExpectedConditions.visibilityOf(element)).isDisplayed();
+            logger.debug("Check visibility: Element [{}] is visible", description);
+            ReportAPI.step("Check: Element [" + description + "] is visible");
+            return visible;
         } catch (TimeoutException | NoSuchElementException | StaleElementReferenceException e) {
-            String msg = "Element not visible: " + getElementDescription(element);
-            logger.debug(msg);
-            ReportAPI.elementWarning("visibility check", element.toString(), e);
+            logger.debug("Check visibility: Element [{}] is not visible", description);
+            ReportAPI.step("Check: Element [" + description + "] is not visible");
             return false;
         }
     }
 
     protected boolean isVisible(By locator) {
         try {
-            return wait.until(ExpectedConditions.visibilityOfElementLocated(locator))
-                    .isDisplayed();
+            boolean visible = wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
+            String description = getElementDescription(driver.findElement(locator));
+            logger.debug("Check visibility: Locator [{}] ({}) is visible", locator, description);
+            ReportAPI.step("Check: Element [" + description + "] is visible");
+            return visible;
         } catch (TimeoutException e) {
-            String msg = "Locator not visible: " + locator;
-            logger.debug(msg);
-            ReportAPI.elementWarning("visibility check", "Locator: " + locator, e);
+            logger.debug("Check visibility: Locator [{}] is not visible", locator);
+            ReportAPI.step("Check: Locator [" + locator + "] is not visible");
             return false;
         }
     }
 
 // INVISIBLE
     protected boolean isNotVisible(WebElement element){
+        String description = getElementDescription(element);
         try {
-            return wait.until(ExpectedConditions.invisibilityOf(element));
+            boolean invisible = wait.until(ExpectedConditions.invisibilityOf(element));
+            logger.debug("Check invisibility: Element [{}] is hidden", description);
+            ReportAPI.step("Check: Element [" + description + "] is hidden");
+            return invisible;
         } catch (TimeoutException | NoSuchElementException | StaleElementReferenceException e) {
-            String msg = "Element still visible: " + getElementDescription(element);
-            logger.debug(msg);
-            ReportAPI.elementWarning("visibility check", element.toString(), e);
+            logger.debug("Check invisibility: Element [{}] is still visible", description);
+            ReportAPI.step("Check: Element [" + description + "] is still visible");
             return false;
         }
     }
 
     protected boolean isNotVisible(By locator) {
+        String description = getElementDescription(driver.findElement(locator));
         try {
-            return wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+            boolean invisible = wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+            logger.debug("Check invisibility: Locator [{}] is hidden", locator);
+            ReportAPI.step("Check: Locator [" + description + "] is hidden");
+            return invisible;
         } catch (TimeoutException e) {
-            String msg = "Locator still visible: " + locator;
-            logger.debug(msg);
-            ReportAPI.elementWarning("visibility check", "Locator: " + locator, e);
+            logger.debug("Check invisibility: Locator [{}] is still visible", locator);
+            ReportAPI.step("Check: Locator [" + description + "] is still visible");
             return false;
         }
     }
@@ -190,50 +199,67 @@ public class BasePage {
         String description = (target instanceof WebElement) ? getElementDescription((WebElement) target) : target.toString();
         String locatorInfo = (target instanceof WebElement) ? target.toString() : "Locator: " + target;
         
-        String errorMessage = String.format("Failed to %s element [%s].<br><b>Locator Detail:</b> %s<br><b>Reason:</b> %s", 
+        String logConsoleMessage = String.format("Failed to %s element [%s]. Locator Detail: %s. Reason: %s", 
+                action, description, locatorInfo, e.getMessage());
+
+        String reportHtmlMessage = String.format("Failed to %s element [%s].<br><b>Locator Detail:</b> %s<br><b>Reason:</b> %s", 
                 action, description, locatorInfo, e.getMessage());
         
-        // Log to Log4j2
-        logger.error(errorMessage);
+        // Log clean plain text to Log4j2 console/file
+        logger.error(logConsoleMessage);
         
         // Log to Structured Element Logs tab
         ReportAPI.elementError(action, locatorInfo, e);
         
-        throw new RuntimeException(errorMessage, e);
+        throw new RuntimeException(reportHtmlMessage, e);
     }
 
     public String getElementDescription(WebElement element) {
         try {
             String text = element.getText();
-            if (text == null || text.trim().isEmpty()) {
-                text = element.getAttribute("aria-label");
-            }
-            if (text == null || text.trim().isEmpty()) {
-                text = element.getAttribute("title");
-            }
-            if (text == null || text.trim().isEmpty()) {
-                text = element.getAttribute("placeholder");
-            }
-            if (text == null || text.trim().isEmpty()) {
-                text = element.getAttribute("class");
-            }
-            if (text == null || text.trim().isEmpty()) {
-                text = element.getAttribute("id");
-            }
+            if (isNotBlank(text)) return sanitizeDescription(text);
 
-            return text != null && !text.isEmpty() ? text : "[no identifiable text]";
+            text = element.getAttribute("aria-label");
+            if (isNotBlank(text)) return sanitizeDescription(text);
+
+            text = element.getAttribute("title");
+            if (isNotBlank(text)) return sanitizeDescription(text);
+
+            text = element.getAttribute("placeholder");
+            if (isNotBlank(text)) return sanitizeDescription(text);
+
+            text = element.getAttribute("data-testid");
+            if (isNotBlank(text)) return sanitizeDescription(text);
+
+            text = element.getAttribute("id");
+            if (isNotBlank(text)) return sanitizeDescription(text);
+
+            text = element.getAttribute("name");
+            if (isNotBlank(text)) return sanitizeDescription(text);
+
+            String tagName = element.getTagName();
+            return isNotBlank(tagName) ? "[" + tagName + " element]" : "[unidentified element]";
         } catch (Exception e) {
-            return "[unable to get element description]";
+            return "[unable to inspect element]";
         }
+    }
+
+    private String sanitizeDescription(String input) {
+        if (input == null) return "";
+        String trimmed = input.trim().replaceAll("\\s+", " ");
+        return trimmed.length() > 50 ? trimmed.substring(0, 47) + "..." : trimmed;
+    }
+
+    private boolean isNotBlank(String str) {
+        return str != null && !str.trim().isEmpty();
     }
 
 //    DROPDOWN
     protected void selectDropdownModal(WebElement element, String option){
-        logger.info("Step: Open Dropdown and select: {}", option);
+        String description = getElementDescription(element);
+        logger.info("Selecting option [{}] from dropdown [{}]", option, description);
+        ReportAPI.step("Action: Select option [" + option + "] from dropdown [" + description + "]");
         click(element);
-
-        // Wait a bit for dropdown to potentially stabilize
-//        try { Thread.sleep(200); } catch (InterruptedException ignored) {}
 
         if(isSearchableDropdown()){
             selectSearchableDropdown(option);
@@ -248,11 +274,7 @@ public class BasePage {
 
     private void selectSearchableDropdown(String value) {
         By searchInputLocator = By.xpath("//div[@role='listbox']//input[@type='text']");
-        
-        // Wait for search input to be visible and fresh
         WebElement searchInput = wait.until(ExpectedConditions.visibilityOfElementLocated(searchInputLocator));
-
-        // Use typeText directly with the locator or fresh element to benefit from its internal wait/retry
         typeText(searchInput, value);
 
         selectOption(value);
@@ -305,12 +327,15 @@ public class BasePage {
     }
 
     protected boolean isElementClickable(WebElement element) {
+        String description = getElementDescription(element);
         try {
             wait.until(ExpectedConditions.elementToBeClickable(element));
+            logger.debug("Check clickability: Element [{}] is clickable", description);
+            ReportAPI.step("Check: Element [" + description + "] is clickable");
             return true;
         } catch (TimeoutException e) {
-            logger.debug("Element not clickable: {}", getElementDescription(element));
-            ReportAPI.elementWarning("clickability check", element.toString(), e);
+            logger.debug("Check clickability: Element [{}] is not clickable", description);
+            ReportAPI.step("Check: Element [" + description + "] is not clickable");
             return false;
         }
     }
@@ -318,13 +343,42 @@ public class BasePage {
     protected boolean isElementClickable(By element) {
         try {
             wait.until(ExpectedConditions.elementToBeClickable(element));
+            String description = getElementDescription(driver.findElement(element));
+            logger.debug("Check clickability: Locator [{}] ({}) is clickable", element, description);
+            ReportAPI.step("Check: Element [" + description + "] is clickable");
             return true;
         } catch (TimeoutException e) {
-            logger.debug("Element not clickable: {}", getElementDescription(driver.findElement(element)));
-            ReportAPI.elementWarning("clickability check", element.toString(), e);
+            logger.debug("Check clickability: Locator [{}] is not clickable", element);
+            ReportAPI.step("Check: Locator [" + element + "] is not clickable");
             return false;
         }
     }
 
+    protected boolean isClickable(WebElement element) {
+        String description = getElementDescription(element);
+        try {
+            boolean clickable = element.isDisplayed() && element.isEnabled();
+            logger.debug("Check clickability: Element [{}] isClickable={}", description, clickable);
+            ReportAPI.step("Check: Element [" + description + "] isClickable=" + clickable);
+            return clickable;
+        } catch (Exception e) {
+            logger.debug("Check clickability: Element [{}] is not clickable/present", description);
+            return false;
+        }
+    }
+
+    protected boolean isNotClickable(WebElement element) {
+        return !isClickable(element);
+    }
+
+    protected boolean isPresent(By locator) {
+        try {
+            boolean present = !driver.findElements(locator).isEmpty();
+            logger.debug("Check presence: Locator [{}] isPresent={}", locator, present);
+            return present;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
 }

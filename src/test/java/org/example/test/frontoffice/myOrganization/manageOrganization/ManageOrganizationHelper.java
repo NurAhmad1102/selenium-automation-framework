@@ -81,16 +81,22 @@ public class ManageOrganizationHelper {
         filterUpdateOrganizationPage.selectRequestType("Copy From Previous Proposal");
     }
 
+    public OrganizationTestData getSheetByName(OrgSheetName sheet){
+        logger.info("Get data from Manage Organization Excel");
+        OrganizationTestData dataExcel = setOrganizationHelper.getTestData(sheet);
+        return dataExcel;
+    }
+
 //  ####### Perform Steps Helper #######
 
-    public void goToFlow1(){
+    public void goToFlow1SetOrganization(){
         navigateToUpdateOrganization();
         setFilterUpdateOrganizationPage(true);
         filterUpdateOrganizationPage.clickNextButton();
         CustomAssert.assertTrue(setOrganizationPage.isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
     }
 
-    public void nextToAssignEmployee() {
+    public void goToFlow2AssignEmployee() {
         logger.info("Step: Navigating from Flow 1 Canvas to Flow 2 (Assign Employee)");
         actionElementsPage.clickNextButton();
         setOrganizationHelper.nextToAssignEmployee();

@@ -24,7 +24,7 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"},description = "Verify that user can add new organization with valid data")
     public void addNewOrganizationTest() {
         logger.info("Starting test: addNewOrganization");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         setOrganizationHelper().addNewOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.ADD_NEW);
@@ -41,7 +41,7 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     @Test(description = "Verify that user cannot add new organization with existing organization name")
     public void addOrganizationWithExistingOrganizationNameTest() {
         logger.info("Starting test: addExistingOrganization");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         data.get().setNewOrganizationName(duplicateOrganizationName);
         setOrganizationHelper().addNewOrganization(data.get());
@@ -51,7 +51,7 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     @Test(description = "Verify that user cannot add new position with existing position name under the same or others organization")
     public void addOrganizationWithExistingPositionNameTest() {
         logger.info("Starting test: addExistingPositionName");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
         CustomAssert.assertTrue(setOrganizationFlow1Page().isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
 
         data.get().setNewOrganizationName("NEW ORG POS TEST " + System.currentTimeMillis());

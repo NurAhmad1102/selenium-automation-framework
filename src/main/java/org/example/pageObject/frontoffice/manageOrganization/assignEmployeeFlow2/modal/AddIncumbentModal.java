@@ -38,6 +38,9 @@ public class AddIncumbentModal extends BasePage {
     @FindBy(xpath = "//div[@role='dialog']//button[normalize-space()='Apply']")
     private WebElement applyButton;
 
+    private By continueButtonModal = By.xpath("//div[@role='dialog' and .//h2[normalize-space()='Incumbent Added']]//button[normalize-space()='Continue']\n");
+    private By yesButtonModal = By.xpath("//div[@role='dialog' and .//h2[normalize-space()='Add Incumbent']]//button[normalize-space()='Yes']\n");
+
     public boolean isModalDisplayed() {
         return isVisible(modalTitle);
     }
@@ -78,5 +81,13 @@ public class AddIncumbentModal extends BasePage {
 
     public void clickApplyButton() {
         click(applyButton);
+    }
+
+    public void clickYesButton() {
+        click(yesButtonModal);
+    }
+
+    public void clickContinueButton() {
+        click(continueButtonModal);
     }
 }

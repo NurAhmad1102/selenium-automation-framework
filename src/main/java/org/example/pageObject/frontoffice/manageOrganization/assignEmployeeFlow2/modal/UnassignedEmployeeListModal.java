@@ -29,6 +29,12 @@ public class UnassignedEmployeeListModal extends BasePage {
     @FindBy(xpath = "//div[@role='dialog'][.//h2[normalize-space()='Unassigned Employee List']]//div[contains(@class,'ui-modal-header-theme')]/button")
     private WebElement closeButton;
 
+    private By employee(String employeeNameOrId) {
+        String xpath = String.format("//div[@role='tabpanel' and not(@hidden)]//div[contains(@class, 'rounded')]//h1[contains(., '%s')]",
+                employeeNameOrId);
+        return By.xpath(xpath);
+    }
+
     public boolean isModalDisplayed() {
         return isVisible(modalTitle);
     }
@@ -50,8 +56,11 @@ public class UnassignedEmployeeListModal extends BasePage {
     }
 
     public boolean isEmployeeDisplayed(String employeeNameOrId) {
-        String xpath = String.format("//div[@role='tabpanel' and not(@hidden)]//div[contains(@class, 'rounded')]//h1[contains(., '%s')]", employeeNameOrId);
-        return isVisible(By.xpath(xpath));
+        return isVisible(employee(employeeNameOrId));
+    }
+
+    public boolean isEmployeeNotDisplayed(String employeeNameOrId){
+        return isNotVisible(employee(employeeNameOrId));
     }
 
     public String getFirstEmployeeName() {

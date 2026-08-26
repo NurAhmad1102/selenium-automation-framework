@@ -22,7 +22,7 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"}, description = "Verify that user can split organization with valid data and different job for Organization 2")
     public void splitOrganizationTest() {
         logger.info("Starting test: splitOrganizationTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         OrganizationTestData org1Data = data.get();
         OrganizationTestData org2Data = new OrganizationTestData(org1Data);
@@ -65,7 +65,7 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"}, description = "Verify that user cannot split organization with same Organization name in Existing Organization")
     public void splitOrganizationWithExistingOrganizationNameTest() {
         logger.info("Starting test: splitOrganizationTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         OrganizationTestData org1Data = data.get();
         OrganizationTestData org2Data = new OrganizationTestData(org1Data);
@@ -78,7 +78,7 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"}, description = "Verify that user cannot split organization with same Organization name in Both New Organization")
     public void splitOrganizationWithSecondOrganizationNameTest() {
         logger.info("Starting test: splitOrganizationTest");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         OrganizationTestData org1Data = data.get();
         OrganizationTestData org2Data = new OrganizationTestData(org1Data);
@@ -91,7 +91,7 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
     @Test(groups = {"smoke"}, description = "Verify that user cannot split organization with duplicate position")
     public void splitOrganizationTestWithDuplicatePosition() {
         logger.info("Starting test: splitOrganizationTestWithDuplicatePosition");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         OrganizationTestData org1Data = data.get();
         OrganizationTestData org2Data = new OrganizationTestData(org1Data);
