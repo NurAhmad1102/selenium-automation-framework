@@ -222,6 +222,7 @@ public class AssignEmployeeHelper {
 
         return employeeMovementModal.isTextDisplayed("No data found");
     }
+
     public boolean moveIncumbentIntoFTEFullPosition(String sourceOrgName, String sourcePositionName, String employeeNameOrId, String targetLevel, String targetOrgName, String targetJobName) {
         logger.info("Phase: --- Moving Employee: {} from Org: {} Position: {} ---", employeeNameOrId, sourceOrgName, sourcePositionName);
         assignEmployeePage.clickManageIncumbentOfNode(sourceOrgName);
@@ -266,11 +267,20 @@ public class AssignEmployeeHelper {
         return changesLogModal.isOrganizationChangeLogDisplayed(actionTitle, dynamicKeywords);
     }
 
-    public boolean verifyEmployeeInUnassignedList(String employeeName){
+    public boolean verifyEmployeeInUnassignedListVisible(String employeeName){
         logger.info("Step: Verifying if Employee [{}] is displayed in Unassigned Employee List", employeeName);
         assignEmployeePage.clickViewUnassignedButton();
         unassignedEmployeeListModal.searchUnassignedEmployee(employeeName);
         boolean isDisplayed = unassignedEmployeeListModal.isEmployeeDisplayed(employeeName);
+        unassignedEmployeeListModal.clickCloseButton();
+        return isDisplayed;
+    }
+
+    public boolean verifyEmployeeInUnassignedListNotVisible(String employeeName){
+        logger.info("Step: Verifying if Employee [{}] is NOT displayed in Unassigned Employee List", employeeName);
+        assignEmployeePage.clickViewUnassignedButton();
+        unassignedEmployeeListModal.searchUnassignedEmployee(employeeName);
+        boolean isDisplayed = unassignedEmployeeListModal.isEmployeeNotDisplayed(employeeName);
         unassignedEmployeeListModal.clickCloseButton();
         return isDisplayed;
     }

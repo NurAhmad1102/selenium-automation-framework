@@ -66,7 +66,7 @@ public class AssignEmployeePage extends BasePage {
         click(viewUnassignedButton);
     }
     public boolean isViewUnassignedButtonClickable() {
-        return isElementClickable(viewUnassignedButton);
+        return isClickable(viewUnassignedButton);
     }
 
     public void clickBackButton() {

@@ -60,8 +60,7 @@ public class SetOrganizationPage extends BasePage {
     }
 
     public boolean isMissingParentPositionNodeDisplayed() {
-//        return isVisible(MissingParentPositionNode);
-        return !driver.findElements(MissingParentPositionNode).isEmpty();
+        return isPresent(MissingParentPositionNode);
     }
 
     public void clickNodeMissingParentPosition() {

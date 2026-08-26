@@ -32,7 +32,7 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
                 "Employee still exist in existing position");
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInUnassignedList(employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInUnassignedListVisible(employeeIdentifier),
                 "Employee does not exist in unassigned list"
         );
 
@@ -112,12 +112,11 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
         );
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Remove Incumbent", employeeIdentifier, targetOrg),
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Remove Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Remove PJS tidak sesuai!"
         );
 
         logger.info("Test Completed Successfully: removeSecondaryPjsIncumbentTest");
-//        TODO: cek saat pjs diremove, di position lama: ilangan, masuk ke log
     }
 
     @Test(groups = {"smoke", "assignEmployee"}, description = "Verify that PJS Employee only has Remove option and cannot be Moved (BR-04)")

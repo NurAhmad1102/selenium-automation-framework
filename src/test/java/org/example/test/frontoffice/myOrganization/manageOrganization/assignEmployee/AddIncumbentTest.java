@@ -113,7 +113,7 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInUnassignedList(employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInUnassignedListVisible(employeeIdentifier),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Unassigned List!"
         );
@@ -375,8 +375,8 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
                         " pada org " + targetOrg + "!"
         );
 
-        softAssert.assertFalse(
-                assignEmployeeHelper().verifyEmployeeInUnassignedList(employeeName),
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInUnassignedListNotVisible(employeeName),
                 "Employee " + employeeName +
                         " masih muncul di Unassigned List!"
         );

@@ -180,14 +180,15 @@ public class BasePage {
     }
 
     protected boolean isNotVisible(By locator) {
+        String description = getElementDescription(driver.findElement(locator));
         try {
             boolean invisible = wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
             logger.debug("Check invisibility: Locator [{}] is hidden", locator);
-            ReportAPI.step("Check: Locator [" + locator + "] is hidden");
+            ReportAPI.step("Check: Locator [" + description + "] is hidden");
             return invisible;
         } catch (TimeoutException e) {
             logger.debug("Check invisibility: Locator [{}] is still visible", locator);
-            ReportAPI.step("Check: Locator [" + locator + "] is still visible");
+            ReportAPI.step("Check: Locator [" + description + "] is still visible");
             return false;
         }
     }
@@ -353,5 +354,31 @@ public class BasePage {
         }
     }
 
+    protected boolean isClickable(WebElement element) {
+        String description = getElementDescription(element);
+        try {
+            boolean clickable = element.isDisplayed() && element.isEnabled();
+            logger.debug("Check clickability: Element [{}] isClickable={}", description, clickable);
+            ReportAPI.step("Check: Element [" + description + "] isClickable=" + clickable);
+            return clickable;
+        } catch (Exception e) {
+            logger.debug("Check clickability: Element [{}] is not clickable/present", description);
+            return false;
+        }
+    }
+
+    protected boolean isNotClickable(WebElement element) {
+        return !isClickable(element);
+    }
+
+    protected boolean isPresent(By locator) {
+        try {
+            boolean present = !driver.findElements(locator).isEmpty();
+            logger.debug("Check presence: Locator [{}] isPresent={}", locator, present);
+            return present;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
 }
