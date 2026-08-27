@@ -27,32 +27,32 @@
     {
       "id": "fo-od-flow1-all",
       "name": "[FO] OD Flow 1 - All Tests",
-      "path": "src/test/resources/testng/frontoffice/od-flow1-all.xml"
+      "path": "src/test/resources/testng/frontoffice/manageOrganization/od-flow1-all.xml"
     },
     {
       "id": "fo-od-flow2-assign-employee",
       "name": "[FO] OD Flow 2 - Assign Employee",
-      "path": "src/test/resources/testng/frontoffice/od-flow2-assign-employee.xml"
+      "path": "src/test/resources/testng/frontoffice/manageOrganization/od-flow2-assign-employee.xml"
     },
     {
       "id": "fo-od-flow1-smoke",
       "name": "[FO] OD Flow 1 - Smoke Test",
-      "path": "src/test/resources/testng/frontoffice/od-flow1-smoke.xml"
+      "path": "src/test/resources/testng/frontoffice/manageOrganization/od-flow1-smoke.xml"
     },
     {
       "id": "fo-od-flow1-single-action",
       "name": "[FO] OD Flow 1 - Single Action Tests",
-      "path": "src/test/resources/testng/frontoffice/od-flow1-single-action.xml"
+      "path": "src/test/resources/testng/frontoffice/manageOrganization/od-flow1-single-action.xml"
     },
     {
       "id": "fo-od-flow1-multi-action",
       "name": "[FO] OD Flow 1 - Multi Action Tests",
-      "path": "src/test/resources/testng/frontoffice/od-flow1-multi-action.xml"
+      "path": "src/test/resources/testng/frontoffice/manageOrganization/od-flow1-multi-action.xml"
     },
     {
       "id": "bo-sla-setting",
       "name": "[BO] SLA Setting",
-      "path": "src/test/resources/testng/backoffice/sla-setting.xml"
+      "path": "src/test/resources/testng/backoffice/manageOrganization/slaSetting/sla-setting.xml"
     },
     {
       "id": "bo-approval-matrix",
