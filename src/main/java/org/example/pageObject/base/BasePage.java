@@ -166,29 +166,29 @@ public class BasePage {
 
 // INVISIBLE
     protected boolean isNotVisible(WebElement element){
-        String description = getElementDescription(element);
+
         try {
             boolean invisible = wait.until(ExpectedConditions.invisibilityOf(element));
-            logger.debug("Check invisibility: Element [{}] is hidden", description);
-            ReportAPI.step("Check: Element [" + description + "] is hidden");
+            logger.debug("Check invisibility: Element [{}] is hidden", element);
+            ReportAPI.step("Check: Element [" + element + "] is hidden");
             return invisible;
         } catch (TimeoutException | NoSuchElementException | StaleElementReferenceException e) {
-            logger.debug("Check invisibility: Element [{}] is still visible", description);
-            ReportAPI.step("Check: Element [" + description + "] is still visible");
+            logger.debug("Check invisibility: Element [{}] is still visible", element);
+            ReportAPI.step("Check: Element [" + element + "] is still visible");
             return false;
         }
     }
 
     protected boolean isNotVisible(By locator) {
-        String description = getElementDescription(driver.findElement(locator));
+
         try {
             boolean invisible = wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
             logger.debug("Check invisibility: Locator [{}] is hidden", locator);
-            ReportAPI.step("Check: Locator [" + description + "] is hidden");
+            ReportAPI.step("Check: Locator [" + locator + "] is hidden");
             return invisible;
         } catch (TimeoutException e) {
             logger.debug("Check invisibility: Locator [{}] is still visible", locator);
-            ReportAPI.step("Check: Locator [" + description + "] is still visible");
+            ReportAPI.step("Check: Locator [" + locator + "] is still visible");
             return false;
         }
     }

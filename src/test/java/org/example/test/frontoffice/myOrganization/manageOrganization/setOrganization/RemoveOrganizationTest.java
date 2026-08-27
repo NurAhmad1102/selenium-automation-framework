@@ -6,6 +6,7 @@ import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -18,6 +19,11 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
         super.initManageOrganizationContext(result);
         // Initialize data from Excel 'REMOVE' sheet
         this.data.set(setOrganizationHelper().getTestData(OrgSheetName.REMOVE));
+    }
+
+    @AfterMethod(alwaysRun = true)
+    public void cleanRemoveOrganizationContext() {
+        data.remove();
     }
 
 

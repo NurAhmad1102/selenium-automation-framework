@@ -234,6 +234,12 @@ public class NetworkMonitor {
             }
 
             try {
+                devTools.clearListeners();
+            } catch (Exception e) {
+                logger.debug("Failed to clear DevTools listeners: {}", e.getMessage());
+            }
+
+            try {
                 devTools.close();
             } catch (Exception e) {
                 logger.debug("Failed to close DevTools session: {}", e.getMessage());

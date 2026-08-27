@@ -245,30 +245,37 @@ public abstract class BaseTest {
         } finally {
             // Phase 4: ThreadLocal and allocator cleanup (essential to prevent leaks across runs)
             try {
-                OfficeSessionSwitcher session = officeSession.get();
-                if (session != null) {
-                    session.clear();
-                    officeSession.remove();
-                }
+                networkMonitor.remove();
+                NetworkMonitor.removeCurrentMonitor();
             } catch (Exception e) {
-                logger.error("Error clearing office session", e);
+                logger.error("Error removing network monitor thread locals", e);
             } finally {
                 try {
-                    AccountAllocator.releaseAllAccounts();
+                    OfficeSessionSwitcher session = officeSession.get();
+                    if (session != null) {
+                        session.clear();
+                        officeSession.remove();
+                    }
                 } catch (Exception e) {
-                    logger.error("Error releasing accounts", e);
+                    logger.error("Error clearing office session", e);
                 } finally {
                     try {
-                        currentTestName.remove();
+                        AccountAllocator.releaseAllAccounts();
                     } catch (Exception e) {
-                        logger.error("Error removing currentTestName", e);
+                        logger.error("Error releasing accounts", e);
                     } finally {
                         try {
-                            ThreadLocalStore.clear();
+                            currentTestName.remove();
                         } catch (Exception e) {
-                            logger.error("Error clearing ThreadLocalStore", e);
+                            logger.error("Error removing currentTestName", e);
                         } finally {
-                            ThreadContext.clearAll();
+                            try {
+                                ThreadLocalStore.clear();
+                            } catch (Exception e) {
+                                logger.error("Error clearing ThreadLocalStore", e);
+                            } finally {
+                                ThreadContext.clearAll();
+                            }
                         }
                     }
                 }
