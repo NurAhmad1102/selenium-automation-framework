@@ -15,11 +15,11 @@
         <classes>
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.UpdateOrganizationFilterTest"/>
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.AddOrganizationTest"/>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.RemoveOrganizationTest"/>
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.MergeOrganizationTest"/>
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.RenameOrganizationTest"/>
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.SplitOrganizationTest"/>
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.MoveOrganizationTest"/>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.RemoveOrganizationTest"/>
         </classes>
     </test>
 </suite>

@@ -5,6 +5,7 @@ import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -17,6 +18,11 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
         this.data.set(setOrganizationHelper().getTestData(OrgSheetName.SPLIT));
+    }
+
+    @AfterMethod(alwaysRun = true)
+    public void cleanSplitOrganizationContext() {
+        data.remove();
     }
 
     @Test(groups = {"smoke"}, description = "Verify that user can split organization with valid data and different job for Organization 2")

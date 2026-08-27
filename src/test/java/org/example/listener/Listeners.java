@@ -24,7 +24,10 @@ public class Listeners implements ITestListener, IExecutionListener {
     private final SeleniumUtils seleniumUtils = new SeleniumUtils();
 
     @Override
-    public void onExecutionStart() {}
+    public void onExecutionStart() {
+        org.example.utils.BrowserProcessCleaner.registerShutdownHook();
+        org.example.utils.BrowserProcessCleaner.cleanupOldBrowserProfiles();
+    }
 
     @Override
     public void onExecutionFinish() {
