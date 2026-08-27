@@ -23,6 +23,11 @@ pipeline {
       defaultValue: true,
       description: 'Jalankan pengujian dalam mode Headless (tanpa GUI)'
     )
+    choice(
+      name: 'RERUN_COUNT',
+      choices: ['1', '0', '2'],
+      description: 'Jumlah percobaan ulang otomatis untuk test yang gagal'
+    )
   }
 
   tools {
@@ -118,7 +123,8 @@ pipeline {
     stage('Sync & Resolve Suite Path') {
       steps {
         script {
-          def selectedSuiteId = (params.TESTNG_XML != null && !params.TESTNG_XML.toString().trim().isEmpty()) ? params.TESTNG_XML : 'sync-registry'
+          def rawSelected = (params.TESTNG_XML != null && !params.TESTNG_XML.toString().trim().isEmpty()) ? params.TESTNG_XML.toString().trim() : 'sync-registry'
+          def selectedSuiteId = rawSelected.contains('|') ? rawSelected.split('\\|')[0].trim() : rawSelected
           def targetXml = selectedSuiteId
           def registryPath = 'src/test/resources/testng/suite-registry.json'
 
@@ -128,23 +134,10 @@ pipeline {
               def slurper = new groovy.json.JsonSlurper()
               def registryData = slurper.parseText(jsonText)
 
-              // Dynamic Self-Sync: Auto update Jenkins dropdown parameter definitions for future builds
-              def allSuiteIds = registryData.suites.collect { it.id }
-              if (allSuiteIds && !allSuiteIds.isEmpty()) {
-                properties([
-                  parameters([
-                    choice(name: 'TESTNG_XML', choices: allSuiteIds, description: 'Pilih suite TestNG XML (Di-sync otomatis dari suite-registry.json)'),
-                    choice(name: 'BROWSER', choices: ['chrome', 'firefox', 'edge'], description: 'Pilih browser untuk pengujian'),
-                    booleanParam(name: 'HEADLESS', defaultValue: true, description: 'Jalankan pengujian dalam mode Headless (tanpa GUI)')
-                  ])
-                ])
-              }
-
               // Handle sync-registry shortcut execution or initial null parameter run
               if (selectedSuiteId == 'sync-registry') {
                 echo "=========================================================================="
-                echo "[SYNC SUCCESS] Jenkins Dropdown UI parameter list has been updated!"
-                echo "Future builds will present all latest suite options from suite-registry.json."
+                echo "[SYNC SUCCESS] Registry validated successfully."
                 echo "Skipping heavy test execution as requested."
                 echo "=========================================================================="
                 env.SKIP_TEST = 'true'
@@ -176,6 +169,10 @@ pipeline {
       }
       steps {
         script {
+          echo "=========================================================================="
+          echo "=== [RUN 1] Starting Initial Test Execution: ${env.RESOLVED_SUITE_XML} ==="
+          echo "=========================================================================="
+
           int testExitCode = bat(
             returnStatus: true,
             script: """
@@ -183,7 +180,48 @@ pipeline {
             """
           )
 
-          if (testExitCode != 0) {
+          def failedXmlPath = 'target/surefire-reports/testng-failed.xml'
+          int maxRerun = (params.RERUN_COUNT ?: '1') as int
+          int rerunAttempt = 0
+          boolean testPassed = (testExitCode == 0)
+
+          while (!testPassed && rerunAttempt < maxRerun && fileExists(failedXmlPath)) {
+            rerunAttempt++
+            echo "=========================================================================="
+            echo "=== [AUTO-RERUN ${rerunAttempt}/${maxRerun}] Executing Failed Tests Suite: ${failedXmlPath} ==="
+            echo "=========================================================================="
+
+            // Backup current Extent Report so initial suite results are preserved
+            if (fileExists('reports/index.html')) {
+              powershell """
+                if (Test-Path 'reports') {
+                  Copy-Item -Path 'reports' -Destination 'reports-run-${rerunAttempt}' -Recurse -Force
+                }
+              """
+            }
+
+            // Execute failed tests only (without clean to keep historical surefire reports)
+            testExitCode = bat(
+              returnStatus: true,
+              script: """
+                call mvn -B -ntp test -DsuiteXmlFile=${failedXmlPath} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
+              """
+            )
+
+            testPassed = (testExitCode == 0)
+          }
+
+          if (testPassed) {
+            if (rerunAttempt > 0) {
+              echo "=========================================================================="
+              echo "[AUTO-RERUN SUCCESS] All failed tests PASSED after ${rerunAttempt} rerun attempt(s)."
+              echo "=========================================================================="
+            }
+            currentBuild.result = 'SUCCESS'
+          } else {
+            echo "=========================================================================="
+            echo "[TEST FAILED] Tests still failed after ${rerunAttempt} rerun attempt(s)."
+            echo "=========================================================================="
             currentBuild.result = 'FAILURE'
           }
         }
@@ -204,7 +242,7 @@ pipeline {
         allowMissing: true
       ])
 
-      archiveArtifacts artifacts: 'reports/**,logs/**,target/surefire-reports/**', allowEmptyArchive: true
+      archiveArtifacts artifacts: 'reports/**,reports-run-*/**,logs/**,target/surefire-reports/**', allowEmptyArchive: true
     }
   }
 }
