@@ -6,10 +6,19 @@ pipeline {
   }
 
   parameters {
+    gitParameter(
+      name: 'BRANCH',
+      type: 'PT_BRANCH',
+      defaultValue: 'development',
+      branchFilter: 'origin/(.*)',
+      sortMode: 'ASCENDING_SMART',
+      selectedValue: 'TOP',
+      description: 'Pilih branch Git yang ingin dieksekusi'
+    )
     choice(
       name: 'TESTNG_XML',
       choices: [
-        'sync-registry'
+        'sync-registry | [SYNC] Refresh Jenkins Dropdown UI Only (No Test Execution)'
       ],
       description: 'Pilih file TestNG XML yang ingin dijalankan'
     )
@@ -134,10 +143,49 @@ pipeline {
               def slurper = new groovy.json.JsonSlurper()
               def registryData = slurper.parseText(jsonText)
 
+              // Dynamic Self-Sync: Auto update Jenkins dropdown parameters while preserving Git Parameter BRANCH
+              def allSuiteChoices = registryData.suites.collect { "${it.id} | ${it.name}" }
+              if (allSuiteChoices && !allSuiteChoices.isEmpty()) {
+                properties([
+                  parameters([
+                    gitParameter(
+                      name: 'BRANCH',
+                      type: 'PT_BRANCH',
+                      defaultValue: 'development',
+                      branchFilter: 'origin/(.*)',
+                      sortMode: 'ASCENDING_SMART',
+                      selectedValue: 'TOP',
+                      description: 'Pilih branch Git yang ingin dieksekusi'
+                    ),
+                    choice(
+                      name: 'TESTNG_XML',
+                      choices: allSuiteChoices,
+                      description: 'Pilih suite TestNG XML (Di-sync otomatis dari suite-registry.json)'
+                    ),
+                    choice(
+                      name: 'BROWSER',
+                      choices: ['chrome', 'firefox', 'edge'],
+                      description: 'Pilih browser untuk pengujian'
+                    ),
+                    booleanParam(
+                      name: 'HEADLESS',
+                      defaultValue: true,
+                      description: 'Jalankan pengujian dalam mode Headless (tanpa GUI)'
+                    ),
+                    choice(
+                      name: 'RERUN_COUNT',
+                      choices: ['1', '0', '2'],
+                      description: 'Jumlah percobaan ulang otomatis untuk test yang gagal'
+                    )
+                  ])
+                ])
+              }
+
               // Handle sync-registry shortcut execution or initial null parameter run
               if (selectedSuiteId == 'sync-registry') {
                 echo "=========================================================================="
-                echo "[SYNC SUCCESS] Registry validated successfully."
+                echo "[SYNC SUCCESS] Jenkins Dropdown UI parameter list has been updated!"
+                echo "Future builds will present all latest suite options from suite-registry.json."
                 echo "Skipping heavy test execution as requested."
                 echo "=========================================================================="
                 env.SKIP_TEST = 'true'
