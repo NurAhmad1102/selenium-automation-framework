@@ -137,6 +137,11 @@ pipeline {
           def targetXml = selectedSuiteId
           def registryPath = 'src/test/resources/testng/suite-registry.json'
 
+          // Defensively sanitize any remaining pipe or description suffix
+          if (targetXml.contains('|')) {
+            targetXml = targetXml.split('\\|')[0].trim()
+          }
+
           if (fileExists(registryPath)) {
             try {
               def jsonText = readFile(file: registryPath)
@@ -181,17 +186,6 @@ pipeline {
                 ])
               }
 
-              // Handle sync-registry shortcut execution or initial null parameter run
-              if (selectedSuiteId == 'sync-registry') {
-                echo "=========================================================================="
-                echo "[SYNC SUCCESS] Jenkins Dropdown UI parameter list has been updated!"
-                echo "Future builds will present all latest suite options from suite-registry.json."
-                echo "Skipping heavy test execution as requested."
-                echo "=========================================================================="
-                env.SKIP_TEST = 'true'
-                return
-              }
-
               def matchedSuite = registryData.suites.find { suite ->
                 suite.id == selectedSuiteId || suite.path == selectedSuiteId
               }
@@ -206,6 +200,18 @@ pipeline {
               echo "Warning: Could not parse ${registryPath}, using default path ${targetXml}. Error: ${e.message}"
             }
           }
+
+          // Handle sync-registry shortcut execution or initial null parameter run
+          if (selectedSuiteId == 'sync-registry' || targetXml == 'sync-registry') {
+            echo "=========================================================================="
+            echo "[SYNC SUCCESS] Jenkins Dropdown UI parameter list has been updated!"
+            echo "Future builds will present all latest suite options from suite-registry.json."
+            echo "Skipping heavy test execution as requested."
+            echo "=========================================================================="
+            env.SKIP_TEST = 'true'
+            return
+          }
+
           env.RESOLVED_SUITE_XML = targetXml
         }
       }
@@ -217,14 +223,16 @@ pipeline {
       }
       steps {
         script {
+          def resolvedXml = (env.RESOLVED_SUITE_XML != null && !env.RESOLVED_SUITE_XML.trim().isEmpty()) ? env.RESOLVED_SUITE_XML.trim() : 'src/test/resources/testng/master/testng-all.xml'
+
           echo "=========================================================================="
-          echo "=== [RUN 1] Starting Initial Test Execution: ${env.RESOLVED_SUITE_XML} ==="
+          echo "=== [RUN 1] Starting Initial Test Execution: ${resolvedXml} ==="
           echo "=========================================================================="
 
           int testExitCode = bat(
             returnStatus: true,
             script: """
-              call mvn -B -ntp clean test -DsuiteXmlFile=${env.RESOLVED_SUITE_XML} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
+              call mvn -B -ntp clean test -DsuiteXmlFile="${resolvedXml}" -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
             """
           )
 
