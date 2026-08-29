@@ -57,7 +57,12 @@ public abstract class BaseTest {
         DriverManager.setDriver(localDriver);
 
         if (!DevModeUtils.isDevMode()) {
-            DriverManager.getDriver().manage().window().maximize();
+            boolean isHeadless = Boolean.parseBoolean(System.getProperty("headless", "false").trim());
+            if (isHeadless) {
+                DriverManager.getDriver().manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
+            } else {
+                DriverManager.getDriver().manage().window().maximize();
+            }
             DriverManager.getDriver().manage().timeouts().pageLoadTimeout(Duration.ofSeconds(300));
         }
 
@@ -291,26 +296,34 @@ public abstract class BaseTest {
         if (result.getStatus() == ITestResult.SKIP) {
             Throwable throwable = result.getThrowable();
             TestOutcome outcome = ThrowableOutcomeClassifier.classify(throwable);
-            String reason = throwable != null ? throwable.getMessage() : "No reason provided";
+            String reason = throwable != null && throwable.getMessage() != null && !throwable.getMessage().isBlank()
+                    ? throwable.getMessage()
+                    : "No reason provided";
+            String setupPrefix = "PRECONDITION FAILED [@BeforeMethod]: " + reason;
             if (outcome.getStatus() == OutcomeStatus.BROKEN) {
-                ReportAPI.broken("Test Setup Broken: " + reason, throwable);
+                ReportAPI.broken(setupPrefix, throwable);
                 attachFailureScreenshot(result);
             } else if (outcome.getStatus() == OutcomeStatus.BLOCKED) {
-                ReportAPI.blocked("Test Blocked: " + reason, throwable);
+                ReportAPI.blocked(setupPrefix, throwable);
             } else if (outcome.getStatus() == OutcomeStatus.SKIP) {
-                ReportAPI.skip("Test Skipped: " + reason, throwable);
+                ReportAPI.skip(setupPrefix, throwable);
             } else {
-                ReportAPI.fail("Test Setup Failed: " + reason, throwable);
+                ReportAPI.fail(setupPrefix, throwable);
                 attachFailureScreenshot(result);
             }
         } else if (result.getStatus() == ITestResult.FAILURE || result.getThrowable() != null) {
-            TestOutcome outcome = ThrowableOutcomeClassifier.classify(result.getThrowable());
+            Throwable throwable = result.getThrowable();
+            TestOutcome outcome = ThrowableOutcomeClassifier.classify(throwable);
+            String reason = throwable != null && throwable.getMessage() != null && !throwable.getMessage().isBlank()
+                    ? throwable.getMessage()
+                    : "No exception message provided";
+            String failMsg = "Test Execution Failed: " + reason;
             if (outcome.getStatus() == OutcomeStatus.BROKEN) {
-                ReportAPI.broken("Test Execution Broken", result.getThrowable());
+                ReportAPI.broken(failMsg, throwable);
             } else if (outcome.getStatus() == OutcomeStatus.BLOCKED) {
-                ReportAPI.blocked("Test Blocked", result.getThrowable());
+                ReportAPI.blocked(failMsg, throwable);
             } else {
-                ReportAPI.fail("Test Execution Failed", result.getThrowable());
+                ReportAPI.fail(failMsg, throwable);
             }
             attachFailureScreenshot(result);
         } else {

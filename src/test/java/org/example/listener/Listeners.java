@@ -87,13 +87,18 @@ public class Listeners implements ITestListener, IExecutionListener {
         if (isManagedByBaseTest(result)) {
             return;
         }
-        TestOutcome outcome = ThrowableOutcomeClassifier.classify(result.getThrowable());
+        Throwable throwable = result.getThrowable();
+        String reason = throwable != null && throwable.getMessage() != null && !throwable.getMessage().isBlank()
+                ? throwable.getMessage()
+                : "No exception message provided";
+        String failMsg = "Test Execution Failed: " + reason;
+        TestOutcome outcome = ThrowableOutcomeClassifier.classify(throwable);
         if (outcome.getStatus() == OutcomeStatus.BROKEN) {
-            ReportAPI.broken("Test Execution Broken", result.getThrowable());
+            ReportAPI.broken(failMsg, throwable);
         } else if (outcome.getStatus() == OutcomeStatus.BLOCKED) {
-            ReportAPI.blocked("Test Blocked", result.getThrowable());
+            ReportAPI.blocked(failMsg, throwable);
         } else {
-            ReportAPI.fail("Test Execution Failed", result.getThrowable());
+            ReportAPI.fail(failMsg, throwable);
         }
 
         WebDriver driver = DriverManager.getDriver();
