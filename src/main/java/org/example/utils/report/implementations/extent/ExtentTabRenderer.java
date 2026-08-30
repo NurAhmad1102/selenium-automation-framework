@@ -93,9 +93,7 @@ public class ExtentTabRenderer {
                  .append("<td><span class='").append(outcomeBadge).append("'>").append(log.getOutcomeStatus()).append("</span>")
                  .append("<div class='outcome-category'>").append(escapeHtml(String.valueOf(log.getOutcomeCategory()))).append("</div></td>")
                  .append("<td>").append(TIME_FORMATTER.format(log.getTimestamp())).append("</td>")
-                 .append("<td>").append(escapeHtml(log.getMessage()))
-                 .append(log.getError() != null ? "<pre class='code-block' style='margin-top:5px; color:#c0392b; background:#f9ebea; padding:8px; border-radius:4px; font-size:12px; white-space:pre-wrap;'>" + escapeHtml(stackTraceToString(log.getError())) + "</pre>" : "")
-                 .append("</td>")
+                 .append("<td>").append(formatHighlightedStepDescription(log.getMessage())).append("</td>")
                  .append("</tr>");
         }
         table.append("</tbody></table>");
@@ -283,7 +281,8 @@ public class ExtentTabRenderer {
             return "No summary available";
         }
 
-        String normalized = reason.replace("\r\n", "\n").replace('\r', '\n').trim();
+        String cleaned = cleanFailureMessageForDetails(reason);
+        String normalized = cleaned.replace("\r\n", "\n").replace('\r', '\n').trim();
         int lineBreak = normalized.indexOf('\n');
         String summary = lineBreak >= 0 ? normalized.substring(0, lineBreak) : normalized;
 
@@ -292,6 +291,121 @@ public class ExtentTabRenderer {
             return summary.substring(0, maxLength - 3) + "...";
         }
         return summary;
+    }
+
+    private static String formatHighlightedStepDescription(String rawMessage) {
+        if (rawMessage == null || rawMessage.isBlank()) {
+            return "";
+        }
+
+        String cleaned = cleanFailureMessageForDetails(rawMessage);
+
+        if ((cleaned.contains("Failed to ") || cleaned.contains("Test Execution Failed")) && cleaned.contains("Reason:")) {
+            return formatFailureCard(cleaned);
+        }
+
+        return highlightStepText(cleaned);
+    }
+
+    private static String formatFailureCard(String cleaned) {
+        String title = "Test Execution Failed";
+        String locator = null;
+        String reason = null;
+
+        String temp = cleaned;
+        if (temp.startsWith("Test Execution Failed: ")) {
+            temp = temp.substring(23).trim();
+        }
+
+        int reasonIdx = temp.indexOf(". Reason: ");
+        if (reasonIdx < 0) {
+            reasonIdx = temp.indexOf(" Reason: ");
+        }
+
+        int locatorDetailIdx = temp.indexOf(". Locator Detail: ");
+        if (locatorDetailIdx < 0) {
+            locatorDetailIdx = temp.indexOf(" Locator Detail: ");
+        }
+
+        if (reasonIdx >= 0) {
+            reason = temp.substring(reasonIdx + 9).trim();
+            if (reason.startsWith("Reason: ")) {
+                reason = reason.substring(8).trim();
+            }
+            if (locatorDetailIdx >= 0 && locatorDetailIdx < reasonIdx) {
+                title = temp.substring(0, locatorDetailIdx).trim();
+                locator = temp.substring(locatorDetailIdx + 18, reasonIdx).trim();
+            } else {
+                title = temp.substring(0, reasonIdx).trim();
+            }
+        } else {
+            title = temp;
+        }
+
+        if (locator != null && locator.startsWith("Locator: ")) {
+            locator = locator.substring(9).trim();
+        }
+
+        StringBuilder card = new StringBuilder("<div class='failure-detail-card'>");
+        card.append("<div class='failure-title'>").append(highlightStepText(title)).append("</div>");
+        
+        if (reason != null && !reason.isBlank()) {
+            card.append("<div class='failure-reason'><b>Reason:</b> ").append(escapeHtml(reason)).append("</div>");
+        }
+        
+        if (locator != null && !locator.isBlank()) {
+            card.append("<div class='failure-locator'><b>Locator:</b> <code class='locator-badge'>").append(escapeHtml(locator)).append("</code></div>");
+        }
+        card.append("</div>");
+        return card.toString();
+    }
+
+    private static String highlightStepText(String text) {
+        if (text == null || text.isBlank()) {
+            return "";
+        }
+
+        String htmlEscaped = escapeHtml(text);
+
+        // 1. Highlight 'value' -> <span class='highlight-value'>value</span>
+        String highlighted = htmlEscaped.replaceAll("&#39;(.*?)&#39;", "<span class='highlight-value'>$1</span>");
+
+        // 2. Highlight locator code blocks [By.xpath: ...] or [By. ...] -> <code class='locator-badge'>...</code>
+        highlighted = highlighted.replaceAll("\\[(By\\.[^\\s]+:[^\\]]+)\\]", "<code class='locator-badge'>$1</code>");
+        highlighted = highlighted.replaceAll("\\[(xpath:[^\\]]+)\\]", "<code class='locator-badge'>$1</code>");
+
+        // 3. Highlight regular element names [element] -> <span class='highlight-element'>element</span>
+        highlighted = highlighted.replaceAll("\\[(.*?)\\]", "<span class='highlight-element'>$1</span>");
+
+        return highlighted;
+    }
+
+    private static String cleanFailureMessageForDetails(String message) {
+        if (message == null || message.isBlank()) {
+            return "";
+        }
+        String cleaned = message;
+        int buildInfoIdx = cleaned.indexOf("Build info:");
+        if (buildInfoIdx >= 0) {
+            cleaned = cleaned.substring(0, buildInfoIdx);
+        }
+        int sysInfoIdx = cleaned.indexOf("System info:");
+        if (sysInfoIdx >= 0) {
+            cleaned = cleaned.substring(0, sysInfoIdx);
+        }
+        int driverInfoIdx = cleaned.indexOf("Driver info:");
+        if (driverInfoIdx >= 0) {
+            cleaned = cleaned.substring(0, driverInfoIdx);
+        }
+        int capabilitiesIdx = cleaned.indexOf("Capabilities {");
+        if (capabilitiesIdx >= 0) {
+            cleaned = cleaned.substring(0, capabilitiesIdx);
+        }
+        int sessionIdx = cleaned.indexOf("Session ID:");
+        if (sessionIdx >= 0) {
+            cleaned = cleaned.substring(0, sessionIdx);
+        }
+        return cleaned.replaceAll("(\\r?\\n)+", " ").replaceAll("\\s+", " ").trim();
     }
 
     private static String extractFailedElement(Throwable error) {

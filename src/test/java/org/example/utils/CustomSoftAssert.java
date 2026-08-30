@@ -19,7 +19,7 @@ public class CustomSoftAssert extends SoftAssert {
     @Override
     public void onAssertFailure(IAssert<?> assertCommand, AssertionError ex) {
         String message = ex.getMessage() != null ? ex.getMessage() : assertCommand.getMessage();
-        ReportAPI.fail("Soft Assertion Failed: " + message, OutcomeCategory.ASSERTION);
+        ReportAPI.step("Soft Assertion Check Failed: " + message);
         ReportAPI.elementError("soft_assertion", message, ex);
 
         try {

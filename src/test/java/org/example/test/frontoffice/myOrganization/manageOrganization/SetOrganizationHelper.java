@@ -15,6 +15,7 @@ import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.actionModal.*;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.ManageOrganizationExcelReader;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.model.MassiveOrgModel;
 import org.example.utils.CustomAssert;
 import org.example.utils.CustomSoftAssert;
 
@@ -204,6 +205,50 @@ public class SetOrganizationHelper {
         logger.info("Phase: --- Adding New Organization: {}---", data.getNewOrganizationName());
         clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.ADD_NEW);
         setOrganizationName(data, OrgMenuAction.ADD_NEW);
+    }
+
+    public void addMassiveOrganizationNode(MassiveOrgModel model) {
+        logger.info("Phase: --- Adding Massive Org Node [{}] (Level {}) under Parent [{}] ---",
+                model.getOrgName(), model.getLevel(), model.getParentOrgName());
+
+        clickKebabButtonOfNode(model.getParentOrgName(), OrgMenuAction.ADD_NEW);
+
+        logger.info("Step: Inputting Organization Name [{}] and RC Code [{}]", model.getOrgName(), model.getRcCode());
+        addFormModal.setOrgNewName(model.getOrgName());
+        addFormModal.clickRCCodeDropdown(model.getRcCode());
+        addFormModal.clickNext();
+
+        CustomAssert.assertTrue(addJobPositionModal.isModalHeaderDisplayed(),
+                "Add Job Position modal header is not displayed");
+
+        logger.info("Phase: --- Filling Job & Position for Massive Node [{}] ---", model.getOrgName());
+        var jobSection = addJobPositionModal.getJobSection(0);
+        logger.info("Step: Selecting Job Name [{}]", model.getJobName());
+        jobSection.selectJobName(model.getJobName());
+
+        var positionSection = jobSection.getPosition(0);
+        logger.info("Step: Selecting Position Naming Type [{}]", model.getPositionNamingType());
+        positionSection.selectPositionNamingType(model.getPositionNamingType());
+
+        logger.info("Step: Selecting Location [{}]", model.getLocation());
+        positionSection.selectLocation(model.getLocation());
+
+        logger.info("Step: Selecting Parent Position Name [{}]", model.getParentPositionName());
+        positionSection.selectParentPositionName(model.getParentPositionName());
+
+        logger.info("Step: Setting FTE [{}] and Dotted Matrix [{}]", model.getFte(), model.isDottedMatrix());
+        positionSection.setFTE(model.getFte());
+        positionSection.selectDottedMatrix(model.isDottedMatrix());
+
+        // Final step: Clear and input custom Position Name after all other dropdowns are filled
+        // so that selecting Location does not re-trigger auto-generation of Position Name
+        logger.info("Step: Typing Custom Position Name [{}] (Final Step before Add)", model.getPositionName());
+        positionSection.setPositionName(model.getPositionName());
+
+        logger.info("Action: Clicking Add button to finalize Job & Position");
+        addJobPositionModal.clickAddButton();
+
+        confirmAction(ConfirmAction.ADD);
     }
 
 //    REMOVE ORGANIZATION

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="FrontOffice - Massive Changes Organization Suite" parallel="false" thread-count="1">
+    <listeners>
+        <listener class-name="org.example.listener.Listeners"/>
+    </listeners>
+
+    <test name="Architecture Rules">
+        <classes>
+            <class name="org.example.ArchitectureTest"/>
+        </classes>
+    </test>
+
+    <test verbose="2" name="My Organization - Massive Changes Add Organizations (D1 to D6)">
+        <classes>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.nonExcel.MassiveAddOrganizationTest"/>
+        </classes>
+    </test>
+</suite>

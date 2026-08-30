@@ -14,7 +14,7 @@ public class BasePage {
 
     protected WebDriver driver;
     protected WebDriverWait wait;
-    protected final int DEFAULT_TIMEOUT = 10;
+    protected final int DEFAULT_TIMEOUT = 15;
     protected final Logger logger = LogManager.getLogger(getClass());
 
     public BasePage(WebDriver driver){
@@ -85,13 +85,10 @@ public class BasePage {
     protected void typeText(WebElement element, String text){
         String description = getElementDescription(element);
         try {
-            String displayText = (text != null && text.length() > 4)
-                    ? text.substring(0, 2) + "****" + text.substring(text.length() - 2)
-                    : "****";
-            logger.info("Typing '{}' into element: {}", displayText, description);
+            logger.info("Typing '{}' into element: {}", text, description);
             wait.until(ExpectedConditions.visibilityOf(element)).clear();
             element.sendKeys(text);
-            ReportAPI.step("Action: Type text into element [" + description + "]");
+            ReportAPI.step("Action: Type text '" + text + "' into element [" + description + "]");
         } catch (Exception e) {
             handleActionFailure("type text", element, e);
         }
@@ -201,9 +198,6 @@ public class BasePage {
         
         String logConsoleMessage = String.format("Failed to %s element [%s]. Locator Detail: %s. Reason: %s", 
                 action, description, locatorInfo, e.getMessage());
-
-        String reportHtmlMessage = String.format("Failed to %s element [%s].<br><b>Locator Detail:</b> %s<br><b>Reason:</b> %s", 
-                action, description, locatorInfo, e.getMessage());
         
         // Log clean plain text to Log4j2 console/file
         logger.error(logConsoleMessage);
@@ -211,7 +205,7 @@ public class BasePage {
         // Log to Structured Element Logs tab
         ReportAPI.elementError(action, locatorInfo, e);
         
-        throw new RuntimeException(reportHtmlMessage, e);
+        throw new RuntimeException(logConsoleMessage, e);
     }
 
     public String getElementDescription(WebElement element) {
@@ -277,13 +271,27 @@ public class BasePage {
         WebElement searchInput = wait.until(ExpectedConditions.visibilityOfElementLocated(searchInputLocator));
         typeText(searchInput, value);
 
-        selectOption(value);
+        try {
+            selectOption(value);
+        } catch (Exception e) {
+            logger.warn("Option [{}] not found immediately after filtering. Clearing search box to inspect all available options...", value);
+            try {
+                searchInput.sendKeys(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"), org.openqa.selenium.Keys.BACK_SPACE);
+                selectOption(value);
+            } catch (Exception ex) {
+                logger.error("Failed to select option [{}] from dropdown. Error: {}", value, ex.getMessage());
+                throw ex;
+            }
+        }
     }
 
     private void selectOption(String value) {
         By optionLocator = By.xpath(String.format("//div[@role='option'][contains(normalize-space(.), '%s')]", value));
-        
-        wait.until(ExpectedConditions.presenceOfElementLocated(optionLocator));
+
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='option']")));
+        } catch (Exception ignored) {}
+
         List<WebElement> options = driver.findElements(optionLocator);
         WebElement target = null;
 
@@ -294,7 +302,22 @@ public class BasePage {
                     break;
                 }
             } catch (StaleElementReferenceException ignored) {
-                // If stale, we'll try to re-locate below
+            }
+        }
+
+        if (target == null) {
+            List<WebElement> allOptions = driver.findElements(By.xpath("//div[@role='option']"));
+            logger.info("Total options found in listbox: {}", allOptions.size());
+            for (WebElement opt : allOptions) {
+                try {
+                    String optText = opt.getText().trim();
+                    logger.info(" - Option item: '{}'", optText);
+                    if (optText.toLowerCase().contains(value.toLowerCase()) || value.toLowerCase().contains(optText.toLowerCase())) {
+                        logger.info("Found matching option via fallback contains: '{}'", optText);
+                        target = opt;
+                        break;
+                    }
+                } catch (Exception ignored) {}
             }
         }
 

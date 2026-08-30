@@ -26,19 +26,20 @@
 <!--                    <include name="moveIncumbentIntoPositionFTEFullTest"/>-->
 <!--                </methods>-->
 <!--            </class>-->
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.AddIncumbentTest">
-                <methods>
-<!--                    <include name="addIncumbentFromUnassignedToRemovingTest"/>-->
-<!--                    <include name="addIncumbentFromExistingEmployeeTest"/>-->
-<!--                    <include name="addIncumbentAsPjsTest"/>-->
-<!--                    <include name="addIncumbentWhenFteFullNegativeTest"/>-->
-                    <include name="addIncumbentFromUnassignedToMergedOrgTest"/>
-                    <include name="addIncumbentFromUnassignedToMovedOrgTest"/>
-                    <include name="addIncumbentFromUnassignedToRenamedOrgTest"/>
-<!--                    <include name="addIncumbentFromUnassignedToSplitOrgTest"/>-->
-<!--                    <include name="changeAssignmentTypeInTheSameOrgTest"/>-->
-                </methods>
-            </class>
+<!--            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.AddIncumbentTest">-->
+<!--                <methods>-->
+<!--&lt;!&ndash;                    <include name="addIncumbentFromUnassignedToRemovingTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="addIncumbentFromExistingEmployeeTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="addIncumbentAsPjsTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="addIncumbentWhenFteFullNegativeTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="addIncumbentFromUnassignedToMergedOrgTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="addIncumbentFromUnassignedToMovedOrgTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="addIncumbentFromUnassignedToRenamedOrgTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="addIncumbentFromUnassignedToSplitOrgTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="changeAssignmentTypeInTheSameOrgTest"/>&ndash;&gt;-->
+<!--                </methods>-->
+<!--            </class>-->
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.nonExcel.MassiveOrgDataFactoryTest"></class>
         </classes>
     </test>
 </suite>

@@ -23,8 +23,17 @@ public class BaseFormModal extends BasePage {
     private final By selectRCCodeDropdown = By.xpath(
             "//div[label[contains(normalize-space(.), 'RC Code') and contains(normalize-space(.), 'Cost Center')]]//button[@role='combobox']");
 
+    protected void waitForModalLoadingToDisappear() {
+        By loadingOverlay = By.xpath("//div[@role='dialog']//div[contains(@class,'cursor-not-allowed') or contains(@class,'animate-spin')]");
+        try {
+            new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(3))
+                    .until(ExpectedConditions.invisibilityOfElementLocated(loadingOverlay));
+        } catch (Exception ignored) {}
+    }
+
     public String setOrgNewName(String newName) {
         logger.info("Step: Setting New Organization Name to: {}", newName);
+        waitForModalLoadingToDisappear();
         WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(newOrgNameField));
         typeText(element, newName);
         return newName;
@@ -46,6 +55,7 @@ public class BaseFormModal extends BasePage {
 
     public void clickRCCodeDropdown(String value){
         logger.info("Step: Click RC Code Dropdown and select: {}", value);
+        waitForModalLoadingToDisappear();
         WebElement element = wait.until(ExpectedConditions.elementToBeClickable(selectRCCodeDropdown));
         selectDropdownModal(element, value);
     }

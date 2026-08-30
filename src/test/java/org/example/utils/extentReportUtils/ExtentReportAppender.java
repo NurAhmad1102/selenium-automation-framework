@@ -49,6 +49,14 @@ public class ExtentReportAppender extends AbstractAppender {
         Level level = event.getLevel();
         String message = event.getMessage().getFormattedMessage();
 
+        // Ignore internal framework fallback warnings and duplicate action failures from polluting Details tab
+        if (message != null && (message.contains("Standard click failed") || 
+                                message.contains("attempting Javascript click") ||
+                                message.contains("DevTools package") ||
+                                (message.startsWith("Failed to ") && message.contains("Locator Detail:")))) {
+            return;
+        }
+
         if (level.isMoreSpecificThan(Level.ERROR)) {
             ReportAPI.fail(message, event.getThrown());
         } else if (level.isMoreSpecificThan(Level.WARN)) {

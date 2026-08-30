@@ -33,6 +33,13 @@ public class ExtentUIInjector {
             .outcome-summary { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 8px 10px; background: #fafafa; border-left: 4px solid #ddd; }
             .outcome-summary-text { color: #444; font-size: 13px; word-break: break-word; }
             .network-detail-label { font-weight: bold; color: #555; width: 100px; display: inline-block; }
+            .highlight-element { background-color: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 11px; display: inline-block; margin: 1px 2px; }
+            .highlight-value { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 11px; display: inline-block; margin: 1px 2px; }
+            .locator-badge { background-color: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 11px; word-break: break-all; display: inline-block; margin-top: 4px; }
+            .failure-detail-card { background-color: #fff5f5; border-left: 3px solid #e74c3c; padding: 8px 12px; border-radius: 4px; margin-top: 4px; }
+            .failure-title { color: #c0392b; font-weight: 600; margin-bottom: 4px; }
+            .failure-reason { color: #4a5568; font-size: 12px; margin-bottom: 4px; }
+            .failure-locator { color: #718096; font-size: 11px; }
             
             /* Pure CSS controls to hide original Extent table elements and show tabbed wrapper full-width */
             table:has(> tbody > tr > td .test-report-wrapper) > thead {
