@@ -94,4 +94,31 @@ public class ManageIncumbentModal extends BasePage {
         }
         return false;
     }
+
+    public boolean isTagNewDisplayed(String name) {
+        return isVisible (tagByName(name, "NEW"));
+    }
+
+    public boolean isTagPjsDisplayed(String name) {
+        return isVisible(tagByName(name, "PJS"));
+    }
+
+    public boolean isTagMoveDisplayed(String name) {
+        return isVisible(tagByName(name, "MOVE"));
+    }
+
+    private By tagByName(String name, String element) {
+        return By.xpath(
+                "//div[@role='dialog']" +
+                        "//button[.//div[contains(normalize-space(),\"" + name + "\")]]" +
+                        "/ancestor::div[@data-orientation='vertical'][1]" +
+                        switch (element.toLowerCase()) {
+                            case "tag" -> "//span[normalize-space()='New']";
+                            case "pjs" -> "//span[normalize-space()='PJS']";
+                            case "add" -> "//button[normalize-space()='Add Incumbent']";
+                            default -> throw new IllegalArgumentException("Unknown element: " + element);
+                        }
+        );
+    }
+
 }

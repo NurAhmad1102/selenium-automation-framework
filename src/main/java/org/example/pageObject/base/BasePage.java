@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.utils.report.core.ReportAPI;
 import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -378,6 +379,33 @@ public class BasePage {
             return present;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    protected void scrollMoveToElement(WebElement element) {
+        Actions actions = new Actions(driver);
+        try {
+            actions.moveToElement(element).perform();
+            String description = getElementDescription(element);
+            logger.debug("Check element after scrolling: Element [{}] isFound={}", description, element);
+            ReportAPI.step("Check: Element [" + description + "] isFound=" + element);
+        } catch (Exception e) {
+            logger.debug("Check element after scrolling: Element [{}] is not clickable/present", element);
+        }
+
+    }
+
+    protected void scrollMoveToElement(By element) {
+        Actions actions = new Actions(driver);
+
+        try {
+            WebElement ele = driver.findElement(element);
+            actions.moveToElement(ele).perform();
+            String description = getElementDescription(ele);
+            logger.debug("Check element after scrolling: Element [{}] isFound={}", description, element);
+            ReportAPI.step("Check: Element [" + description + "] isFound=" + element);
+        } catch (Exception e) {
+            logger.debug("Check element after scrolling: Element [{}] is not found", element);
         }
     }
 

@@ -93,11 +93,21 @@ public class ManageOrganizationHelper {
         navigateToUpdateOrganization();
         setFilterUpdateOrganizationPage(true);
         filterUpdateOrganizationPage.clickNextButton();
+        logger.info("Step: Navigating to Flow 1 (Set Organization)");
         CustomAssert.assertTrue(setOrganizationPage.isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
     }
 
     public void goToFlow2AssignEmployee() {
         logger.info("Step: Navigating from Flow 1 Canvas to Flow 2 (Assign Employee)");
+        passProposedOrgCanvas();
+    }
+
+    public void goToFlow3OrgChangesJustification(){
+        logger.info("Step: Navigating from Flow 2 Canvas to Flow 3 (Organization Changes Justification)");
+        passProposedOrgCanvas();
+    }
+
+    private void passProposedOrgCanvas(){
         actionElementsPage.clickNextButton();
         setOrganizationHelper.nextToAssignEmployee();
         actionElementsPage.clickYesButtonPopUp();

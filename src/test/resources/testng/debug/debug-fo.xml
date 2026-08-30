@@ -13,30 +13,14 @@
 
     <test verbose="2" name="My Organization - Update Organization Test">
         <classes>
-<!--            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.RemoveIncumbentTest">-->
-<!--                <methods>-->
-<!--                    <include name="removePrimaryIncumbentTest"/>-->
-<!--&lt;!&ndash;                    <include name="removeNewSecondaryPjsIncumbentTest"/>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <include name="removeExisitingSecondaryPjsIncumbentTest"/>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <include name="verifyPjsCannotBeMovedTest"/>&ndash;&gt;-->
-<!--                </methods>-->
-<!--            </class>-->
-<!--            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.MoveIncumbentTest">-->
-<!--                <methods>-->
-<!--                    <include name="moveIncumbentIntoPositionFTEFullTest"/>-->
-<!--                </methods>-->
-<!--            </class>-->
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.AddIncumbentTest">
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.organizationChangesJustification.OrganizationChangesJustificationTest">
                 <methods>
-<!--                    <include name="addIncumbentFromUnassignedToRemovingTest"/>-->
-<!--                    <include name="addIncumbentFromExistingEmployeeTest"/>-->
-<!--                    <include name="addIncumbentAsPjsTest"/>-->
-<!--                    <include name="addIncumbentWhenFteFullNegativeTest"/>-->
-                    <include name="addIncumbentFromUnassignedToMergedOrgTest"/>
-                    <include name="addIncumbentFromUnassignedToMovedOrgTest"/>
-                    <include name="addIncumbentFromUnassignedToRenamedOrgTest"/>
-<!--                    <include name="addIncumbentFromUnassignedToSplitOrgTest"/>-->
-<!--                    <include name="changeAssignmentTypeInTheSameOrgTest"/>-->
+                    <include name="validateRenameOrganizationJustificationTest"/>
+<!--                    <include name="validateSplitOrganizationJustificationTest"/>-->
+<!--                    <include name="validateAddOrganizationJustificationTest"/>-->
+<!--                    <include name="validateMoveOrganizationJustificationTest"/>-->
+<!--                    <include name="validateMergeOrganizationJustificationTest"/>-->
+<!--                    <include name="validateRemoveOrganizationJustificationTest"/>-->
                 </methods>
             </class>
         </classes>
