@@ -10,7 +10,7 @@ import time
 # ==============================================================================
 
 DEFAULT_OUTPUT_FILENAME = "organization-development-flow1-generated.xlsx"
-DEFAULT_TARGET_ORG_COUNT = 15        # Silakan ubah angka di sini (misal: 5, 10, 15, 30)
+DEFAULT_TARGET_ORG_COUNT = 30        # Silakan ubah angka di sini (misal: 5, 10, 15, 30)
 DEFAULT_AUTO_POPULATE_PROCEED = True  # Set True (nama unik timestamp) atau False (nama statis)
 
 def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME, count=DEFAULT_TARGET_ORG_COUNT, auto_populate_proceed=DEFAULT_AUTO_POPULATE_PROCEED):
@@ -32,11 +32,39 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME, count=DEFAULT_TARGET_
     with open(os.path.join(data_dir, 'Rc_codeLOV.txt'), 'r', encoding='utf-8') as f:
         rc_codes = [line.strip() for line in f if line.strip()]
 
-    # Master Topologic org data definitions (30 nodes D1 -> D6)
+    wb = openpyxl.load_workbook(template_path)
+    sheet_org = wb['Organization']
+    sheet_pos = wb['Position']
+
+    # 1. Extract D0 Organization Name from sheet_org (Scanning row where Current Organization Level == 'D0')
+    d0_org_name = None
+    for row in list(sheet_org.iter_rows(values_only=True))[4:]:
+        level = str(row[2]).strip() if row[2] is not None else ""
+        if level.upper() == 'D0':
+            d0_org_name = str(row[3]).strip() if row[3] is not None else ""
+            break
+
+    if not d0_org_name:
+        raise ValueError(f"D0 Organization not found in template sheet 'Organization' (Level 'D0' is missing) in: {template_path}")
+
+    # 2. Extract D0 Primary Position Name from sheet_pos (Scanning row where Organization Name == d0_org_name)
+    d0_pos_name = None
+    for row in list(sheet_pos.iter_rows(values_only=True))[4:]:
+        org_name = str(row[1]).strip() if row[1] is not None else ""
+        if org_name == d0_org_name:
+            pos_name = str(row[3]).strip() if row[3] is not None else ""
+            if pos_name:
+                d0_pos_name = pos_name
+                break
+
+    if not d0_pos_name:
+        raise ValueError(f"Primary position for D0 Organization '{d0_org_name}' not found in template sheet 'Position' in: {template_path}")
+
+    # Master Topologic org data definitions (30 nodes D1 -> D6) dynamically connected to D0
     all_org_data = [
-        # Level D1 (2 orgs)
-        ('D1', 'Transformation Strategy & Governance D1', 'Corporate Assurance ID', 'Chief Audit Executive'),
-        ('D1', 'Core Technology & Engineering D1', 'Corporate Assurance ID', 'Chief Audit Executive'),
+        # Level D1 (2 orgs) - Dynamically assigned parent D0 from template
+        ('D1', 'Transformation Strategy & Governance D1', d0_org_name, d0_pos_name),
+        ('D1', 'Core Technology & Engineering D1', d0_org_name, d0_pos_name),
 
         # Level D2 (4 orgs)
         ('D2', 'Enterprise Architecture & Platform D2', 'Transformation Strategy & Governance D1', 'Pos Transformation Strategy & Governance D1'),
@@ -79,10 +107,6 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME, count=DEFAULT_TARGET_
 
     target_count = min(max(1, count), len(all_org_data))
     org_data = all_org_data[:target_count]
-
-    wb = openpyxl.load_workbook(template_path)
-    sheet_org = wb['Organization']
-    sheet_pos = wb['Position']
 
     # Keep static non-ADD_NEW rows from template
     org_rows_to_keep = [r for r in list(sheet_org.iter_rows(values_only=True)) if r[1] != 'ADD_NEW']
@@ -162,7 +186,7 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME, count=DEFAULT_TARGET_
             sheet_pos.append(pos_row)
 
     wb.save(output_path)
-    print(f'Successfully generated {len(org_data)} Organizations with Multi-Position & New Job Injection into: {output_path}')
+    print(f"Successfully generated {len(org_data)} Organizations under D0 Parent '{d0_org_name}' (Position: '{d0_pos_name}') into: {output_path}")
 
 if __name__ == '__main__':
     out_file = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT_FILENAME
