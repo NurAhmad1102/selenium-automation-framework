@@ -31,18 +31,8 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
         manageOrganizationHelper().goToFlow1SetOrganization();
 
         OrganizationTestData org1Data = data.get();
-        OrganizationTestData org2Data = new OrganizationTestData(org1Data);
+        OrganizationTestData org2Data = org1Data.createSecondarySplitData();
 
-        OrganizationTestData jobPositionData = setOrganizationHelper().getTestData(OrgSheetName.JOB_POSITION);
-        if (jobPositionData != null) {
-            String targetJob = (jobPositionData.getJob() != null && !jobPositionData.getJob().trim().isEmpty())
-                    ? jobPositionData.getJob()
-                    : jobPositionData.getJobName();
-            if (targetJob != null && !targetJob.trim().isEmpty()) {
-                org2Data.setJobName(targetJob);
-                org2Data.setJob(targetJob);
-            }
-        }
 
         setOrganizationHelper().splitOrganization(org1Data, org2Data);
         setOrganizationHelper().fillJobPositionForSplit(org1Data, org2Data);

@@ -13,14 +13,29 @@
 
     <test verbose="2" name="My Organization - Update Organization Test">
         <classes>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.organizationChangesJustification.OrganizationChangesJustificationTest">
+<!--            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.organizationChangesJustification.OrganizationChangesJustificationTest">-->
+<!--                <methods>-->
+<!--&lt;!&ndash;                    <include name="validateRenameOrganizationJustificationTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="validateSplitOrganizationJustificationTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="validateAddOrganizationJustificationTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="validateMoveOrganizationJustificationTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="validateMergeOrganizationJustificationTest"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <include name="validateRemoveOrganizationJustificationTest"/>&ndash;&gt;-->
+<!--                </methods>-->
+<!--            </class>-->
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.SplitOrganizationTest">
                 <methods>
-                    <include name="validateRenameOrganizationJustificationTest"/>
-<!--                    <include name="validateSplitOrganizationJustificationTest"/>-->
-<!--                    <include name="validateAddOrganizationJustificationTest"/>-->
-<!--                    <include name="validateMoveOrganizationJustificationTest"/>-->
-<!--                    <include name="validateMergeOrganizationJustificationTest"/>-->
-<!--                    <include name="validateRemoveOrganizationJustificationTest"/>-->
+                    <include name="splitOrganizationTest"/>
+                </methods>
+            </class>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.AddIncumbentTest">
+                <methods>
+                    <include name="addIncumbentFromUnassignedToSplitOrgTest"/>
+                </methods>
+            </class>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.MoveIncumbentTest">
+                <methods>
+                    <include name="moveUnassignedEmployeeToSplitOrgTest"/>
                 </methods>
             </class>
         </classes>

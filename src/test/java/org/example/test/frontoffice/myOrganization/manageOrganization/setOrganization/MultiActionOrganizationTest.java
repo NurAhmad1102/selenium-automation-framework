@@ -16,18 +16,7 @@ public class MultiActionOrganizationTest extends ManageOrganizationBaseTest {
      * Mengambil JOB_NAME_2 langsung dari data baris Excel terkait, atau fallback ke JOB_POSITION.
      */
     private OrganizationTestData getSecondarySplitData(OrganizationTestData baseData) {
-        OrganizationTestData secondaryData = new OrganizationTestData(baseData);
-        if (baseData.getJobName2() != null && !baseData.getJobName2().trim().isEmpty()) {
-            secondaryData.setJobName(baseData.getJobName2());
-            secondaryData.setJob(baseData.getJobName2());
-        } else {
-            OrganizationTestData jobPosData = setOrganizationHelper().getTestData(OrgSheetName.JOB_POSITION, 0);
-            if (jobPosData != null && jobPosData.getJob() != null && !jobPosData.getJob().trim().isEmpty()) {
-                secondaryData.setJobName(jobPosData.getJob());
-                secondaryData.setJob(jobPosData.getJob());
-            }
-        }
-        return secondaryData;
+        return baseData.createSecondarySplitData();
     }
 
     @Test(groups = {"regression", "multi-action"}, description = "1. Verify Move Primary Organization and Split Child Organization sequentially")

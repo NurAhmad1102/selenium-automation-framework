@@ -59,6 +59,19 @@ public class SetOrganizationPage extends BasePage {
         click(menuItem);
     }
 
+    public boolean isTagNewNodeOrgDisplayed(String organizationName) {
+        String xpath =
+                String.format(
+                        "//span[normalize-space()='%s']" +
+                                "/ancestor::div[contains(@class,'bg-white') and contains(@class,'cursor-pointer')]" +
+                                "//span[normalize-space()='New']",
+                        organizationName
+                );
+
+        return isVisible(By.xpath(xpath));
+    }
+
+
     public boolean isMissingParentPositionNodeDisplayed() {
         return isPresent(MissingParentPositionNode);
     }

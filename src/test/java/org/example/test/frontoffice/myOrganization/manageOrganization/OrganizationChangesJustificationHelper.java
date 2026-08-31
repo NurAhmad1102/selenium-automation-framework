@@ -205,6 +205,7 @@ public class OrganizationChangesJustificationHelper {
             OrganizationTestData flow2Data,
             boolean isPJS)
     {
+        proposedAssignmentEmployee.isProposedAssignmentEmployeeSectionDisplayed();
         proposedAssignmentEmployee.expandProposedAssignmentSection();
         String empNip = flow2Data.getNip();
         String assignmentType = isPJS ? "PJS Assignment" : "Primary Assignment";

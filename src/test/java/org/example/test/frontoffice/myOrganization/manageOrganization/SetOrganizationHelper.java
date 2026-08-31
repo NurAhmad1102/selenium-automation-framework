@@ -313,6 +313,8 @@ public class SetOrganizationHelper {
         CustomSoftAssert softAssert = new CustomSoftAssert();
         String positionName = orgData.getJobName();
 
+        softAssert.assertTrue(setOrganizationPage.isTagNewNodeOrgDisplayed(orgData.getNewOrganizationName()),
+                "Organization doesn't have tag new");
         clickOrganizationNode(orgData.getNewOrganizationName());
         softAssert.assertEquals(nodeOrganizationModal.getRcCode(), orgData.getRcCode(), "RC Code is not same as expected");
 

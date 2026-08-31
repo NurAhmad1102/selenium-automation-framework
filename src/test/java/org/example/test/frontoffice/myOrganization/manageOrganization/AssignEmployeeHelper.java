@@ -129,17 +129,7 @@ public class AssignEmployeeHelper {
                 setOrganizationHelper.confirmAction(ConfirmAction.MERGE);
                 break;
             case SPLIT:
-                OrganizationTestData org2Data = new OrganizationTestData(flow1Data);
-                OrganizationTestData jobPositionData = setOrganizationHelper.getTestData(OrgSheetName.JOB_POSITION);
-                if (jobPositionData != null) {
-                    String targetJob = (jobPositionData.getJob() != null && !jobPositionData.getJob().trim().isEmpty())
-                            ? jobPositionData.getJob()
-                            : jobPositionData.getJobName();
-                    if (targetJob != null && !targetJob.trim().isEmpty()) {
-                        org2Data.setJobName(targetJob);
-                        org2Data.setJob(targetJob);
-                    }
-                }
+                OrganizationTestData org2Data = flow1Data.createSecondarySplitData();
                 setOrganizationHelper.splitOrganization(flow1Data, org2Data);
                 setOrganizationHelper.fillJobPositionForSplit(flow1Data, org2Data);
                 setOrganizationHelper.confirmAction(ConfirmAction.SPLIT);
@@ -265,6 +255,11 @@ public class AssignEmployeeHelper {
         changesLogModal.openChangesLogModal();
         changesLogModal.selectEmployeeAssignmentTab();
         return changesLogModal.isOrganizationChangeLogDisplayed(actionTitle, dynamicKeywords);
+    }
+
+    public void closeChangeLogModal(){
+        logger.info("Step: Closing Changes Log modal");
+        changesLogModal.clickCloseButton();
     }
 
     public boolean verifyEmployeeInUnassignedListVisible(String employeeName){

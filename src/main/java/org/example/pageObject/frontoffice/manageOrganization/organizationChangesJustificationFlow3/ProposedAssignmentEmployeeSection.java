@@ -33,13 +33,13 @@ public class ProposedAssignmentEmployeeSection extends BasePage {
 
     public boolean isEmployeeAssignmentDisplayed(String employeeIdentifier, String movementCategory) {
         expandProposedAssignmentSection();
-        String xpath = String.format("//div[contains(@class, 'border') and .//h3[contains(normalize-space(), '%s')] and .//p[contains(normalize-space(), '%s')]]", employeeIdentifier, movementCategory);
+        String xpath = String.format("//button[.//h3[contains(normalize-space(), '%s')] and .//p[contains(normalize-space(), '%s')]]", employeeIdentifier, movementCategory);
         return isVisible(By.xpath(xpath));
     }
 
     public void clickEmployeeItem(String employeeIdentifier, String movementCategory) {
         expandProposedAssignmentSection();
-        String xpath = String.format("//div[contains(@class, 'border') and .//h3[contains(normalize-space(), '%s')] and .//p[contains(normalize-space(), '%s')]]//button[.//h3]", employeeIdentifier, movementCategory);
+        String xpath = String.format("//button[.//h3[contains(normalize-space(), '%s')] and .//p[contains(normalize-space(), '%s')]]", employeeIdentifier, movementCategory);
         By locator = By.xpath(xpath);
         if (isVisible(locator)) {
             WebElement button = driver.findElement(locator);
@@ -52,7 +52,7 @@ public class ProposedAssignmentEmployeeSection extends BasePage {
 
     public String getMovementCategory(String employeeIdentifier, String movementCategory) {
         expandProposedAssignmentSection();
-        String xpath = String.format("//div[contains(@class, 'border') and .//h3[contains(normalize-space(), '%s')] and .//p[contains(normalize-space(), '%s')]]//p[contains(text(), 'Movement Category')]", employeeIdentifier, movementCategory);
+        String xpath = String.format("//button[.//h3[contains(normalize-space(), '%s')] and .//p[contains(normalize-space(), '%s')]]//p[contains(text(), 'Movement Category')]", employeeIdentifier, movementCategory);
         if (isVisible(By.xpath(xpath))) {
             return getText(By.xpath(xpath));
         }
@@ -63,7 +63,7 @@ public class ProposedAssignmentEmployeeSection extends BasePage {
         expandProposedAssignmentSection();
         clickEmployeeItem(employeeIdentifier, movementCategory);
         int colIdx = "Proposed".equalsIgnoreCase(colType) ? 3 : 2;
-        String xpath = String.format("//div[contains(@class, 'border') and .//h3[contains(normalize-space(), '%s')] and .//p[contains(normalize-space(), '%s')]]//tr[td[contains(normalize-space(), '%s')]]/td[%d]", employeeIdentifier, movementCategory, rowLabel, colIdx);
+        String xpath = String.format("//div[button[.//h3[contains(normalize-space(), '%s')] and .//p[contains(normalize-space(), '%s')]]]//tr[td[contains(normalize-space(), '%s')]]/td[%d]", employeeIdentifier, movementCategory, rowLabel, colIdx);
         if (isVisible(By.xpath(xpath))) {
             return getText(By.xpath(xpath));
         }

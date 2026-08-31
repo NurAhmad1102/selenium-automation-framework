@@ -82,18 +82,9 @@ public class OrganizationChangesJustificationTest extends ManageOrganizationBase
         logger.info("Starting End-to-End Test: validateSplitOrganizationJustificationTest");
 
         OrganizationTestData org1Data = setOrganizationHelper().getTestData(OrgSheetName.SPLIT);
-        OrganizationTestData org2Data = new OrganizationTestData(org1Data);
-
-        OrganizationTestData jobPositionData = setOrganizationHelper().getTestData(OrgSheetName.JOB_POSITION);
-        if (jobPositionData != null) {
-            String targetJob = (jobPositionData.getJob() != null && !jobPositionData.getJob().trim().isEmpty())
-                    ? jobPositionData.getJob()
-                    : jobPositionData.getJobName();
-            if (targetJob != null && !targetJob.trim().isEmpty()) {
-                org2Data.setJobName(targetJob);
-                org2Data.setJob(targetJob);
-            }
-        }
+        OrganizationTestData org2Data = org1Data.createSecondarySplitData();
+        org1Data.setNewOrganizationName(org1Data.getNewOrganizationName1());
+        org2Data.setNewOrganizationName(org2Data.getNewOrganizationName2());
 
         OrganizationTestData flow2Data = assignEmployeeHelper().getAssignEmployeeData("UNASSIGNED");
 
@@ -135,8 +126,8 @@ public class OrganizationChangesJustificationTest extends ManageOrganizationBase
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
 //        verify position
-        justificationHelper().validateNewPositionDetails(softAssert, org1Data.getNewOrganizationName1(), org1Data);
-        justificationHelper().validateNewPositionDetails(softAssert, org2Data.getNewOrganizationName2(), org2Data);
+        justificationHelper().validateNewPositionDetails(softAssert, org1Data.getJobName(), org1Data);
+        justificationHelper().validateNewPositionDetails(softAssert, org2Data.getJobName(), org2Data);
 
 //        verify org
         justificationHelper().verifySplitOrganizationStructureInJustification(
