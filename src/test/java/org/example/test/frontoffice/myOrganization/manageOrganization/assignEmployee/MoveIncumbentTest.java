@@ -394,7 +394,6 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         logger.info("Test Completed Successfully: moveIncumbentAsPjsTest");
     }
 
-//    TODO: ubah ntar dah
     @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Move Incumbent with Mobility considered as YES")
     public void moveIncumbentWithMobilityYesTest() {
         logger.info("Starting test: moveIncumbentWithMobilityYesTest");
@@ -441,7 +440,6 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         logger.info("Test Completed Successfully: moveIncumbentWithMobilityYesTest");
     }
 
-    //TODO: move incumben to FTE full
     @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Move Incumbent into Position when FTE is full (Negative Test)")
     public void moveIncumbentIntoPositionFTEFullTest(){
         logger.info("Starting test: moveIncumbentIntoPositionFTEFullTest");

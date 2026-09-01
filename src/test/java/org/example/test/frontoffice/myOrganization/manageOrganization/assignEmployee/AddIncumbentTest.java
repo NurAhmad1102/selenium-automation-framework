@@ -74,9 +74,8 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
     }
 
     @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Change Assignment Type to PJS in the same Organization")
-    public void changeAssignmentTypeInTheSameOrgTest() {
-//        TODO: bedain dari Primary ke PJS, dan dari PJS ke Primary
-        logger.info("Starting test: changeAssignmentTypeInTheSameOrgTest");
+    public void changeAssignmentTypeInTheSameOrgPrimaryToBePjsTest() {
+        logger.info("Starting test: changeAssignmentTypeInTheSameOrgPrimaryToBePjsTest");
 
         OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("INSIDE");
 
@@ -126,7 +125,62 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
 
         softAssert.assertAll();
 
-        logger.info("Test Completed Successfully: changeAssignmentTypeInTheSameOrgTest");
+        logger.info("Test Completed Successfully: changeAssignmentTypeInTheSameOrgPrimaryToBePjsTest");
+    }
+
+    @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Change Assignment Type to Primary in the same Organization")
+    public void changeAssignmentTypeInTheSameOrgPjsToBePrimaryTest() {
+        logger.info("Starting test: changeAssignmentTypeInTheSameOrgPjsToBePrimaryTest");
+
+        OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("PJS");
+
+        String sourceOrg = currentAssignData.getCurrentOrg();
+        String sourcePosition = currentAssignData.getCurrentPosition();
+        String employeeIdentifier = currentAssignData.getNip();
+
+        manageOrganizationHelper().goToFlow1SetOrganization();
+        manageOrganizationHelper().goToFlow2AssignEmployee();
+
+        assignEmployeeHelper().removeIncumbent(
+                sourceOrg,
+                sourcePosition,
+                employeeIdentifier
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.REMOVE);
+
+        assignEmployeeHelper().addIncumbent(
+                sourceOrg,
+                sourcePosition,
+                employeeIdentifier,
+                currentAssignData.isMobility(),
+                currentAssignData.getMovementCategory(),
+                false // Primary Assignment
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
+
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier, AssignmentTag.NEW),
+                "Employee " + employeeIdentifier +
+                        " tidak muncul di Manage Incumbent di position: " + sourcePosition +
+                        " pada org " + sourceOrg + "!"
+        );
+
+        softAssert.assertFalse(
+                assignEmployeeHelper().verifyEmployeeInUnassignedListVisible(employeeIdentifier),
+                "Employee " + employeeIdentifier +
+                        " muncul di Unassigned List!"
+        );
+
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, sourceOrg),
+                "Audit Log Employee Assignment untuk Change Assignment Type tidak sesuai!"
+        );
+
+        softAssert.assertAll();
+
+        logger.info("Test Completed Successfully: changeAssignmentTypeInTheSameOrgPjsToBePrimaryTest");
     }
 
     @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Add Incumbent to Open Position using Existing Employee")

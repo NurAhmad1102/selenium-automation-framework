@@ -132,9 +132,9 @@ public class SetOrganizationHelper {
         fillJobPosition(data, action, action == OrgMenuAction.ADD_NEW || action == OrgMenuAction.MERGE || action == OrgMenuAction.SPLIT, true);
     }
 
-    public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte) {
-        fillJobPosition(data, action, setFte, true);
-    }
+//    public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte) {
+//        fillJobPosition(data, action, setFte, true);
+//    }
 
     public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte, boolean proceed) {
 
@@ -366,7 +366,7 @@ public class SetOrganizationHelper {
             editJobsPositionsModal.clickSaveButton();
             confirmationActionModal.clickYesButton();
             successModal.clickContinueButton();
-            nodeOrganizationModal.clickCloseButton();
+//            nodeOrganizationModal.clickCloseButton();
         }
     }
 

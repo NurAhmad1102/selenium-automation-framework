@@ -15,7 +15,7 @@ public class OrganizationChangesJustificationTest extends ManageOrganizationBase
         logger.info("Starting End-to-End Test: validateAddOrganizationJustificationTest");
 
         OrganizationTestData flow1Data = setOrganizationHelper().getTestData(OrgSheetName.ADD_NEW);
-        OrganizationTestData flow2Data = assignEmployeeHelper().getAssignEmployeeData("UNASSIGNED");
+        OrganizationTestData flow2Data = assignEmployeeHelper().getAssignEmployeeData("OUTSIDE");
 
         manageOrganizationHelper().goToFlow1SetOrganization();
         setOrganizationHelper().addNewOrganization(flow1Data);
@@ -70,6 +70,13 @@ public class OrganizationChangesJustificationTest extends ManageOrganizationBase
                 false // Primary Assignment
         );
         assignEmployeeHelper().confirmAction(ConfirmAction.ADD);
+
+//        add incumbent for the rest
+        assignEmployeeHelper().addIncumbentsUntilNoDataFound(
+                targetOrg,
+                targetPosition,
+                flow2Data.getMovementCategory()
+        );
 
         manageOrganizationHelper().goToFlow3OrgChangesJustification();
         justificationHelper().validateMergeOrganizationJustificationFlow(flow1Data, flow2Data, false);
@@ -215,10 +222,10 @@ public class OrganizationChangesJustificationTest extends ManageOrganizationBase
     public void validateRemoveOrganizationJustificationTest() {
         logger.info("Starting End-to-End Test: validateRemoveOrganizationJustificationTest");
 
-        OrganizationTestData flow1Data = setOrganizationHelper().getTestData(OrgSheetName.REMOVE);
-        OrganizationTestData flow2Data = assignEmployeeHelper().getAssignEmployeeData("OUTSIDE");
+        // pakai data PJS agar tidak perlu assign unassigned employee
+        OrganizationTestData flow2Data = assignEmployeeHelper().getAssignEmployeeData("PJS");
 
-        String organizationToRemove = flow1Data.getPrimaryOrganization();
+        String organizationToRemove = flow2Data.getCurrentOrg();
 
         manageOrganizationHelper().goToFlow1SetOrganization();
         setOrganizationHelper().removeOrganization(organizationToRemove);
@@ -227,8 +234,9 @@ public class OrganizationChangesJustificationTest extends ManageOrganizationBase
         manageOrganizationHelper().goToFlow2AssignEmployee();
         manageOrganizationHelper().goToFlow3OrgChangesJustification();
 
-        justificationHelper().validateRemoveOrganizationJustificationFlow(flow1Data, flow2Data);
-
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        justificationHelper().verifyRemoveOrganizationStructureInJustification(softAssert, organizationToRemove);
+        softAssert.assertAll();
         logger.info("End-to-End Test Passed: validateRemoveOrganizationJustificationTest");
     }
 }

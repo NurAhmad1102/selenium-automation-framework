@@ -7,6 +7,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
+import java.util.List;
+
 public class AddIncumbentModal extends BasePage {
 
     public AddIncumbentModal(WebDriver driver) {
@@ -49,6 +51,10 @@ public class AddIncumbentModal extends BasePage {
         selectDropdownModal(incumbentNameDropdown, incumbentName);
     }
 
+    public void clickIncumbentNameDropdown() {
+        click(incumbentNameDropdown);
+    }
+
     public void selectMobility(boolean isMobility) {
         if (isMobility) {
             click(mobilityYesRadio);
@@ -89,5 +95,32 @@ public class AddIncumbentModal extends BasePage {
 
     public void clickContinueButton() {
         click(continueButtonModal);
+    }
+
+    public boolean isNoDataFoundLovDisplayed() {
+        By elementText = By.xpath("//div[@role='listbox']//*[normalize-space(.)='No data found'] | //*[normalize-space(.)='No data found' and not(*)]");
+        return isPresent(elementText);
+    }
+
+    public boolean isNoDataFoundDisplayed() {
+        return isNoDataFoundLovDisplayed();
+    }
+
+    public boolean hasAvailableIncumbents() {
+        By optionsLocator = By.xpath("//div[@role='listbox']//div[@role='option'] | //div[@role='option']");
+        List<WebElement> options = driver.findElements(optionsLocator);
+        for (WebElement opt : options) {
+            try {
+                if (opt.isDisplayed() && !opt.getText().trim().equalsIgnoreCase("No data found")) {
+                    return true;
+                }
+            } catch (Exception ignored) {}
+        }
+        return false;
+    }
+
+    public void selectFirstAvailableIncumbent() {
+        By firstOption = By.xpath("//div[@role='listbox']//div[@role='option'][1] | //div[@role='option'][1]");
+        click(firstOption);
     }
 }
