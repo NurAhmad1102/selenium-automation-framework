@@ -2,7 +2,6 @@ Approval Engineer Data Testing
 IT Head
 Approval Engineer Data Testing - AHM
 Branch Manager
-Branch Operations & Service Manager
 Network Officer Testing - AHM
 Customer Care Officer
 Business Support Manager
@@ -24,10 +23,6 @@ Infrastructure Implementation Services Officer
 Personal Loan Sales Manager
 Private Banking Relationship Manager
 Special Projects Head
-Operations & IT Director
-Treasury & Capital Market Director
-Human Resources Director
-Risk Management Director
 Service Desk Manager
 Fixed Income Specialist
 Regulatory Reporting Head

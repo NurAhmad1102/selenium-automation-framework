@@ -6,22 +6,69 @@ import time
 
 # ==============================================================================
 # HOW TO RUN:
-# python src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/generator/generate_multiaction_excel.py
+# python src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/generator/generate_multiaction_excel.py [out_file] [auto_unique] [new_job_percentage]
 # ==============================================================================
 
 DEFAULT_OUTPUT_FILENAME = "organization-development-flow1-multiaction.xlsx"
 DEFAULT_AUTO_POPULATE_PROCEED = True  # True: dynamic unique timestamp suffix; False: static deterministic names
+DEFAULT_NEW_JOB_PERCENTAGE = 30       # Persentase posisi yang berupa New Job (0 s/d 100%)
 
-def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME, auto_populate_proceed=DEFAULT_AUTO_POPULATE_PROCEED):
+SENIORITY_PREFIXES = [
+    "Lead", "Senior", "Principal", "Staff", "Head of", "Chief Specialist",
+    "Executive Specialist", "Associate Director", "Senior Lead", "Consulting Lead"
+]
+
+DOMAIN_DISCIPLINES = [
+    "Cloud Infrastructure & SRE", "Cyber Security Assurance", "Core Banking Integration",
+    "Microservices & API Platform", "Automated QA & COE", "Data Governance & Analytics",
+    "DevSecOps Pipeline", "Enterprise Architecture", "Digital Channels & Mobile",
+    "AI & Machine Learning Engineering", "Risk & Compliance Audit", "Platform Reliability & Systems",
+    "Financial Technology Solutions", "Business Process Automation", "Database Administration & Ops",
+    "Identity & Access Management", "Payment Gateway Solutions", "Treasury Systems & Ops"
+]
+
+ROLE_SUFFIXES = [
+    "Engineer", "Specialist", "Architect", "Assurance Officer", "Strategist",
+    "Consultant", "Analyst", "Manager"
+]
+
+def generate_realistic_job_title(seq, run_seed=""):
+    seniority = SENIORITY_PREFIXES[(seq - 1) % len(SENIORITY_PREFIXES)]
+    domain = DOMAIN_DISCIPLINES[(seq - 1) % len(DOMAIN_DISCIPLINES)]
+    role = ROLE_SUFFIXES[(seq - 1) % len(ROLE_SUFFIXES)]
+    base_title = f"{seniority} {domain} {role}"
+    return f"{base_title}{run_seed}" if run_seed else base_title
+
+def is_new_job_by_rate(seq_counter, percentage):
+    if percentage <= 0:
+        return False
+    if percentage >= 100:
+        return True
+    return (seq_counter * percentage // 100) > ((seq_counter - 1) * percentage // 100)
+
+def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME,
+                               auto_populate_proceed=DEFAULT_AUTO_POPULATE_PROCEED,
+                               new_job_percentage=DEFAULT_NEW_JOB_PERCENTAGE):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     loader_dir = os.path.dirname(current_dir)
     massive_dir = os.path.dirname(loader_dir)
     data_dir = os.path.join(massive_dir, 'data')
 
-    template_path = os.path.join(data_dir, 'organization-development-flow1.xlsx')
-    output_path = os.path.join(current_dir, output_filename)
+    template_path = os.path.join(loader_dir, 'MultiAction', 'organization-development-flow1-3493.xlsx')
+    if not os.path.exists(template_path):
+        template_path = os.path.join(data_dir, 'organization-development-flow1.xlsx')
+
+    if os.path.isabs(output_filename):
+        output_path = output_filename
+    elif os.path.sep in output_filename or '/' in output_filename:
+        output_path = os.path.abspath(output_filename)
+    else:
+        output_path = os.path.join(current_dir, output_filename)
 
     # Load LOVs from data/ folder
+    with open(os.path.join(data_dir, 'DeptLOV.txt'), 'r', encoding='utf-8') as f:
+        depts = [line.strip() for line in f if line.strip()]
+
     with open(os.path.join(data_dir, 'JobLOV.txt'), 'r', encoding='utf-8') as f:
         jobs = [line.strip() for line in f if line.strip()]
 
@@ -37,12 +84,17 @@ def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME, auto_pop
     sheet_org = wb['Organization']
     sheet_pos = wb['Position']
 
-    # Map existing organizations and positions for side-effect tracking
+    # Clean up any previously appended mutation rows (rows > 55) in template
+    if sheet_org.max_row > 55:
+        sheet_org.delete_rows(56, sheet_org.max_row - 55)
+
+    # Map existing organizations and positions for side-effect tracking and initialize clean action state
     org_row_map = {}
     for r in range(6, sheet_org.max_row + 1):
         org_name = sheet_org.cell(r, 4).value
         if org_name:
             org_row_map[str(org_name).strip()] = r
+            sheet_org.cell(r, 2).value = "NO_CHANGE"
 
     pos_mutation_map = {}
     global_pos_counter = 0
@@ -60,8 +112,8 @@ def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME, auto_pop
     default_rc = "1611.47077.8504"
 
     def get_job_name(idx):
-        if auto_populate_proceed and (idx % 3 == 0):
-            return f"Auto Created Job Title {idx}{run_seed}"
+        if auto_populate_proceed and is_new_job_by_rate(idx, new_job_percentage):
+            return generate_realistic_job_title(idx, run_seed)
         return jobs[idx % len(jobs)]
 
     def generate_positions_for_org(org_name, org_level, primary_parent_pos):
@@ -218,5 +270,7 @@ def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME, auto_pop
 
 if __name__ == '__main__':
     out_file = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT_FILENAME
-    unique = sys.argv[2].lower() == 'true' if len(sys.argv) > 3 else DEFAULT_AUTO_POPULATE_PROCEED
-    generate_multiaction_excel(output_filename=out_file, auto_populate_proceed=unique)
+    unique = sys.argv[2].lower() == 'true' if len(sys.argv) > 2 else DEFAULT_AUTO_POPULATE_PROCEED
+    new_job_pct = int(sys.argv[3]) if len(sys.argv) > 3 else DEFAULT_NEW_JOB_PERCENTAGE
+    generate_multiaction_excel(output_filename=out_file, auto_populate_proceed=unique, new_job_percentage=new_job_pct)
+

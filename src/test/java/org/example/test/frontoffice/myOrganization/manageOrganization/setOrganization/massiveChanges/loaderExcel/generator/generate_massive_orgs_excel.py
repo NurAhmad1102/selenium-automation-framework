@@ -6,23 +6,144 @@ import time
 
 # ==============================================================================
 # HOW TO RUN
-# python src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/generator/generate_massive_orgs_excel.py
+# python src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/generator/generate_massive_orgs_excel.py [out_file] [limit] [auto_unique] [new_job_percentage]
 # ==============================================================================
 
 DEFAULT_OUTPUT_FILENAME = "organization-development-flow1-generated.xlsx"
-DEFAULT_TARGET_ORG_COUNT = 30        # Silakan ubah angka di sini (misal: 5, 10, 15, 30)
-DEFAULT_AUTO_POPULATE_PROCEED = True  # Set True (nama unik timestamp) atau False (nama statis)
+DEFAULT_TARGET_ORG_COUNT = 100        # Silakan ubah angka di sini (misal: 5, 10, 15, 30, 50, 100)
+DEFAULT_AUTO_POPULATE_PROCEED = True  # True (nama unik timestamp) atau False (nama statis)
+DEFAULT_NEW_JOB_PERCENTAGE = 30       # Persentase posisi yang berupa New Job (0 s/d 100%)
 
-def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME, count=DEFAULT_TARGET_ORG_COUNT, auto_populate_proceed=DEFAULT_AUTO_POPULATE_PROCEED):
+SENIORITY_PREFIXES = [
+    "Lead", "Senior", "Principal", "Staff", "Head of", "Chief Specialist",
+    "Executive Specialist", "Associate Director", "Senior Lead", "Consulting Lead"
+]
+
+DOMAIN_DISCIPLINES = [
+    "Cloud Infrastructure & SRE", "Cyber Security Assurance", "Core Banking Integration",
+    "Microservices & API Platform", "Automated QA & COE", "Data Governance & Analytics",
+    "DevSecOps Pipeline", "Enterprise Architecture", "Digital Channels & Mobile",
+    "AI & Machine Learning Engineering", "Risk & Compliance Audit", "Platform Reliability & Systems",
+    "Financial Technology Solutions", "Business Process Automation", "Database Administration & Ops",
+    "Identity & Access Management", "Payment Gateway Solutions", "Treasury Systems & Ops"
+]
+
+ROLE_SUFFIXES = [
+    "Engineer", "Specialist", "Architect", "Assurance Officer", "Strategist",
+    "Consultant", "Analyst", "Manager"
+]
+
+def generate_realistic_job_title(seq, run_seed=""):
+    seniority = SENIORITY_PREFIXES[(seq - 1) % len(SENIORITY_PREFIXES)]
+    domain = DOMAIN_DISCIPLINES[(seq - 1) % len(DOMAIN_DISCIPLINES)]
+    role = ROLE_SUFFIXES[(seq - 1) % len(ROLE_SUFFIXES)]
+    base_title = f"{seniority} {domain} {role}"
+    return f"{base_title}{run_seed}" if run_seed else base_title
+
+def is_new_job_by_rate(seq_counter, percentage):
+    if percentage <= 0:
+        return False
+    if percentage >= 100:
+        return True
+    return (seq_counter * percentage // 100) > ((seq_counter - 1) * percentage // 100)
+
+def build_dynamic_org_hierarchy(depts, target_count, d0_org_name, d0_pos_name):
+    """
+    Builds a list of N organization specs across levels D1 to D6 connected in a valid tree.
+    Each item in returned list is a tuple: (level, raw_org_name, raw_parent_org, raw_parent_pos)
+    """
+    if not depts:
+        depts = ["Transformation Office", "Core Technology", "Enterprise Architecture", "Quality Governance",
+                 "Software Engineering", "Cloud Operations", "Automation COE", "Security Assurance"]
+
+    target = max(1, target_count)
+
+    # Determine level distribution (D1 to D6) with exact sum guarantee
+    if target <= 6:
+        level_counts = [1 if i < target else 0 for i in range(6)]
+    else:
+        weights = [0.08, 0.14, 0.20, 0.22, 0.18, 0.18]
+        level_counts = [1, 1, 1, 1, 1, 1]
+        rem = target - 6
+        alloc = [int(rem * w) for w in weights]
+        for i in range(6):
+            level_counts[i] += alloc[i]
+        leftover = target - sum(level_counts)
+        priority_order = [3, 2, 4, 1, 5, 0] # D4, D3, D5, D2, D6, D1
+        for p in priority_order:
+            if leftover <= 0:
+                break
+            level_counts[p] += 1
+            leftover -= 1
+
+    level_names = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6']
+    created_by_level = {lvl: [] for lvl in level_names}
+    all_nodes = []
+    node_seq = 0
+
+    for lvl_idx, lvl in enumerate(level_names):
+        count_for_lvl = level_counts[lvl_idx]
+        for _ in range(count_for_lvl):
+            node_seq += 1
+            dept_idx = (node_seq - 1) % len(depts)
+            dept_cycle = ((node_seq - 1) // len(depts)) + 1
+            dept_name = depts[dept_idx]
+
+            if dept_cycle == 1:
+                raw_org_name = f"{dept_name} {lvl}"
+            else:
+                raw_org_name = f"{dept_name} {lvl} {dept_cycle}"
+
+            raw_pos_name = f"Pos {raw_org_name}"
+
+            if lvl == 'D1':
+                raw_parent_org = d0_org_name
+                raw_parent_pos = d0_pos_name
+            else:
+                parent_level = level_names[lvl_idx - 1]
+                parent_pool = created_by_level[parent_level]
+                if not parent_pool:
+                    raw_parent_org = d0_org_name
+                    raw_parent_pos = d0_pos_name
+                else:
+                    chosen_parent = parent_pool[len(created_by_level[lvl]) % len(parent_pool)]
+                    raw_parent_org = chosen_parent['raw_org_name']
+                    raw_parent_pos = chosen_parent['raw_pos_name']
+
+            node_info = {
+                'level': lvl,
+                'raw_org_name': raw_org_name,
+                'raw_pos_name': raw_pos_name,
+                'raw_parent_org': raw_parent_org,
+                'raw_parent_pos': raw_parent_pos
+            }
+            created_by_level[lvl].append(node_info)
+            all_nodes.append((lvl, raw_org_name, raw_parent_org, raw_parent_pos))
+
+    return all_nodes
+
+def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME,
+                  count=DEFAULT_TARGET_ORG_COUNT,
+                  auto_populate_proceed=DEFAULT_AUTO_POPULATE_PROCEED,
+                  new_job_percentage=DEFAULT_NEW_JOB_PERCENTAGE):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     loader_dir = os.path.dirname(current_dir)
     massive_dir = os.path.dirname(loader_dir)
     data_dir = os.path.join(massive_dir, 'data')
 
     template_path = os.path.join(data_dir, 'organization-development-flow1.xlsx')
-    output_path = os.path.join(current_dir, output_filename)
+
+    if os.path.isabs(output_filename):
+        output_path = output_filename
+    elif os.path.sep in output_filename or '/' in output_filename:
+        output_path = os.path.abspath(output_filename)
+    else:
+        output_path = os.path.join(current_dir, output_filename)
 
     # Load LOVs from data/ subfolder
+    with open(os.path.join(data_dir, 'DeptLOV.txt'), 'r', encoding='utf-8') as f:
+        depts = [line.strip() for line in f if line.strip()]
+
     with open(os.path.join(data_dir, 'JobLOV.txt'), 'r', encoding='utf-8') as f:
         jobs = [line.strip() for line in f if line.strip()]
 
@@ -60,53 +181,8 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME, count=DEFAULT_TARGET_
     if not d0_pos_name:
         raise ValueError(f"Primary position for D0 Organization '{d0_org_name}' not found in template sheet 'Position' in: {template_path}")
 
-    # Master Topologic org data definitions (30 nodes D1 -> D6) dynamically connected to D0
-    all_org_data = [
-        # Level D1 (2 orgs) - Dynamically assigned parent D0 from template
-        ('D1', 'Transformation Strategy & Governance D1', d0_org_name, d0_pos_name),
-        ('D1', 'Core Technology & Engineering D1', d0_org_name, d0_pos_name),
-
-        # Level D2 (4 orgs)
-        ('D2', 'Enterprise Architecture & Platform D2', 'Transformation Strategy & Governance D1', 'Pos Transformation Strategy & Governance D1'),
-        ('D2', 'Quality Governance & Compliance D2', 'Transformation Strategy & Governance D1', 'Pos Transformation Strategy & Governance D1'),
-        ('D2', 'Software Engineering & Delivery D2', 'Core Technology & Engineering D1', 'Pos Core Technology & Engineering D1'),
-        ('D2', 'Cloud & Infrastructure Operations D2', 'Core Technology & Engineering D1', 'Pos Core Technology & Engineering D1'),
-
-        # Level D3 (5 orgs)
-        ('D3', 'Automation Testing & COE D3', 'Enterprise Architecture & Platform D2', 'Pos Enterprise Architecture & Platform D2'),
-        ('D3', 'Performance & Security Assurance D3', 'Quality Governance & Compliance D2', 'Pos Quality Governance & Compliance D2'),
-        ('D3', 'Digital Service Engineering D3', 'Software Engineering & Delivery D2', 'Pos Software Engineering & Delivery D2'),
-        ('D3', 'API & Middleware Integration D3', 'Software Engineering & Delivery D2', 'Pos Software Engineering & Delivery D2'),
-        ('D3', 'Site Reliability & Infrastructure D3', 'Cloud & Infrastructure Operations D2', 'Pos Cloud & Infrastructure Operations D2'),
-
-        # Level D4 (6 orgs)
-        ('D4', 'Core Automation Framework Unit D4', 'Automation Testing & COE D3', 'Pos Automation Testing & COE D3'),
-        ('D4', 'Performance Engineering Unit D4', 'Performance & Security Assurance D3', 'Pos Performance & Security Assurance D3'),
-        ('D4', 'Cyber Security Audit Unit D4', 'Performance & Security Assurance D3', 'Pos Performance & Security Assurance D3'),
-        ('D4', 'Web Application Platform Unit D4', 'Digital Service Engineering D3', 'Pos Digital Service Engineering D3'),
-        ('D4', 'Microservices Integration Unit D4', 'API & Middleware Integration D3', 'Pos API & Middleware Integration D3'),
-        ('D4', 'Cloud Infrastructure SRE Unit D4', 'Site Reliability & Infrastructure D3', 'Pos Site Reliability & Infrastructure D3'),
-
-        # Level D5 (6 orgs)
-        ('D5', 'UI Framework Sub-Unit D5', 'Core Automation Framework Unit D4', 'Pos Core Automation Framework Unit D4'),
-        ('D5', 'API Automation Sub-Unit D5', 'Core Automation Framework Unit D4', 'Pos Core Automation Framework Unit D4'),
-        ('D5', 'Load & Stress Testing Sub-Unit D5', 'Performance Engineering Unit D4', 'Pos Performance Engineering Unit D4'),
-        ('D5', 'Frontend Platform Sub-Unit D5', 'Web Application Platform Unit D4', 'Pos Web Application Platform Unit D4'),
-        ('D5', 'DevOps Pipeline Sub-Unit D5', 'Microservices Integration Unit D4', 'Pos Microservices Integration Unit D4'),
-        ('D5', 'Container Operations Sub-Unit D5', 'Cloud Infrastructure SRE Unit D4', 'Pos Cloud Infrastructure SRE Unit D4'),
-
-        # Level D6 (7 orgs)
-        ('D6', 'Web Automation Execution Squad D6', 'UI Framework Sub-Unit D5', 'Pos UI Framework Sub-Unit D5'),
-        ('D6', 'Mobile Automation Execution Squad D6', 'UI Framework Sub-Unit D5', 'Pos UI Framework Sub-Unit D5'),
-        ('D6', 'REST API Testing Squad D6', 'API Automation Sub-Unit D5', 'Pos API Automation Sub-Unit D5'),
-        ('D6', 'Capacity Planning Squad D6', 'Load & Stress Testing Sub-Unit D5', 'Pos Load & Stress Testing Sub-Unit D5'),
-        ('D6', 'Design System Squad D6', 'Frontend Platform Sub-Unit D5', 'Pos Frontend Platform Sub-Unit D5'),
-        ('D6', 'Continuous Deployment Squad D6', 'DevOps Pipeline Sub-Unit D5', 'Pos DevOps Pipeline Sub-Unit D5'),
-        ('D6', 'Kubernetes Platform Squad D6', 'Container Operations Sub-Unit D5', 'Pos Container Operations Sub-Unit D5'),
-    ]
-
-    target_count = min(max(1, count), len(all_org_data))
-    org_data = all_org_data[:target_count]
+    # Dynamic Topologic org data definitions from DeptLOV.txt
+    org_data = build_dynamic_org_hierarchy(depts, count, d0_org_name, d0_pos_name)
 
     # Keep static non-ADD_NEW rows from template
     org_rows_to_keep = [r for r in list(sheet_org.iter_rows(values_only=True)) if r[1] != 'ADD_NEW']
@@ -114,7 +190,12 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME, count=DEFAULT_TARGET_
     for r in org_rows_to_keep:
         sheet_org.append(r)
 
-    pos_rows_to_keep = [r for r in list(sheet_pos.iter_rows(values_only=True)) if not (r[1] and any(org_item[1] in str(r[1]) for org_item in all_org_data))]
+    existing_org_names = set(str(r[3]).strip() for r in org_rows_to_keep[4:] if r[3])
+    pos_all_rows = list(sheet_pos.iter_rows(values_only=True))
+    pos_header_rows = pos_all_rows[:4]
+    pos_data_to_keep = [r for r in pos_all_rows[4:] if r[1] and str(r[1]).strip() in existing_org_names]
+    pos_rows_to_keep = pos_header_rows + pos_data_to_keep
+
     sheet_pos.delete_rows(1, sheet_pos.max_row)
     for r in pos_rows_to_keep:
         sheet_pos.append(r)
@@ -126,6 +207,7 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME, count=DEFAULT_TARGET_
 
     created_map = {}
     pos_seq_counter = 0
+    new_job_counter = 0
 
     for idx, (level, raw_org_name, raw_parent_org, raw_parent_pos) in enumerate(org_data, start=1):
         rc = rc_codes[(idx - 1) % len(rc_codes)]
@@ -153,9 +235,10 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME, count=DEFAULT_TARGET_
             loc = locations[(pos_seq_counter - 1) % len(locations)]
             fte = (pos_seq_counter % 4) + 1
 
-            # Dynamic New Job Injection logic (~30% new job injection if auto_populate_proceed is True)
-            if auto_populate_proceed and (pos_seq_counter % 3 == 0):
-                job_name = f"Auto Created Job Title {pos_seq_counter}{run_seed}"
+            # Dynamic New Job Injection logic based on configurable percentage
+            if auto_populate_proceed and is_new_job_by_rate(pos_seq_counter, new_job_percentage):
+                new_job_counter += 1
+                job_name = generate_realistic_job_title(pos_seq_counter, run_seed)
             else:
                 job_name = jobs[(pos_seq_counter - 1) % len(jobs)]
 
@@ -186,10 +269,12 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME, count=DEFAULT_TARGET_
             sheet_pos.append(pos_row)
 
     wb.save(output_path)
-    print(f"Successfully generated {len(org_data)} Organizations under D0 Parent '{d0_org_name}' (Position: '{d0_pos_name}') into: {output_path}")
+    pct_actual = (new_job_counter / pos_seq_counter * 100) if pos_seq_counter > 0 else 0
+    print(f"Successfully generated {len(org_data)} Organizations and {pos_seq_counter} Positions ({new_job_counter} New Jobs, {pct_actual:.1f}%) under D0 Parent '{d0_org_name}' into: {output_path}")
 
 if __name__ == '__main__':
     out_file = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT_FILENAME
     limit = int(sys.argv[2]) if len(sys.argv) > 2 else DEFAULT_TARGET_ORG_COUNT
     auto_unique = sys.argv[3].lower() == 'true' if len(sys.argv) > 3 else DEFAULT_AUTO_POPULATE_PROCEED
-    generate_orgs(output_filename=out_file, count=limit, auto_populate_proceed=auto_unique)
+    new_job_pct = int(sys.argv[4]) if len(sys.argv) > 4 else DEFAULT_NEW_JOB_PERCENTAGE
+    generate_orgs(output_filename=out_file, count=limit, auto_populate_proceed=auto_unique, new_job_percentage=new_job_pct)

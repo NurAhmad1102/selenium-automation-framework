@@ -67,17 +67,21 @@ public class MassiveOrgDataFactory {
                                                              String d0Pos,
                                                              String positionNamingType,
                                                              int limit) {
+        List<String> depts = readLovFile("DeptLOV.txt");
         List<String> jobs = readLovFile("JobLOV.txt");
         List<String> locations = readLovFile("LocationLOV.txt");
         List<String> rcCodes = readLovFile("Rc_codeLOV.txt");
 
+        if (depts.isEmpty()) {
+            depts = List.of("Transformation Office", "Core Technology", "Enterprise Architecture", "Quality Governance",
+                    "Software Engineering", "Cloud Operations", "Automation COE", "Security Assurance", "Digital Banking", "Risk Analytics");
+        }
         if (jobs.isEmpty()) jobs = List.of("Regulatory Reporting Officer", "IT Head", "Audit Head", "Project Manager", "System Analyst");
         if (locations.isEmpty()) locations = List.of("Kantor Pusat - Menara Asia", "Kantor Pusat - Medco Energy Tower", "Kantor Pusat - Graha CIMB Niaga");
         if (rcCodes.isEmpty()) rcCodes = List.of("1611.47077.1061", "1611.24015.0401", "1611.24008.1003");
 
         String runId = autoPopulateProceed ? UniqueSeedManager.generateUniqueSeed() : "";
 
-        // Topologic metadata definition for up to 30 organizations (D1 to D6)
         class NodeSpec {
             final String level;
             final String domain;
@@ -90,52 +94,66 @@ public class MassiveOrgDataFactory {
             }
         }
 
-        List<NodeSpec> allSpecs = List.of(
-                // Level D1 (2 orgs)
-                new NodeSpec("D1", "Transformation Strategy & Governance", -1),
-                new NodeSpec("D1", "Core Technology & Engineering", -1),
+        int target = Math.max(1, limit);
+        int[] levelCounts = new int[6];
+        if (target <= 6) {
+            for (int i = 0; i < 6; i++) {
+                levelCounts[i] = (i < target) ? 1 : 0;
+            }
+        } else {
+            double[] weights = {0.08, 0.14, 0.20, 0.22, 0.18, 0.18};
+            for (int i = 0; i < 6; i++) {
+                levelCounts[i] = 1;
+            }
+            int rem = target - 6;
+            int sumAlloc = 0;
+            for (int i = 0; i < 6; i++) {
+                int alloc = (int) (rem * weights[i]);
+                levelCounts[i] += alloc;
+                sumAlloc += levelCounts[i];
+            }
+            int leftover = target - sumAlloc;
+            int[] priorityOrder = {3, 2, 4, 1, 5, 0}; // D4, D3, D5, D2, D6, D1
+            for (int p : priorityOrder) {
+                if (leftover <= 0) break;
+                levelCounts[p]++;
+                leftover--;
+            }
+        }
 
-                // Level D2 (4 orgs)
-                new NodeSpec("D2", "Enterprise Architecture & Platform", 0),
-                new NodeSpec("D2", "Quality Governance & Compliance", 0),
-                new NodeSpec("D2", "Software Engineering & Delivery", 1),
-                new NodeSpec("D2", "Cloud & Infrastructure Operations", 1),
+        String[] levelNames = {"D1", "D2", "D3", "D4", "D5", "D6"};
+        java.util.Map<String, List<Integer>> createdByLevel = new java.util.HashMap<>();
+        for (String lvl : levelNames) {
+            createdByLevel.put(lvl, new ArrayList<>());
+        }
 
-                // Level D3 (5 orgs)
-                new NodeSpec("D3", "Automation Testing & COE", 2),
-                new NodeSpec("D3", "Performance & Security Assurance", 3),
-                new NodeSpec("D3", "Digital Service Engineering", 4),
-                new NodeSpec("D3", "API & Middleware Integration", 4),
-                new NodeSpec("D3", "Site Reliability & Infrastructure", 5),
+        List<NodeSpec> specs = new ArrayList<>();
+        int nodeSeq = 0;
 
-                // Level D4 (6 orgs)
-                new NodeSpec("D4", "Core Automation Framework Unit", 6),
-                new NodeSpec("D4", "Performance Engineering Unit", 7),
-                new NodeSpec("D4", "Cyber Security Audit Unit", 7),
-                new NodeSpec("D4", "Web Application Platform Unit", 8),
-                new NodeSpec("D4", "Microservices Integration Unit", 9),
-                new NodeSpec("D4", "Cloud Infrastructure SRE Unit", 10),
+        for (int l = 0; l < levelNames.length; l++) {
+            String lvl = levelNames[l];
+            int count = levelCounts[l];
+            for (int k = 0; k < count; k++) {
+                nodeSeq++;
+                int deptIdx = (nodeSeq - 1) % depts.size();
+                int deptCycle = ((nodeSeq - 1) / depts.size()) + 1;
+                String deptName = depts.get(deptIdx);
+                String domain = (deptCycle == 1) ? deptName : deptName + " " + deptCycle;
 
-                // Level D5 (6 orgs)
-                new NodeSpec("D5", "UI Framework Sub-Unit", 11),
-                new NodeSpec("D5", "API Automation Sub-Unit", 11),
-                new NodeSpec("D5", "Load & Stress Testing Sub-Unit", 12),
-                new NodeSpec("D5", "Frontend Platform Sub-Unit", 14),
-                new NodeSpec("D5", "DevOps Pipeline Sub-Unit", 15),
-                new NodeSpec("D5", "Container Operations Sub-Unit", 16),
+                int parentIndex = -1;
+                if (!"D1".equals(lvl)) {
+                    String parentLevel = levelNames[l - 1];
+                    List<Integer> parentPool = createdByLevel.get(parentLevel);
+                    if (parentPool != null && !parentPool.isEmpty()) {
+                        parentIndex = parentPool.get(createdByLevel.get(lvl).size() % parentPool.size());
+                    }
+                }
 
-                // Level D6 (7 orgs)
-                new NodeSpec("D6", "Web Automation Execution Squad", 17),
-                new NodeSpec("D6", "Mobile Automation Execution Squad", 17),
-                new NodeSpec("D6", "REST API Testing Squad", 18),
-                new NodeSpec("D6", "Capacity Planning Squad", 19),
-                new NodeSpec("D6", "Design System Squad", 20),
-                new NodeSpec("D6", "Continuous Deployment Squad", 21),
-                new NodeSpec("D6", "Kubernetes Platform Squad", 22)
-        );
-
-        int targetLimit = (limit <= 0 || limit > allSpecs.size()) ? allSpecs.size() : limit;
-        List<NodeSpec> specs = allSpecs.subList(0, targetLimit);
+                int currentIndex = specs.size();
+                specs.add(new NodeSpec(lvl, domain, parentIndex));
+                createdByLevel.get(lvl).add(currentIndex);
+            }
+        }
 
         List<MassiveOrgModel> result = new ArrayList<>();
 

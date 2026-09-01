@@ -16,15 +16,15 @@ public class Flow1ExcelExportReader {
     private static final String FALLBACK_TEMPLATE_PATH = MassiveTestConfig.SOURCE_TEMPLATE_EXCEL_PATH;
 
     public static List<MassiveOrgModel> read30OrgsFromExcel() {
-        return readOrgsFromExcel(DEFAULT_EXCEL_PATH, false, 0);
+        return readOrgsFromExcel(DEFAULT_EXCEL_PATH, false, 30);
     }
 
     public static List<MassiveOrgModel> read30OrgsFromExcel(boolean autoPopulateProceed) {
-        return readOrgsFromExcel(DEFAULT_EXCEL_PATH, autoPopulateProceed, 0);
+        return readOrgsFromExcel(DEFAULT_EXCEL_PATH, autoPopulateProceed, 30);
     }
 
     public static List<MassiveOrgModel> read30OrgsFromExcel(String customPath, boolean autoPopulateProceed) {
-        return readOrgsFromExcel(customPath, autoPopulateProceed, 0);
+        return readOrgsFromExcel(customPath, autoPopulateProceed, 30);
     }
 
     public static List<MassiveOrgModel> readMultiActionOrgsFromExcel(String customPath, boolean autoPopulateProceed) {
@@ -177,10 +177,8 @@ public class Flow1ExcelExportReader {
 
                 String finalOrgName = autoPopulateProceed ? rawOrgName + runSeed : rawOrgName;
                 String finalPosName = autoPopulateProceed ? rawPosName + runSeed : rawPosName;
-                String finalParentOrg = autoPopulateProceed && rawParentOrg.startsWith("Transformation") || rawParentOrg.startsWith("Core") || rawParentOrg.startsWith("Enterprise") || rawParentOrg.startsWith("Quality") || rawParentOrg.startsWith("Software") || rawParentOrg.startsWith("Cloud") || rawParentOrg.startsWith("Automation") || rawParentOrg.startsWith("Performance") || rawParentOrg.startsWith("Digital") || rawParentOrg.startsWith("API") || rawParentOrg.startsWith("Site") || rawParentOrg.startsWith("Cyber") || rawParentOrg.startsWith("Web") || rawParentOrg.startsWith("Microservices") || rawParentOrg.startsWith("UI") || rawParentOrg.startsWith("Load") || rawParentOrg.startsWith("Frontend") || rawParentOrg.startsWith("DevOps") || rawParentOrg.startsWith("Container")
-                        ? rawParentOrg + runSeed : rawParentOrg;
-                String finalParentPos = autoPopulateProceed && rawParentPos.startsWith("Pos ")
-                        ? rawParentPos + runSeed : rawParentPos;
+                String finalParentOrg = (autoPopulateProceed && !"D1".equalsIgnoreCase(level)) ? rawParentOrg + runSeed : rawParentOrg;
+                String finalParentPos = (autoPopulateProceed && !"D1".equalsIgnoreCase(level)) ? rawParentPos + runSeed : rawParentPos;
 
                 if (autoPopulateProceed) {
                     UniqueSeedManager.registerOrgName(finalOrgName);
