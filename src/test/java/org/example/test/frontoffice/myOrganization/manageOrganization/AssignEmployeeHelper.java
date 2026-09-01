@@ -9,6 +9,7 @@ import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.ManageIncumbentModal;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.UnassignedEmployeeListModal;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ActionElementsPage;
+import org.example.pageObject.frontoffice.manageOrganization.enums.AssignmentTag;
 import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
@@ -280,15 +281,6 @@ public class AssignEmployeeHelper {
         return isDisplayed;
     }
 
-    public boolean verifyEmployeeInPositionVisible(String orgName, String positionName, String employeeNameOrId) {
-        logger.info("Step: Verifying if Employee [{}] is displayed in Org: {} Position: {}", employeeNameOrId, orgName, positionName);
-        assignEmployeePage.clickManageIncumbentOfNode(orgName);
-        manageIncumbentModal.expandPositionAccordion(positionName);
-        boolean isDisplayed = manageIncumbentModal.isIncumbentDisplayed(employeeNameOrId);
-        manageIncumbentModal.clickCloseButton();
-        return isDisplayed;
-    }
-
     public boolean verifyEmployeeInPositionNotVisible(String orgName, String positionName, String employeeNameOrId) {
         logger.info("Step: Verifying if Employee [{}] is NOT displayed in Org: {} Position: {}", employeeNameOrId, orgName, positionName);
         assignEmployeePage.clickManageIncumbentOfNode(orgName);
@@ -297,6 +289,45 @@ public class AssignEmployeeHelper {
         manageIncumbentModal.clickCloseButton();
         return isNotDisplayed;
     }
+
+    public boolean verifyEmployeeInPositionVisible(
+            String orgName,
+            String positionName,
+            String employeeNameOrId,
+            AssignmentTag expectedTag) {
+
+        logger.info("Step: Verifying if Employee [{}] with Tag [{}] is displayed in Org: {} Position: {}",
+                employeeNameOrId, expectedTag, orgName, positionName);
+        assignEmployeePage.clickManageIncumbentOfNode(orgName);
+        manageIncumbentModal.expandPositionAccordion(positionName);
+
+        boolean isEmployeeDisplayed = manageIncumbentModal.isIncumbentDisplayed(employeeNameOrId);
+        if (!isEmployeeDisplayed) {
+            logger.error("[FAILED] Employee [{}] is NOT displayed in Org: [{}] Position: [{}]", employeeNameOrId, orgName, positionName);
+            manageIncumbentModal.clickCloseButton();
+            return false;
+        }
+
+        logger.info("[PASSED] Employee [{}] is displayed in Org: [{}] Position: [{}]", employeeNameOrId, orgName, positionName);
+
+        boolean allTagsDisplayed = true;
+        if (expectedTag != null && expectedTag != AssignmentTag.NONE) {
+            for (String tag : expectedTag.getTags()) {
+                boolean isTagDisplayed = manageIncumbentModal.isTagDisplayed(employeeNameOrId, tag);
+                if (!isTagDisplayed) {
+                    logger.error("[FAILED] Tag [{}] is NOT displayed for Employee [{}] in Org: [{}] Position: [{}]", tag, employeeNameOrId, orgName, positionName);
+                    allTagsDisplayed = false;
+                } else {
+                    logger.info("[PASSED] Tag [{}] is displayed for Employee [{}]", tag, employeeNameOrId);
+                }
+            }
+        }
+
+        manageIncumbentModal.clickCloseButton();
+        return isEmployeeDisplayed && allTagsDisplayed;
+    }
+
+
 
 
 

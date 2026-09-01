@@ -25,7 +25,9 @@ public class ManageIncumbentModal extends BasePage {
     }
 
     public void clickCloseButton() {
-        click(closeButton);
+        if (isModalDisplayed()) {
+            click(closeButton);
+        }
     }
 
     public void expandPositionAccordion(String positionName) {
@@ -95,30 +97,26 @@ public class ManageIncumbentModal extends BasePage {
         return false;
     }
 
-    public boolean isTagNewDisplayed(String name) {
-        return isVisible (tagByName(name, "NEW"));
-    }
-
-    public boolean isTagPjsDisplayed(String name) {
-        return isVisible(tagByName(name, "PJS"));
-    }
-
-    public boolean isTagMoveDisplayed(String name) {
-        return isVisible(tagByName(name, "MOVE"));
-    }
-
-    private By tagByName(String name, String element) {
-        return By.xpath(
-                "//div[@role='dialog']" +
-                        "//button[.//div[contains(normalize-space(),\"" + name + "\")]]" +
-                        "/ancestor::div[@data-orientation='vertical'][1]" +
-                        switch (element.toLowerCase()) {
-                            case "tag" -> "//span[normalize-space()='New']";
-                            case "pjs" -> "//span[normalize-space()='PJS']";
-                            case "add" -> "//button[normalize-space()='Add Incumbent']";
-                            default -> throw new IllegalArgumentException("Unknown element: " + element);
-                        }
+    public boolean isTagDisplayed(String employeeNameOrId, String expectedTag) {
+        String lowerTag = expectedTag.toLowerCase();
+        String xpath = String.format(
+                "//div[@role='dialog']//section[.//h1[contains(., '%1$s')] or .//h2[contains(., '%1$s')]]//span[translate(normalize-space(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='%2$s' or normalize-space()='%3$s']",
+                employeeNameOrId,
+                lowerTag,
+                expectedTag
         );
+        return isVisible(By.xpath(xpath));
     }
 
+    public boolean isTagNewDisplayed(String employeeName) {
+        return isTagDisplayed(employeeName, "New");
+    }
+
+    public boolean isTagPjsDisplayed(String employeeName) {
+        return isTagDisplayed(employeeName, "PJS");
+    }
+
+    public boolean isTagMoveDisplayed(String employeeName) {
+        return isTagDisplayed(employeeName, "Move");
+    }
 }
