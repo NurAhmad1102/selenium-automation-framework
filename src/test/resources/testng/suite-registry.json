@@ -55,6 +55,11 @@
       "path": "src/test/resources/testng/frontoffice/manageOrganization/od-flow1-massive-changes.xml"
     },
     {
+      "id": "fo-od-flow3-justification",
+      "name": "[FO] OD Flow 3 - Organization Changes Justification",
+      "path": "src/test/resources/testng/frontoffice/manageOrganization/od-flow3-organization-changes-justification.xml"
+    },
+    {
       "id": "bo-sla-setting",
       "name": "[BO] SLA Setting",
       "path": "src/test/resources/testng/backoffice/manageOrganization/slaSetting/sla-setting.xml"
