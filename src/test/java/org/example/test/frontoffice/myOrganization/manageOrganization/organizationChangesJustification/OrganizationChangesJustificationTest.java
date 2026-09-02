@@ -10,16 +10,21 @@ import org.testng.annotations.Test;
 
 public class OrganizationChangesJustificationTest extends ManageOrganizationBaseTest {
 
-    @Test(groups = {"smoke"}, description = "End-to-End Validasi Flow 3 untuk Action ADD NEW (New Job Optional, New Position, Current & Proposed Structure, Proposed Employee Assignment)")
+    @Test(groups = {"smoke"}, description = "End-to-End Validasi Flow 3 untuk Action ADD NEW (New Job, New Position, Current & Proposed Structure, Proposed Employee Assignment)")
     public void validateAddOrganizationJustificationTest() {
         logger.info("Starting End-to-End Test: validateAddOrganizationJustificationTest");
 
         OrganizationTestData flow1Data = setOrganizationHelper().getTestData(OrgSheetName.ADD_NEW);
+        flow1Data.setJobName(createNewJobName);
         OrganizationTestData flow2Data = assignEmployeeHelper().getAssignEmployeeData("OUTSIDE");
 
         manageOrganizationHelper().goToFlow1SetOrganization();
         setOrganizationHelper().addNewOrganization(flow1Data);
-        setOrganizationHelper().fillJobPosition(flow1Data, OrgMenuAction.ADD_NEW);
+        setOrganizationHelper().fillJobPositionWithNewJob(
+                flow1Data,
+                OrgMenuAction.ADD_NEW,
+                flow1Data.getJobName(),
+                true);
         setOrganizationHelper().confirmAction(ConfirmAction.ADD);
 
         manageOrganizationHelper().goToFlow2AssignEmployee();
@@ -38,7 +43,7 @@ public class OrganizationChangesJustificationTest extends ManageOrganizationBase
         assignEmployeeHelper().confirmAction(ConfirmAction.ADD);
 
         manageOrganizationHelper().goToFlow3OrgChangesJustification();
-        justificationHelper().validateAddOrganizationJustificationFlow(flow1Data, flow2Data, false);
+        justificationHelper().validateAddOrganizationJustificationFlow(flow1Data, flow2Data, true);
 
         logger.info("End-to-End Test Passed: validateAddOrganizationJustificationTest");
     }

@@ -31,9 +31,17 @@ public class NewJobSection extends BasePage {
         }
     }
 
-    public boolean isJobDisplayed(String jobName) {
+    public boolean isNewJobAndOrganizationDisplayed(String newJobName, String organizationName) {
         expandNewJobSection();
-        String xpath = String.format("//div[contains(., 'New Job')]//div[contains(text(), '%s') or contains(., '%s')]", jobName, jobName);
+        String xpath = String.format(
+                "//div[.//button[normalize-space(.)='New Job']]" +
+                        "//div[.//*[normalize-space(text())='%s']]" +
+                        "[.//*[normalize-space(text())='%s']]",
+                newJobName,
+                organizationName
+        );
+
         return isVisible(By.xpath(xpath));
     }
+
 }

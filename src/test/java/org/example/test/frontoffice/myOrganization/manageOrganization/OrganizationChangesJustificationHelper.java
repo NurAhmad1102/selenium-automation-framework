@@ -84,7 +84,7 @@ public class OrganizationChangesJustificationHelper {
 
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
-        // opsional hanya jika add new job
+        // opsional hanya jika di flow 1 buat new job
         if (isNewJob) {
             validateNewJobSection(softAssert, flow1Data);
         }
@@ -102,26 +102,25 @@ public class OrganizationChangesJustificationHelper {
 
     // ==================== MODULAR SUB-METHODS ====================
 
-//    TODO: perdetail
     public void validateNewJobSection(CustomSoftAssert softAssert, OrganizationTestData flow1Data) {
         newJobSection.expandNewJobSection();
-        String jobName = flow1Data.getJobName() != null ? flow1Data.getJobName() : flow1Data.getJob();
-        if (jobName != null && !jobName.trim().isEmpty()) {
-            logger.info("Validating Optional New Job: [{}] in Flow 3", jobName);
-            softAssert.assertTrue(newJobSection.isJobDisplayed(jobName), "New Job [" + jobName + "] harus ditampilkan di Flow 3");
-        }
+        String jobName = flow1Data.getJobName() ;
+        String orgName = flow1Data.getNewOrganizationName();
+
+        logger.info("Validating Optional New Job: [{}] in Flow 3", jobName);
+        softAssert.assertTrue(newJobSection.isNewJobAndOrganizationDisplayed(jobName, orgName),
+                "New Job [" + jobName + "] di " +
+                        "Organization ["+ orgName +"] tidak muncul di Flow 3");
     }
 
     public void validateNewPositionSection(CustomSoftAssert softAssert, OrganizationTestData flow1Data) {
         newPositionSection.expandNewPositionSection();
-        String posName = flow1Data.getPositionName();
-        if (posName != null && !posName.trim().isEmpty()) {
+        String posName = flow1Data.getJobName();
             logger.info("Validating New Position Name & Details: [{}] in Flow 3", posName);
             softAssert.assertTrue(newPositionSection.isPositionDisplayed(posName), "New Position [" + posName + "] harus ditampilkan di Flow 3");
 
             // Sub-method validasi 6 atribut detail New Position dari data Excel flow1Data
             validateNewPositionDetails(softAssert, posName, flow1Data);
-        }
     }
 
     /**
@@ -147,7 +146,7 @@ public class OrganizationChangesJustificationHelper {
         String expectedOrg = flow1Data.getNewOrganizationName();
         String expectedJob = flow1Data.getJobName();
         String expectedLocation = flow1Data.getLocation();
-        String expectedFTE = flow1Data.getFte();
+        String expectedFTE = flow1Data.getFteNumbers();
         String expectedPositionType = flow1Data.getPositionNamingType();
 
 //        Actual data dari UI
@@ -175,17 +174,17 @@ public class OrganizationChangesJustificationHelper {
                             "Expected: [" + expectedJob + "], Actual: [" + actualJob + "]");
 
         // 4. Location
-            softAssert.assertEquals(actualLoc,flow1Data.getLocation(),
+            softAssert.assertEquals(actualLoc, expectedLocation,
                     "Location pada New Position tidak sesuai Excel. " +
                             "Expected: [" + expectedLocation + "], Actual: [" + actualLoc + "]");
 
         // 5. FTE
-            softAssert.assertEquals(actualFte,flow1Data.getFte(),
+            softAssert.assertEquals(actualFte,expectedFTE,
                     "FTE pada New Position tidak sesuai Excel. " +
                             "Expected: [" + expectedFTE + "], Actual: [" + actualFte + "]");
 
         // 6. Position Naming Type
-            softAssert.assertEquals(actualType, flow1Data.getPositionNamingType(),
+            softAssert.assertEquals(actualType, expectedPositionType,
                     "Position Naming Type pada New Position tidak sesuai Excel. " +
                             "Expected: [" + expectedPositionType + "], Actual: [" + actualType + "]");
 

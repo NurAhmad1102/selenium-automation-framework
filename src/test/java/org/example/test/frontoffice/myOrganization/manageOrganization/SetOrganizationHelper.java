@@ -133,10 +133,6 @@ public class SetOrganizationHelper {
         fillJobPosition(data, action, action == OrgMenuAction.ADD_NEW || action == OrgMenuAction.MERGE || action == OrgMenuAction.SPLIT, true);
     }
 
-//    public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte) {
-//        fillJobPosition(data, action, setFte, true);
-//    }
-
     public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte, boolean proceed) {
 
         if (action == OrgMenuAction.RENAME){
@@ -178,6 +174,39 @@ public class SetOrganizationHelper {
         if (proceed) {
             clickButtonProceedJobPosition(action);
         }
+    }
+
+    public void fillJobPositionWithNewJob(
+            OrganizationTestData data,
+            OrgMenuAction action,
+            String customJobName,
+            boolean setFte
+            ) {
+        if (action == OrgMenuAction.RENAME){
+            CustomAssert.assertTrue(renameFormModal.isRenameJobPositionVisible(), "Rename Job Position modal header is not displayed after click next to modal Job & Position details");
+        } else {
+            CustomAssert.assertTrue(addJobPositionModal.isModalHeaderDisplayed(), "Add Job Position modal header is not displayed after click next to modal Job & Position details");
+        }
+        logger.info("Phase: --- Filling Job & Position Details with New Job Creation: [{}] ---", customJobName);
+
+        var jobSection = addJobPositionModal.getJobSection(data.getJobIndex());
+        jobSection.createNewJobName(customJobName);
+
+        var positionSection = jobSection.getPosition(data.getPositionIndex());
+        positionSection.selectPositionNamingType(data.getPositionNamingType());
+        positionSection.selectLocation(data.getLocation());
+        positionSection.selectParentPositionName(data.getParentPosition());
+
+        if (setFte) {
+            logger.info("Step: Setting FTE to [{}]", data.getFteNumbers());
+            positionSection.setFTE(data.getFteNumbers());
+        }
+
+        if (action == OrgMenuAction.ADD_NEW) {
+            positionSection.selectDottedMatrix(data.isDottedMatrix());
+        }
+
+        clickButtonProceedJobPosition(action);
     }
 
     private void clickButtonProceedJobPosition(OrgMenuAction action) {

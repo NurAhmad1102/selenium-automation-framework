@@ -204,7 +204,9 @@ public class OrganizationTestData {
     public String getOrganizationName() { return organizationName; }
     public void setOrganizationName(String organizationName) { this.organizationName = organizationName; }
 
+    @Deprecated(since = "Use getFteNumbers() instead")
     public String getFte() { return fte; }
+    @Deprecated(since = "Use setFteNumbers() instead")
     public void setFte(String fte) { this.fte = fte; }
 
     public String getJob() { return job; }

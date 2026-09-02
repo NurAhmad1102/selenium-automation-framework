@@ -146,6 +146,7 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
 
 
     //    TODO: ganti data ini nanti, selama dev biarkan dulu
+    protected String createNewJobName = "Head Of Sales & Marketing Octo AHM";
     protected String duplicateOrganizationName = "Special Asset ID";
     protected String duplicatePositionName = "Head of Foreclosed Asset & Business Planning";
 
