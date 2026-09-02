@@ -171,15 +171,17 @@ public class AssignEmployeeHelper {
 
     public void addIncumbentsUntilNoDataFound(String orgName, String positionName, boolean isMobility, String category, boolean isPJS) {
         logger.info("Phase: --- Adding Incumbents to Position: [{}] in Org: [{}] until No Data Found ---", positionName, orgName);
-        assignEmployeePage.clickManageIncumbentOfNode(orgName);
+        if (!manageIncumbentModal.isModalDisplayed()) {
+            assignEmployeePage.clickManageIncumbentOfNode(orgName);
+        }
 
         while (!manageIncumbentModal.isAddIncumbentButtonDisabled(positionName)) {
             manageIncumbentModal.clickAddIncumbentButton(positionName);
             addIncumbentModal.clickIncumbentNameDropdown();
 
-            if (!addIncumbentModal.hasAvailableIncumbents()) {
+            //if still there is unassigned employee, this button will be clickable
+            if (!isViewUnassignedButtonClickable()) {
                 logger.info("No available incumbents / No data found in dropdown for position: [{}]. Finishing add incumbent process.", positionName);
-                addIncumbentModal.clickCancelButton();
                 break;
             }
 
@@ -194,10 +196,6 @@ public class AssignEmployeeHelper {
 
     public void addIncumbentsUntilNoDataFound(String orgName, String positionName, String category) {
         addIncumbentsUntilNoDataFound(orgName, positionName, true, category, false);
-    }
-
-    public void addIncumbentsUntilNoDataFound(String orgName, String positionName) {
-        addIncumbentsUntilNoDataFound(orgName, positionName, true, "Career Progression / Job", false);
     }
 
     public void moveIncumbentFromUnassigned(String employeeName, String targetLevel, String targetOrgName, String targetJobName, String targetPositionName, boolean isMobility, String category, boolean isPJS) {
