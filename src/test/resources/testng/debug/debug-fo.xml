@@ -23,7 +23,7 @@
                     <include name="validateRemoveOrganizationJustificationTest"/>
                 </methods>
             </class>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.nonExcel.MassiveOrgDataFactoryTest"/>
+<!--            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.nonExcel.MassiveOrgDataFactoryTest"/>-->
         </classes>
     </test>
 </suite>

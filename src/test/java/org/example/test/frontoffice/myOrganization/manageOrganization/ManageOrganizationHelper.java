@@ -13,6 +13,8 @@ import org.example.test.frontoffice.myOrganization.manageOrganization.data.model
 import org.example.utils.CustomAssert;
 
 import java.time.LocalDate;
+import java.time.format.TextStyle;
+import java.util.Locale;
 
 public class ManageOrganizationHelper {
     private final Logger logger = LogManager.getLogger(getClass());
@@ -55,7 +57,7 @@ public class ManageOrganizationHelper {
 
     public void setFilterUpdateOrganizationPage(boolean isNewProposal) {
         logger.info("Step: Setting filter update organization page");
-        int todayDate = LocalDate.now().getDayOfMonth();
+        String monthDate = LocalDate.now().getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
 
         if (!isNewProposal) {
             copyFromPreviousProposal();
@@ -63,7 +65,7 @@ public class ManageOrganizationHelper {
             OrganizationTestData filterData = ManageOrganizationExcelReader.getSingleData(OrgSheetName.SET_FILTER);
 
             filterUpdateOrganizationPage.clickEffectiveDateDropdown();
-            filterUpdateOrganizationPage.selectNewOrganizationEffectiveDate(todayDate);
+            filterUpdateOrganizationPage.selectNewOrganizationEffectiveDate(monthDate);
             filterUpdateOrganizationPage.clickCalenderApplyButton();
             
             logger.info("Step: Selecting Directorate: {}", filterData.getDirectorate());
@@ -78,7 +80,7 @@ public class ManageOrganizationHelper {
 
     public void setFilterUpdateOrganizationPage(boolean isNewProposal, String Directorate) {
         logger.info("Step: Setting filter update organization page");
-        int todayDate = LocalDate.now().getDayOfMonth();
+        String monthDate = LocalDate.now().getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
 
         if (!isNewProposal) {
             copyFromPreviousProposal();
@@ -86,7 +88,7 @@ public class ManageOrganizationHelper {
             OrganizationTestData filterData = ManageOrganizationExcelReader.getSingleData(OrgSheetName.SET_FILTER);
 
             filterUpdateOrganizationPage.clickEffectiveDateDropdown();
-            filterUpdateOrganizationPage.selectNewOrganizationEffectiveDate(todayDate);
+            filterUpdateOrganizationPage.selectNewOrganizationEffectiveDate(monthDate);
             filterUpdateOrganizationPage.clickCalenderApplyButton();
 
             logger.info("Step: Selecting Directorate: {}", Directorate);
