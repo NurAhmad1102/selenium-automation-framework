@@ -37,7 +37,7 @@ def generate_realistic_job_title(seq, run_seed=""):
     domain = DOMAIN_DISCIPLINES[(seq - 1) % len(DOMAIN_DISCIPLINES)]
     role = ROLE_SUFFIXES[(seq - 1) % len(ROLE_SUFFIXES)]
     base_title = f"{seniority} {domain} {role}"
-    return f"{base_title}{run_seed}" if run_seed else base_title
+    return f"{base_title}{run_seed}".strip() if run_seed else base_title
 
 def is_new_job_by_rate(seq_counter, percentage):
     if percentage <= 0:
@@ -78,7 +78,7 @@ def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME,
     with open(os.path.join(data_dir, 'Rc_codeLOV.txt'), 'r', encoding='utf-8') as f:
         rc_codes = [line.strip() for line in f if line.strip()]
 
-    run_seed = f"_{int(time.time() * 1000)}" if auto_populate_proceed else ""
+    run_seed = f" {int(time.time() * 1000)}" if auto_populate_proceed else ""
 
     wb = openpyxl.load_workbook(template_path)
     sheet_org = wb['Organization']
@@ -157,7 +157,7 @@ def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME,
     # =========================================================================
     # 2. ACTION: RENAME
     # =========================================================================
-    new_rename_org = f"New Rename ORG D3{run_seed}"
+    new_rename_org = f"New Rename ORG D3{run_seed}".strip()
     new_rename_pos = f"New Pos 1 {new_rename_org}"
     if rename_target in org_row_map:
         r = org_row_map[rename_target]
@@ -179,7 +179,7 @@ def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME,
     # =========================================================================
     # 3. ACTION: MERGE (2 Rows point to Same Merged Org)
     # =========================================================================
-    new_merge_org = f"New Merge ORG D3{run_seed}"
+    new_merge_org = f"New Merge ORG D3{run_seed}".strip()
     parent_pos_for_merge = "IT Audit Advisory Head - Tech Innovation, Emerging Tech, QA & COE O723"
 
     for merge_tgt in [merge_target_1, merge_target_2]:
@@ -199,8 +199,8 @@ def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME,
     # =========================================================================
     # 4. ACTION: SPLIT (Row 1 modifies existing, Row 2 appended)
     # =========================================================================
-    new_split_org1 = f"New Split ORG 1 D3{run_seed}"
-    new_split_org2 = f"New Split ORG 2 D3{run_seed}"
+    new_split_org1 = f"New Split ORG 1 D3{run_seed}".strip()
+    new_split_org2 = f"New Split ORG 2 D3{run_seed}".strip()
     parent_pos_for_split = "IT Audit Advisory Head - Tech Innovation, Emerging Tech, QA & COE O723"
 
     if split_target in org_row_map:
@@ -225,7 +225,7 @@ def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME,
     # =========================================================================
     # 5. ACTION: MOVE (Move D3 to D1 under Corporate Assurance ID)
     # =========================================================================
-    new_move_org = f"New Move ORG D1{run_seed}"
+    new_move_org = f"New Move ORG D1{run_seed}".strip()
     parent_pos_for_move = "Chief Audit Executive"
     new_parent_for_move = "Corporate Assurance ID"
 
@@ -243,7 +243,7 @@ def generate_multiaction_excel(output_filename=DEFAULT_OUTPUT_FILENAME,
     # =========================================================================
     # 6. ACTION: ADD_NEW
     # =========================================================================
-    new_add_org = f"New Add ORG D2{run_seed}"
+    new_add_org = f"New Add ORG D2{run_seed}".strip()
     parent_pos_for_add = "Head of Audit - Business Banking & Consumer Banking 1023"
 
     sheet_org.append((sheet_org.max_row - 4, "ADD_NEW", None, None, None, None, "D2", new_add_org, add_parent_target, rc_codes[2 % len(rc_codes)]))

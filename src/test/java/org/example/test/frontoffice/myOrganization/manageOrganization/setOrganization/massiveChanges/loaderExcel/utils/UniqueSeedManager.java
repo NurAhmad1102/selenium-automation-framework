@@ -21,7 +21,7 @@ public class UniqueSeedManager {
      * Generates a new unique seed incorporating timestamp and atomic sequence.
      */
     public static synchronized String generateUniqueSeed() {
-        activeSeed = "-" + System.currentTimeMillis() + "-" + COUNTER.getAndIncrement();
+        activeSeed = " " + System.currentTimeMillis() + " " + COUNTER.getAndIncrement();
         return activeSeed;
     }
 

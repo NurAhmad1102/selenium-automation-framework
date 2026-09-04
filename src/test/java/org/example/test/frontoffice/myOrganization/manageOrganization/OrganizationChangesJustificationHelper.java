@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.AssignEmployeePage;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.CurrentOrganizationSection;
 import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.NewJobSection;
 import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.NewPositionSection;
@@ -75,6 +76,7 @@ public class OrganizationChangesJustificationHelper {
             OrganizationTestData flow1Data,
             OrganizationTestData flow2Data,
             boolean isNewJob,
+            OrgMenuAction action,
             Consumer<CustomSoftAssert> orgStructureValidation)
     {
         logger.info("Executing Unified Complete Flow 3 End-to-End Validation (Excel Data Match)");
@@ -89,11 +91,10 @@ public class OrganizationChangesJustificationHelper {
             validateNewJobSection(softAssert, flow1Data);
         }
 
-        validateNewPositionSection(softAssert, flow1Data);
+        validateNewPositionSection(softAssert, flow1Data, action);
 
-        if (orgStructureValidation != null) {
-            orgStructureValidation.accept(softAssert);
-        }
+        orgStructureValidation.accept(softAssert);
+
 
         validateProposedEmployeeAssignmentSection(softAssert, flow1Data, flow2Data);
         softAssert.assertAll();
@@ -113,14 +114,14 @@ public class OrganizationChangesJustificationHelper {
                         "Organization ["+ orgName +"] tidak muncul di Flow 3");
     }
 
-    public void validateNewPositionSection(CustomSoftAssert softAssert, OrganizationTestData flow1Data) {
+    public void validateNewPositionSection(CustomSoftAssert softAssert, OrganizationTestData flow1Data, OrgMenuAction action) {
         newPositionSection.expandNewPositionSection();
         String posName = flow1Data.getJobName();
             logger.info("Validating New Position Name & Details: [{}] in Flow 3", posName);
             softAssert.assertTrue(newPositionSection.isPositionDisplayed(posName), "New Position [" + posName + "] harus ditampilkan di Flow 3");
 
             // Sub-method validasi 6 atribut detail New Position dari data Excel flow1Data
-            validateNewPositionDetails(softAssert, posName, flow1Data);
+            validateNewPositionDetails(softAssert, posName, flow1Data, action);
     }
 
     /**
@@ -132,7 +133,7 @@ public class OrganizationChangesJustificationHelper {
      * FTE,
      * Position Naming Type
      */
-    public void validateNewPositionDetails(CustomSoftAssert softAssert, String posName, OrganizationTestData flow1Data) {
+    public void validateNewPositionDetails(CustomSoftAssert softAssert, String posName, OrganizationTestData flow1Data, OrgMenuAction action) {
         newPositionSection.clickPositionItem(posName);
 
         final String orgNameLabel = "Organization Name";
@@ -149,6 +150,19 @@ public class OrganizationChangesJustificationHelper {
         String expectedFTE = flow1Data.getFteNumbers();
         String expectedPositionType = flow1Data.getPositionNamingType();
 
+        String defaultFTE = "1";
+        switch (action) {
+            case RENAME, MOVE -> expectedFTE = defaultFTE; // tidak ubah FTE
+            case MERGE, ADD_NEW -> expectedFTE = flow1Data.getFteNumbers(); // buat FTE baru
+            case SPLIT -> {
+                if (posName.equals(flow1Data.getJobName2())) {
+                    expectedFTE = flow1Data.getFteNumbers();
+                } else {
+                    expectedFTE = defaultFTE;
+                }
+            }
+        }
+
 //        Actual data dari UI
         String actualParent = newPositionSection.getPositionParentInfo(posName);
         String actualOrg = newPositionSection.getPositionDetailValue(posName, orgNameLabel);
@@ -158,34 +172,34 @@ public class OrganizationChangesJustificationHelper {
         String actualType = newPositionSection.getPositionDetailValue(posName, positionNamingTypeLabel);
 
         // 1. Parent Position
-            softAssert.assertEquals(actualParent,expectedParentPosition,
+            softAssert.assertEquals(actualParent, expectedParentPosition,
                     "Parent Position untuk [" + posName + "] tidak sesuai Excel. " +
                             "Expected: [" + expectedParentPosition + "], Actual: [" + actualParent + "]");
 
 
         // 2. Organization Name
             softAssert.assertEquals(actualOrg,expectedOrg,
-                    "Organization Name pada New Position tidak sesuai Excel. " +
+                    "Organization Name pada New Position [" + posName + "] tidak sesuai Excel. " +
                             "Expected: [" + expectedOrg + "], Actual: [" + actualOrg + "]");
 
         // 3. Job Name
             softAssert.assertEquals(actualJob,expectedJob,
-                    "Job Name pada New Position tidak sesuai Excel. " +
+                    "Job Name pada New Position [" + posName + "] tidak sesuai Excel. " +
                             "Expected: [" + expectedJob + "], Actual: [" + actualJob + "]");
 
         // 4. Location
             softAssert.assertEquals(actualLoc, expectedLocation,
-                    "Location pada New Position tidak sesuai Excel. " +
+                    "Location pada New Position [" + posName + "] tidak sesuai Excel. " +
                             "Expected: [" + expectedLocation + "], Actual: [" + actualLoc + "]");
 
         // 5. FTE
-            softAssert.assertEquals(actualFte,expectedFTE,
-                    "FTE pada New Position tidak sesuai Excel. " +
+            softAssert.assertEquals(actualFte, expectedFTE,
+                    "FTE pada New Position [" + posName + "] tidak sesuai Excel. " +
                             "Expected: [" + expectedFTE + "], Actual: [" + actualFte + "]");
 
         // 6. Position Naming Type
             softAssert.assertEquals(actualType, expectedPositionType,
-                    "Position Naming Type pada New Position tidak sesuai Excel. " +
+                    "Position Naming Type pada New Position [" + posName + "] tidak sesuai Excel. " +
                             "Expected: [" + expectedPositionType + "], Actual: [" + actualType + "]");
 
     }
@@ -322,37 +336,37 @@ public class OrganizationChangesJustificationHelper {
     // ==================== ACTION-SPECIFIC E2E FLOW WRAPPERS ====================
 
     public void validateAddOrganizationJustificationFlow(OrganizationTestData flow1Data, OrganizationTestData flow2Data, boolean isNewJob) {
-        validateFullJustificationFlow(flow1Data, flow2Data, isNewJob, softAssert -> {
+        validateFullJustificationFlow(flow1Data, flow2Data, isNewJob, OrgMenuAction.ADD_NEW,softAssert -> {
             verifyAddOrganizationStructureInJustification(softAssert, flow1Data.getPrimaryOrganization(), flow1Data.getNewOrganizationName());
         });
     }
 
     public void validateMergeOrganizationJustificationFlow(OrganizationTestData flow1Data, OrganizationTestData flow2Data, boolean isNewJob) {
-        validateFullJustificationFlow(flow1Data, flow2Data, isNewJob, softAssert -> {
+        validateFullJustificationFlow(flow1Data, flow2Data, isNewJob, OrgMenuAction.MERGE, softAssert -> {
             verifyMergeOrganizationStructureInJustification(softAssert, flow1Data.getPrimaryOrganization(), flow1Data.getMergeOrganizationWith(), flow1Data.getNewOrganizationName());
         });
     }
 
     public void validateSplitOrganizationJustificationFlow(OrganizationTestData flow1Data, OrganizationTestData flow2Data, boolean isNewJob) {
-        validateFullJustificationFlow(flow1Data, flow2Data, isNewJob, softAssert -> {
+        validateFullJustificationFlow(flow1Data, flow2Data, isNewJob, OrgMenuAction.SPLIT, softAssert -> {
             verifySplitOrganizationStructureInJustification(softAssert, flow1Data.getPrimaryOrganization(), flow1Data.getNewOrganizationName1(), flow1Data.getNewOrganizationName2());
         });
     }
 
     public void validateRenameOrganizationJustificationFlow(OrganizationTestData flow1Data, OrganizationTestData flow2Data, boolean isNewJob) {
-        validateFullJustificationFlow(flow1Data, flow2Data, isNewJob, softAssert -> {
+        validateFullJustificationFlow(flow1Data, flow2Data, isNewJob, OrgMenuAction.RENAME, softAssert -> {
             verifyRenameOrganizationStructureInJustification(softAssert, flow1Data.getPrimaryOrganization(), flow1Data.getNewOrganizationName());
         });
     }
 
     public void validateMoveOrganizationJustificationFlow(OrganizationTestData flow1Data, OrganizationTestData flow2Data, boolean isNewJob) {
-        validateFullJustificationFlow(flow1Data, flow2Data, isNewJob, softAssert -> {
+        validateFullJustificationFlow(flow1Data, flow2Data, isNewJob, OrgMenuAction.MOVE, softAssert -> {
             verifyMoveOrganizationStructureInJustification(softAssert, flow1Data.getPrimaryOrganization(), flow1Data.getNewOrganizationName());
         });
     }
 
     public void validateRemoveOrganizationJustificationFlow(OrganizationTestData flow1Data, OrganizationTestData flow2Data) {
-        validateFullJustificationFlow(flow1Data, flow2Data, false, softAssert -> {
+        validateFullJustificationFlow(flow1Data, flow2Data, false, OrgMenuAction.REMOVE, softAssert -> {
             verifyRemoveOrganizationStructureInJustification(softAssert, flow1Data.getPrimaryOrganization());
         });
     }

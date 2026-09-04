@@ -53,6 +53,7 @@ public class OrganizationChangesJustificationTest extends ManageOrganizationBase
         logger.info("Starting End-to-End Test: validateMergeOrganizationJustificationTest");
 
         OrganizationTestData flow1Data = setOrganizationHelper().getTestData(OrgSheetName.MERGE);
+        flow1Data.setFteNumbers("8");
         OrganizationTestData flow2Data = assignEmployeeHelper().getAssignEmployeeData("UNASSIGNED");
 
         manageOrganizationHelper().goToFlow1SetOrganization();
@@ -138,8 +139,8 @@ public class OrganizationChangesJustificationTest extends ManageOrganizationBase
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
 //        verify position
-        justificationHelper().validateNewPositionDetails(softAssert, org1Data.getJobName(), org1Data);
-        justificationHelper().validateNewPositionDetails(softAssert, org2Data.getJobName(), org2Data);
+        justificationHelper().validateNewPositionDetails(softAssert, org1Data.getJobName(), org1Data, OrgMenuAction.SPLIT);
+        justificationHelper().validateNewPositionDetails(softAssert, org2Data.getJobName(), org2Data, OrgMenuAction.SPLIT);
 
 //        verify org
         justificationHelper().verifySplitOrganizationStructureInJustification(
@@ -151,7 +152,7 @@ public class OrganizationChangesJustificationTest extends ManageOrganizationBase
 //        verify proposed employee assigm
         justificationHelper().validateProposedEmployeeAssignmentSection(softAssert, org1Data, flow2Data, false);
         justificationHelper().validateProposedEmployeeAssignmentSection(softAssert, org2Data, flow2Data, true);
-
+        softAssert.assertAll();
         logger.info("End-to-End Test Passed: validateSplitOrganizationJustificationTest");
     }
 

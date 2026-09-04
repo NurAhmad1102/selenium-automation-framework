@@ -58,7 +58,7 @@ Seluruh parameter eksekusi dan path file ditampung secara terpusat:
 
 Untuk menjamin bahwa nama organisasi dan posisi **TIDAK PERNAH DUPLIKAT** (baik antar-flow Non-Excel vs Excel, maupun antar-run lintas hari), digunakan pilar **Precision Timestamp Suffixing**:
 
-$$\text{Suffix Unik} = \text{\_`[SYSTEM_TIMESTAMP_MILLIS]`\_`[ATOMIC_COUNTER]`}$$
+$$\text{Suffix Unik} = \text{\ `[SYSTEM_TIMESTAMP_MILLIS]`\ `[ATOMIC_COUNTER]`}$$
 
 - **Keunggulan**:
   1. **Hukum Fisika Waktu**: Jam komputer (`System.currentTimeMillis()`) selalu berjalan maju dan tidak pernah berulang.

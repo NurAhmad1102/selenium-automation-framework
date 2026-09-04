@@ -28,7 +28,28 @@ public class BasePage {
         wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT));
     }
 
+    private static final ThreadLocal<String> lastInteractedLocator = new ThreadLocal<>();
+
+    public static String getLastInteractedLocator() {
+        return lastInteractedLocator.get();
+    }
+
+    public static void setLastInteractedLocator(Object target) {
+        if (target != null) {
+            String str = target.toString().trim();
+            int arrowIdx = str.indexOf("-> ");
+            if (arrowIdx >= 0) {
+                str = str.substring(arrowIdx + 3);
+                if (str.endsWith("]")) {
+                    str = str.substring(0, str.length() - 1).trim();
+                }
+            }
+            lastInteractedLocator.set(str);
+        }
+    }
+
     protected void click(WebElement element){
+        setLastInteractedLocator(element);
         String description = getElementDescription(element);
         try {
             logger.info("Clicking element: {}", description);
@@ -49,6 +70,7 @@ public class BasePage {
     }
 
     protected void click(By locator){
+        setLastInteractedLocator(locator);
         try {
             WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
             String description = getElementDescription(element);
@@ -70,6 +92,7 @@ public class BasePage {
 
 //     This method is specifically for cases where standard click consistently fails due to complex UI layers, and we want to bypass Selenium's clickability checks.
     protected void clickWithJS(By locator) {
+        setLastInteractedLocator(locator);
         try {
             logger.debug("Forcing JS Click on locator: {}", locator);
             WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
@@ -84,6 +107,7 @@ public class BasePage {
     }
 
     protected void typeText(WebElement element, String text){
+        setLastInteractedLocator(element);
         String description = getElementDescription(element);
         try {
             logger.info("Typing '{}' into element: {}", text, description);
@@ -96,6 +120,7 @@ public class BasePage {
     }
 
     protected String getAttributeValue(WebElement element, String attribute){
+        setLastInteractedLocator(element);
         try {
             logger.debug("Getting attribute '{}' from element: {}", attribute, getElementDescription(element));
             String value = element.getAttribute(attribute);
@@ -108,6 +133,7 @@ public class BasePage {
     }
 
     protected String getText(WebElement element) {
+        setLastInteractedLocator(element);
         try {
             logger.debug("Getting text from element: {}", getElementDescription(element));
             String text = wait.until(ExpectedConditions.visibilityOf(element)).getText();
@@ -120,6 +146,7 @@ public class BasePage {
     }
 
     protected String getText(By locator) {
+        setLastInteractedLocator(locator);
         try {
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             String description = getElementDescription(element);
@@ -135,6 +162,7 @@ public class BasePage {
 
 //    IS VISIBLE
     protected boolean isVisible(WebElement element){
+        setLastInteractedLocator(element);
         String description = getElementDescription(element);
         try {
             boolean visible = wait.until(ExpectedConditions.visibilityOf(element)).isDisplayed();
@@ -149,6 +177,7 @@ public class BasePage {
     }
 
     protected boolean isVisible(By locator) {
+        setLastInteractedLocator(locator);
         try {
             boolean visible = wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
             String description = getElementDescription(driver.findElement(locator));
@@ -164,7 +193,7 @@ public class BasePage {
 
 // INVISIBLE
     protected boolean isNotVisible(WebElement element){
-
+        setLastInteractedLocator(element);
         try {
             boolean invisible = wait.until(ExpectedConditions.invisibilityOf(element));
             logger.debug("Check invisibility: Element [{}] is hidden", element);
@@ -178,7 +207,7 @@ public class BasePage {
     }
 
     protected boolean isNotVisible(By locator) {
-
+        setLastInteractedLocator(locator);
         try {
             boolean invisible = wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
             logger.debug("Check invisibility: Locator [{}] is hidden", locator);
@@ -203,8 +232,15 @@ public class BasePage {
         // Log clean plain text to Log4j2 console/file
         logger.error(logConsoleMessage);
         
+        // Capture 6 diagnostic pillars of the element at failure
+        org.example.utils.report.internal.model.ElementSnapshot snapshot = null;
+        try {
+            snapshot = org.example.utils.report.core.ElementSnapshotInspector.captureSnapshot(
+                    driver, target, action, e, java.time.Duration.ofSeconds(DEFAULT_TIMEOUT), null);
+        } catch (Exception ignored) {}
+
         // Log to Structured Element Logs tab
-        ReportAPI.elementError(action, locatorInfo, e);
+        ReportAPI.elementError(action, locatorInfo, e, snapshot);
         
         throw new RuntimeException(logConsoleMessage, e);
     }

@@ -46,8 +46,6 @@ KCP - S&D - Tulungagung - Sudirman - TLA
 KCP - S&D - Medan - Sutomo Ujung - MSU
 KCP - S&D - Pasuruan - Pasar Besar - PSR
 KCP - S&D - Cirebon - Balong Indah Plaza - CBL
-Kantor Fungsional Non Operasional - Collection - Makassar
-Kantor Fungsional Non Operasional - SPAPM - Puri Indah
 KCP - S&D - Surabaya - Manyar Kertoardjo - MAR
 KCP - S&D - Manado - Sam Ratulangi - MAN
 KCP - S&D - Surabaya - Klampis - SKA

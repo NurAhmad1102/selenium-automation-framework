@@ -38,7 +38,7 @@ def generate_realistic_job_title(seq, run_seed=""):
     domain = DOMAIN_DISCIPLINES[(seq - 1) % len(DOMAIN_DISCIPLINES)]
     role = ROLE_SUFFIXES[(seq - 1) % len(ROLE_SUFFIXES)]
     base_title = f"{seniority} {domain} {role}"
-    return f"{base_title}{run_seed}" if run_seed else base_title
+    return f"{base_title}{run_seed}".strip() if run_seed else base_title
 
 def is_new_job_by_rate(seq_counter, percentage):
     if percentage <= 0:
@@ -203,7 +203,7 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME,
     start_no_org = len(org_rows_to_keep) - 4
     start_no_pos = len(pos_rows_to_keep) - 4
 
-    run_seed = f"_{int(time.time() * 1000)}" if auto_populate_proceed else ""
+    run_seed = f" {int(time.time() * 1000)}" if auto_populate_proceed else ""
 
     created_map = {}
     pos_seq_counter = 0
@@ -211,7 +211,7 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME,
 
     for idx, (level, raw_org_name, raw_parent_org, raw_parent_pos) in enumerate(org_data, start=1):
         rc = rc_codes[(idx - 1) % len(rc_codes)]
-        org_name = f"{raw_org_name}{run_seed}" if auto_populate_proceed else raw_org_name
+        org_name = f"{raw_org_name}{run_seed}".strip() if auto_populate_proceed else raw_org_name
         parent_org = created_map.get(raw_parent_org, raw_parent_org)
         parent_pos = created_map.get(raw_parent_pos, raw_parent_pos)
 
@@ -248,7 +248,7 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME,
             else:
                 raw_pos_name = f"Pos {raw_org_name} {k}"
 
-            pos_name = f"{raw_pos_name}{run_seed}" if auto_populate_proceed else raw_pos_name
+            pos_name = f"{raw_pos_name}{run_seed}".strip() if auto_populate_proceed else raw_pos_name
 
             if k == 1:
                 # Primary Head Position reports to Parent Org's position

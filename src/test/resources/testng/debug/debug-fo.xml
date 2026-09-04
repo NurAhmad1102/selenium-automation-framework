@@ -16,8 +16,8 @@
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.organizationChangesJustification.OrganizationChangesJustificationTest">
                 <methods>
 <!--                    <include name="validateRenameOrganizationJustificationTest"/>-->
-<!--                    <include name="validateSplitOrganizationJustificationTest"/>-->
-                    <include name="validateAddOrganizationJustificationTest"/>
+                    <include name="validateSplitOrganizationJustificationTest"/>
+<!--                    <include name="validateAddOrganizationJustificationTest"/>-->
 <!--                    <include name="validateMoveOrganizationJustificationTest"/>-->
 <!--                    <include name="validateMergeOrganizationJustificationTest"/>-->
 <!--                    <include name="validateRemoveOrganizationJustificationTest"/>-->

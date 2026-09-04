@@ -96,14 +96,24 @@ public class ReportAPI {
     }
 
     public static void elementError(String locator, Throwable error) {
-        elementError(null, locator, error);
+        elementError(null, locator, error, null);
     }
 
     public static void elementError(String action, String locator, Throwable error) {
+        elementError(action, locator, error, null);
+    }
+
+    public static void elementError(String action, String locator, Throwable error, org.example.utils.report.internal.model.ElementSnapshot snapshot) {
+        elementError(action, locator, error, snapshot, null);
+    }
+
+    public static void elementError(String action, String locator, Throwable error, org.example.utils.report.internal.model.ElementSnapshot snapshot, String screenshotPath) {
         LogEntry entry = new LogEntry(LogCategory.ELEMENT_LOGS, Status.FAIL, "Element Error Occurred");
         entry.setAction(action);
         entry.setLocator(locator);
         entry.setError(error);
+        entry.setElementSnapshot(snapshot);
+        entry.setScreenshotPath(screenshotPath);
         applyOutcome(entry, OutcomeStatus.FAIL, OutcomeCategory.ELEMENT, "Element Error Occurred", true);
         post(entry);
     }
@@ -162,6 +172,24 @@ public class ReportAPI {
         entry.setScreenshotPath(path);
         applyOutcome(entry, OutcomeStatus.INFO, OutcomeCategory.DIAGNOSTIC, "Screenshot captured", false);
         post(entry);
+    }
+
+    public static void attachScreenshotToLastFailureOrAdd(String path) {
+        if (path == null || path.isBlank()) return;
+        ReportData data = ThreadLocalStore.get();
+        if (data != null) {
+            java.util.List<LogEntry> logs = data.getLogs();
+            for (int i = logs.size() - 1; i >= 0; i--) {
+                LogEntry entry = logs.get(i);
+                if (entry.getCategory() == LogCategory.ELEMENT_LOGS && (entry.getError() != null || entry.getStatus() == Status.FAIL)) {
+                    if (entry.getScreenshotPath() == null || entry.getScreenshotPath().isBlank()) {
+                        entry.setScreenshotPath(path);
+                    }
+                    return;
+                }
+            }
+        }
+        addScreenshot(path);
     }
 
     public static void flush() {

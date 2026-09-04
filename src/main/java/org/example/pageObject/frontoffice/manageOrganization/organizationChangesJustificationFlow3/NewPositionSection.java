@@ -57,8 +57,8 @@ public class NewPositionSection extends BasePage {
         expandNewPositionSection();
 
         String xpath = String.format(
-                "//div[contains(@class, 'border') and .//h3[contains(normalize-space(), '%s')]]" +
-                        "//p[contains(text(), 'Parent Position')]",
+                "//h3[contains(normalize-space(), \"%s\")]" +
+                        "/following-sibling::p[contains(normalize-space(), 'Parent Position')]",
                 positionName
         );
 
@@ -75,8 +75,7 @@ public class NewPositionSection extends BasePage {
         clickPositionItem(positionName);
 
         String xpath = String.format(
-                "//div[contains(@class, 'border') and .//h3[normalize-space()='%s']]" +
-                        "//p[normalize-space()='%s']/following-sibling::p[1]",
+                "//div[button[.//h3[normalize-space()='%s']]]//p[normalize-space()='%s']/following-sibling::p[1]",
                 positionName,
                 detailLabel
         );

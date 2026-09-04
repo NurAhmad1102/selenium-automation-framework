@@ -148,6 +148,12 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         );
         assignEmployeeHelper().confirmAction(ConfirmAction.REMOVE);
 
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        softAssert.assertFalse(
+                assignEmployeeHelper().isViewUnassignedButtonClickable(),
+                "There is no incumbent. View Button should be disabled!"
+        );
+
         assignEmployeeHelper().addIncumbent(
                 sourceOrg,
                 sourcePosition,
@@ -158,23 +164,16 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         );
         assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
 
-        CustomSoftAssert softAssert = new CustomSoftAssert();
-
+        //"Move" cause employee has another assignment in the same org tree, if no "New"
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier, AssignmentTag.NEW),
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Manage Incumbent di position: " + sourcePosition +
-                        " pada org " + sourceOrg + "!"
-        );
-
-        softAssert.assertFalse(
-                assignEmployeeHelper().verifyEmployeeInUnassignedListVisible(employeeIdentifier),
-                "Employee " + employeeIdentifier +
-                        " muncul di Unassigned List!"
+                        " pada org " + sourceOrg + "dengan Tag "+ AssignmentTag.MOVE + "!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, sourceOrg),
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, sourceOrg),
                 "Audit Log Employee Assignment untuk Change Assignment Type tidak sesuai!"
         );
 

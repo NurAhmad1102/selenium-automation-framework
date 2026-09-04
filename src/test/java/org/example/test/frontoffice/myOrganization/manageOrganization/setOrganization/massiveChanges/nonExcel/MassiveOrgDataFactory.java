@@ -160,8 +160,8 @@ public class MassiveOrgDataFactory {
         for (int i = 0; i < specs.size(); i++) {
             NodeSpec spec = specs.get(i);
 
-            String orgName = spec.domain + " " + spec.level + runId;
-            String posName = "Pos " + spec.domain + " " + spec.level + runId;
+            String orgName = (spec.domain + " " + spec.level + runId).trim();
+            String posName = ("Pos " + spec.domain + " " + spec.level + runId).trim();
 
             String parentOrg = (spec.parentIndex == -1) ? d0Org : result.get(spec.parentIndex).getOrgName();
             String parentPos = (spec.parentIndex == -1) ? d0Pos : result.get(spec.parentIndex).getPositionName();

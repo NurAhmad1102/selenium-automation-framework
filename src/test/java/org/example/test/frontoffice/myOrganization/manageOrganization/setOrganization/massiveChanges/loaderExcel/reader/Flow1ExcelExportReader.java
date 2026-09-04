@@ -175,10 +175,10 @@ public class Flow1ExcelExportReader {
                 String location = (posData != null) ? posData.location : "";
                 String fte = (posData != null && !posData.fte.isEmpty()) ? posData.fte : "1";
 
-                String finalOrgName = autoPopulateProceed ? rawOrgName + runSeed : rawOrgName;
-                String finalPosName = autoPopulateProceed ? rawPosName + runSeed : rawPosName;
-                String finalParentOrg = (autoPopulateProceed && !"D1".equalsIgnoreCase(level)) ? rawParentOrg + runSeed : rawParentOrg;
-                String finalParentPos = (autoPopulateProceed && !"D1".equalsIgnoreCase(level)) ? rawParentPos + runSeed : rawParentPos;
+                String finalOrgName = autoPopulateProceed ? (rawOrgName + runSeed).trim() : rawOrgName;
+                String finalPosName = autoPopulateProceed ? (rawPosName + runSeed).trim() : rawPosName;
+                String finalParentOrg = (autoPopulateProceed && !"D1".equalsIgnoreCase(level)) ? (rawParentOrg + runSeed).trim() : rawParentOrg;
+                String finalParentPos = (autoPopulateProceed && !"D1".equalsIgnoreCase(level)) ? (rawParentPos + runSeed).trim() : rawParentPos;
 
                 if (autoPopulateProceed) {
                     UniqueSeedManager.registerOrgName(finalOrgName);
