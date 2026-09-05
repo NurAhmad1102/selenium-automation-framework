@@ -1,11 +1,12 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -21,16 +22,23 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
         this.data.set(setOrganizationHelper().getTestData(OrgSheetName.ADD_NEW));
     }
 
+    @AfterMethod(alwaysRun = true)
+    public void cleanAddOrganizationContext() {
+        data.remove();
+    }
+
     @Test(groups = {"smoke"},description = "Verify that user can add new organization with valid data")
     public void addNewOrganizationTest() {
         logger.info("Starting test: addNewOrganization");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         setOrganizationHelper().addNewOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.ADD_NEW);
 
         setOrganizationHelper().confirmAction(ConfirmAction.ADD);
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
+
+        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
 
         setOrganizationHelper().clickChangeLogButton();
         CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("New Organization", data.get().getNewOrganizationName(), data.get().getPrimaryOrganization()), "Changes Log for New Organization is not displayed correctly");
@@ -39,7 +47,7 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     @Test(description = "Verify that user cannot add new organization with existing organization name")
     public void addOrganizationWithExistingOrganizationNameTest() {
         logger.info("Starting test: addExistingOrganization");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         data.get().setNewOrganizationName(duplicateOrganizationName);
         setOrganizationHelper().addNewOrganization(data.get());
@@ -49,7 +57,7 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     @Test(description = "Verify that user cannot add new position with existing position name under the same or others organization")
     public void addOrganizationWithExistingPositionNameTest() {
         logger.info("Starting test: addExistingPositionName");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
         CustomAssert.assertTrue(setOrganizationFlow1Page().isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
 
         data.get().setNewOrganizationName("NEW ORG POS TEST " + System.currentTimeMillis());

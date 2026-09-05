@@ -39,17 +39,6 @@ public abstract class BackOfficeBaseTest extends BaseTest {
         }
     }
 
-    // TAMBAH DARI FACTORIES FRONT OFFICE
-    @Deprecated
-    protected BackOfficeLoginPagesFactory loginPages() {
-        return getMainPages().login();
-    }
-
-    @Deprecated
-    protected SideMenuFactory sideMenu() {
-        return getMainPages().sideMenu();
-    }
-
     protected void useBackOfficeUser(String alias, UserRole role) {
         super.useBackOfficeUser(alias, role);
     }

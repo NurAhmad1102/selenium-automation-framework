@@ -5,7 +5,11 @@ import org.apache.logging.log4j.Logger;
 import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.DashboardManageOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.FilterUpdateOrganizationPage;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ActionElementsPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
+import org.example.test.frontoffice.myOrganization.manageOrganization.data.ManageOrganizationExcelReader;
+import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
 
 import java.time.LocalDate;
@@ -16,17 +20,23 @@ public class ManageOrganizationHelper {
     private final FilterUpdateOrganizationPage filterUpdateOrganizationPage;
     private final SetOrganizationPage setOrganizationPage;
 
-//    TODO: ganti data ini nanti, selama dev biarkan dulu
-    String directorate = "O522 Network & Digital Banking ID";
-    String sub_directorate = "1222 Branch Transformation & Network Planning ID";
+    private final ActionElementsPage actionElementsPage;
+    private final SetOrganizationHelper setOrganizationHelper;
 
-    protected ManageOrganizationHelper(FrontOfficeMainPagesFactory mainPagesFactory) {
+    public ManageOrganizationHelper(FrontOfficeMainPagesFactory mainPagesFactory) {
+        this(mainPagesFactory, new SetOrganizationHelper(mainPagesFactory));
+    }
+
+    public ManageOrganizationHelper(FrontOfficeMainPagesFactory mainPagesFactory, SetOrganizationHelper setOrganizationHelper) {
         this.dashboardManageOrganizationPage = mainPagesFactory.manageOrganization()
                 .getDashboardManageOrganizationPage();
         this.filterUpdateOrganizationPage = mainPagesFactory.manageOrganization()
                 .getFilterUpdateOrganizationPage();
         this.setOrganizationPage = mainPagesFactory.manageOrganization()
                 .getSetOrganizationFlow1Page();
+        this.actionElementsPage = mainPagesFactory.manageOrganization()
+                .getActionElementsPage();
+        this.setOrganizationHelper = setOrganizationHelper;
     }
 
     protected boolean isManageOrganizationPageDisplayed() {
@@ -50,15 +60,18 @@ public class ManageOrganizationHelper {
         if (!isNewProposal) {
             copyFromPreviousProposal();
         } else {
+            OrganizationTestData filterData = ManageOrganizationExcelReader.getSingleData(OrgSheetName.SET_FILTER);
+
             filterUpdateOrganizationPage.clickEffectiveDateDropdown();
             filterUpdateOrganizationPage.selectNewOrganizationEffectiveDate(todayDate);
             filterUpdateOrganizationPage.clickCalenderApplyButton();
             
-            logger.info("Step: Selecting Directorate: {}", directorate);
-            filterUpdateOrganizationPage.selectDirectorate(directorate);
+            logger.info("Step: Selecting Directorate: {}", filterData.getDirectorate());
+            filterUpdateOrganizationPage.selectDirectorate(filterData.getDirectorate());
             
-            logger.info("Step: Selecting Sub Directorate: {}", sub_directorate);
-            filterUpdateOrganizationPage.selectSubDirectorate(sub_directorate);
+            logger.info("Step: Selecting Sub Directorate: {}", filterData.getSubDirectorate());
+            filterUpdateOrganizationPage.selectSubDirectorate(filterData.getSubDirectorate());
+
             filterUpdateOrganizationPage.clickGeneratePreviewButton();
         }
     }
@@ -68,12 +81,25 @@ public class ManageOrganizationHelper {
         filterUpdateOrganizationPage.selectRequestType("Copy From Previous Proposal");
     }
 
+    public OrganizationTestData getSheetByName(OrgSheetName sheet){
+        logger.info("Get data from Manage Organization Excel");
+        OrganizationTestData dataExcel = setOrganizationHelper.getTestData(sheet);
+        return dataExcel;
+    }
+
 //  ####### Perform Steps Helper #######
 
-    public void goToFlow1(){
+    public void goToFlow1SetOrganization(){
         navigateToUpdateOrganization();
         setFilterUpdateOrganizationPage(true);
         filterUpdateOrganizationPage.clickNextButton();
         CustomAssert.assertTrue(setOrganizationPage.isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
+    }
+
+    public void goToFlow2AssignEmployee() {
+        logger.info("Step: Navigating from Flow 1 Canvas to Flow 2 (Assign Employee)");
+        actionElementsPage.clickNextButton();
+        setOrganizationHelper.nextToAssignEmployee();
+        actionElementsPage.clickYesButtonPopUp();
     }
 }

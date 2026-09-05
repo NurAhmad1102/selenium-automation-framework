@@ -1,7 +1,7 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.data;
 
 import org.apache.poi.ss.usermodel.*;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.resource.ResourcePathResolver;
 
@@ -22,8 +22,7 @@ public class ManageOrganizationExcelReader {
 
     public static OrganizationTestData getDataByRow(OrgSheetName sheet, int rowIndex) {
         String sheetName = sheet.getSheetName();
-        DATA_CACHE.putIfAbsent(sheetName, readExcelData(sheet));
-        List<OrganizationTestData> list = DATA_CACHE.get(sheetName);
+        List<OrganizationTestData> list = DATA_CACHE.computeIfAbsent(sheetName, k -> readExcelData(sheet));
         if (list == null || list.isEmpty()) {
             throw new IllegalStateException("No test data found in Excel sheet: " + sheetName);
         }
@@ -34,8 +33,7 @@ public class ManageOrganizationExcelReader {
         OrganizationTestData data = list.get(rowIndex);
 
         if (sheet != OrgSheetName.JOB_POSITION) {
-            DATA_CACHE.putIfAbsent(OrgSheetName.JOB_POSITION.getSheetName(), readExcelData(OrgSheetName.JOB_POSITION));
-            List<OrganizationTestData> jobPositionList = DATA_CACHE.get(OrgSheetName.JOB_POSITION.getSheetName());
+            List<OrganizationTestData> jobPositionList = DATA_CACHE.computeIfAbsent(OrgSheetName.JOB_POSITION.getSheetName(), k -> readExcelData(OrgSheetName.JOB_POSITION));
             if (jobPositionList != null && !jobPositionList.isEmpty()) {
                 int jobPosIndex = Math.min(rowIndex, jobPositionList.size() - 1);
                 mergeJobPositionDefaults(data, jobPositionList.get(jobPosIndex));
@@ -47,8 +45,7 @@ public class ManageOrganizationExcelReader {
 
     public static OrganizationTestData getDataByAction(OrgSheetName sheet, String actionName) {
         String sheetName = sheet.getSheetName();
-        DATA_CACHE.putIfAbsent(sheetName, readExcelData(sheet));
-        List<OrganizationTestData> list = DATA_CACHE.get(sheetName);
+        List<OrganizationTestData> list = DATA_CACHE.computeIfAbsent(sheetName, k -> readExcelData(sheet));
         if (list == null || list.isEmpty()) {
             throw new IllegalStateException("No test data found in Excel sheet: " + sheetName);
         }
@@ -247,8 +244,7 @@ public class ManageOrganizationExcelReader {
 
     public static OrganizationTestData getDataByType(OrgSheetName sheet, String typeName) {
         String sheetName = sheet.getSheetName();
-        DATA_CACHE.putIfAbsent(sheetName, readExcelData(sheet));
-        List<OrganizationTestData> list = DATA_CACHE.get(sheetName);
+        List<OrganizationTestData> list = DATA_CACHE.computeIfAbsent(sheetName, k -> readExcelData(sheet));
         if (list == null || list.isEmpty()) {
             throw new IllegalStateException("No test data found in Excel sheet: " + sheetName);
         }

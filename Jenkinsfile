@@ -6,10 +6,19 @@ pipeline {
   }
 
   parameters {
+    gitParameter(
+      name: 'BRANCH',
+      type: 'PT_BRANCH',
+      defaultValue: 'development',
+      branchFilter: 'origin/(.*)',
+      sortMode: 'ASCENDING_SMART',
+      selectedValue: 'TOP',
+      description: 'Pilih branch Git yang ingin dieksekusi'
+    )
     choice(
       name: 'TESTNG_XML',
       choices: [
-        'sync-registry'
+        'sync-registry | [SYNC] Refresh Jenkins Dropdown UI Only (No Test Execution)'
       ],
       description: 'Pilih file TestNG XML yang ingin dijalankan'
     )
@@ -22,6 +31,11 @@ pipeline {
       name: 'HEADLESS',
       defaultValue: true,
       description: 'Jalankan pengujian dalam mode Headless (tanpa GUI)'
+    )
+    choice(
+      name: 'RERUN_COUNT',
+      choices: ['1', '0', '2'],
+      description: 'Jumlah percobaan ulang otomatis untuk test yang gagal'
     )
   }
 
@@ -118,9 +132,15 @@ pipeline {
     stage('Sync & Resolve Suite Path') {
       steps {
         script {
-          def selectedSuiteId = (params.TESTNG_XML != null && !params.TESTNG_XML.toString().trim().isEmpty()) ? params.TESTNG_XML : 'sync-registry'
+          def rawSelected = (params.TESTNG_XML != null && !params.TESTNG_XML.toString().trim().isEmpty()) ? params.TESTNG_XML.toString().trim() : 'sync-registry'
+          def selectedSuiteId = rawSelected.contains('|') ? rawSelected.split('\\|')[0].trim() : rawSelected
           def targetXml = selectedSuiteId
           def registryPath = 'src/test/resources/testng/suite-registry.json'
+
+          // Defensively sanitize any remaining pipe or description suffix
+          if (targetXml.contains('|')) {
+            targetXml = targetXml.split('\\|')[0].trim()
+          }
 
           if (fileExists(registryPath)) {
             try {
@@ -128,27 +148,42 @@ pipeline {
               def slurper = new groovy.json.JsonSlurper()
               def registryData = slurper.parseText(jsonText)
 
-              // Dynamic Self-Sync: Auto update Jenkins dropdown parameter definitions for future builds
-              def allSuiteIds = registryData.suites.collect { it.id }
-              if (allSuiteIds && !allSuiteIds.isEmpty()) {
+              // Dynamic Self-Sync: Auto update Jenkins dropdown parameters while preserving Git Parameter BRANCH
+              def allSuiteChoices = registryData.suites.collect { "${it.id} | ${it.name}" }
+              if (allSuiteChoices && !allSuiteChoices.isEmpty()) {
                 properties([
                   parameters([
-                    choice(name: 'TESTNG_XML', choices: allSuiteIds, description: 'Pilih suite TestNG XML (Di-sync otomatis dari suite-registry.json)'),
-                    choice(name: 'BROWSER', choices: ['chrome', 'firefox', 'edge'], description: 'Pilih browser untuk pengujian'),
-                    booleanParam(name: 'HEADLESS', defaultValue: true, description: 'Jalankan pengujian dalam mode Headless (tanpa GUI)')
+                    gitParameter(
+                      name: 'BRANCH',
+                      type: 'PT_BRANCH',
+                      defaultValue: 'development',
+                      branchFilter: 'origin/(.*)',
+                      sortMode: 'ASCENDING_SMART',
+                      selectedValue: 'TOP',
+                      description: 'Pilih branch Git yang ingin dieksekusi'
+                    ),
+                    choice(
+                      name: 'TESTNG_XML',
+                      choices: allSuiteChoices,
+                      description: 'Pilih suite TestNG XML (Di-sync otomatis dari suite-registry.json)'
+                    ),
+                    choice(
+                      name: 'BROWSER',
+                      choices: ['chrome', 'firefox', 'edge'],
+                      description: 'Pilih browser untuk pengujian'
+                    ),
+                    booleanParam(
+                      name: 'HEADLESS',
+                      defaultValue: true,
+                      description: 'Jalankan pengujian dalam mode Headless (tanpa GUI)'
+                    ),
+                    choice(
+                      name: 'RERUN_COUNT',
+                      choices: ['1', '0', '2'],
+                      description: 'Jumlah percobaan ulang otomatis untuk test yang gagal'
+                    )
                   ])
                 ])
-              }
-
-              // Handle sync-registry shortcut execution or initial null parameter run
-              if (selectedSuiteId == 'sync-registry') {
-                echo "=========================================================================="
-                echo "[SYNC SUCCESS] Jenkins Dropdown UI parameter list has been updated!"
-                echo "Future builds will present all latest suite options from suite-registry.json."
-                echo "Skipping heavy test execution as requested."
-                echo "=========================================================================="
-                env.SKIP_TEST = 'true'
-                return
               }
 
               def matchedSuite = registryData.suites.find { suite ->
@@ -165,6 +200,18 @@ pipeline {
               echo "Warning: Could not parse ${registryPath}, using default path ${targetXml}. Error: ${e.message}"
             }
           }
+
+          // Handle sync-registry shortcut execution or initial null parameter run
+          if (selectedSuiteId == 'sync-registry' || targetXml == 'sync-registry') {
+            echo "=========================================================================="
+            echo "[SYNC SUCCESS] Jenkins Dropdown UI parameter list has been updated!"
+            echo "Future builds will present all latest suite options from suite-registry.json."
+            echo "Skipping heavy test execution as requested."
+            echo "=========================================================================="
+            env.SKIP_TEST = 'true'
+            return
+          }
+
           env.RESOLVED_SUITE_XML = targetXml
         }
       }
@@ -176,14 +223,61 @@ pipeline {
       }
       steps {
         script {
+          def resolvedXml = (env.RESOLVED_SUITE_XML != null && !env.RESOLVED_SUITE_XML.trim().isEmpty()) ? env.RESOLVED_SUITE_XML.trim() : 'src/test/resources/testng/master/testng-all.xml'
+
+          echo "=========================================================================="
+          echo "=== [RUN 1] Starting Initial Test Execution: ${resolvedXml} ==="
+          echo "=========================================================================="
+
           int testExitCode = bat(
             returnStatus: true,
             script: """
-              call mvn -B -ntp clean test -DsuiteXmlFile=${env.RESOLVED_SUITE_XML} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
+              call mvn -B -ntp clean test -DsuiteXmlFile="${resolvedXml}" -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
             """
           )
 
-          if (testExitCode != 0) {
+          def failedXmlPath = 'target/surefire-reports/testng-failed.xml'
+          int maxRerun = (params.RERUN_COUNT ?: '1') as int
+          int rerunAttempt = 0
+          boolean testPassed = (testExitCode == 0)
+
+          while (!testPassed && rerunAttempt < maxRerun && fileExists(failedXmlPath)) {
+            rerunAttempt++
+            echo "=========================================================================="
+            echo "=== [AUTO-RERUN ${rerunAttempt}/${maxRerun}] Executing Failed Tests Suite: ${failedXmlPath} ==="
+            echo "=========================================================================="
+
+            // Backup current Extent Report so initial suite results are preserved
+            if (fileExists('reports/index.html')) {
+              powershell """
+                if (Test-Path 'reports') {
+                  Copy-Item -Path 'reports' -Destination 'reports-run-${rerunAttempt}' -Recurse -Force
+                }
+              """
+            }
+
+            // Execute failed tests only (without clean to keep historical surefire reports)
+            testExitCode = bat(
+              returnStatus: true,
+              script: """
+                call mvn -B -ntp test -DsuiteXmlFile=${failedXmlPath} -Dbrowser=${params.BROWSER} -Dheadless=${params.HEADLESS}
+              """
+            )
+
+            testPassed = (testExitCode == 0)
+          }
+
+          if (testPassed) {
+            if (rerunAttempt > 0) {
+              echo "=========================================================================="
+              echo "[AUTO-RERUN SUCCESS] All failed tests PASSED after ${rerunAttempt} rerun attempt(s)."
+              echo "=========================================================================="
+            }
+            currentBuild.result = 'SUCCESS'
+          } else {
+            echo "=========================================================================="
+            echo "[TEST FAILED] Tests still failed after ${rerunAttempt} rerun attempt(s)."
+            echo "=========================================================================="
             currentBuild.result = 'FAILURE'
           }
         }
@@ -204,7 +298,7 @@ pipeline {
         allowMissing: true
       ])
 
-      archiveArtifacts artifacts: 'reports/**,logs/**,target/surefire-reports/**', allowEmptyArchive: true
+      archiveArtifacts artifacts: 'reports/**,reports-run-*/**,logs/**,target/surefire-reports/**', allowEmptyArchive: true
     }
   }
 }

@@ -139,6 +139,8 @@ public class DriverFactory {
         options.setCapability("webSocketUrl", true);
         if (headless) {
             options.addArguments("-headless");
+            options.addArguments("--width=1920");
+            options.addArguments("--height=1080");
         }
         org.openqa.selenium.firefox.GeckoDriverService service = new org.openqa.selenium.firefox.GeckoDriverService.Builder()
             .withLogFile(java.nio.file.Paths.get(profile, "geckodriver.log").toFile())

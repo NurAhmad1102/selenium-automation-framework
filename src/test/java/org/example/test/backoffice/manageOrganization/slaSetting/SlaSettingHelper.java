@@ -13,7 +13,7 @@ import org.example.pageObject.backoffice.slaSettingMenu.modal.addSlaDetailModal.
 import org.example.utils.actionUtils.ActionUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import org.testng.Assert;
+import org.example.utils.CustomAssert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,9 +87,9 @@ public class SlaSettingHelper {
     public void submitSlaSetting(){
         slaSettingPage.clickSubmitButton();
         slaDetailModal.clickCreateYesButton();
-        Assert.assertTrue(slaDetailModal.isHeaderPopUpSuccess());
+        CustomAssert.assertTrue(slaDetailModal.isHeaderPopUpSuccess(), "Header pop up success is not displayed");
         slaDetailModal.clickDonePopUpButton();
-        Assert.assertTrue(dashboardSlaSettingPage.isSlaSettingPage());
+        CustomAssert.assertTrue(dashboardSlaSettingPage.isSlaSettingPage(), "Dashboard SLA setting page is not displayed");
     }
 
     public List<String> buildExpectedDetail(SlaConfig config, List<String> actions){

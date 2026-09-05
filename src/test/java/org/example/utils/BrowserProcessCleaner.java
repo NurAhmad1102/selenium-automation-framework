@@ -25,7 +25,23 @@ public final class BrowserProcessCleaner {
             "geckodriver.exe", "geckodriver"
     );
 
+    private static final java.util.concurrent.atomic.AtomicBoolean hookRegistered = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    public static void registerShutdownHook() {
+        if (hookRegistered.compareAndSet(false, true)) {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                if (!DevModeUtils.isDevMode()) {
+                    cleanupCurrentJvmDescendants();
+                }
+            }, "BrowserProcessCleaner-ShutdownHook"));
+        }
+    }
+
     public static void cleanupCurrentJvmDescendants() {
+        if (DevModeUtils.isDevMode()) {
+            logger.info("[DEV-MODE] Skipping JVM descendant process cleanup sweeper.");
+            return;
+        }
         try {
             logger.info("Starting JVM-local descendant process cleanup sweeper...");
             
@@ -45,6 +61,50 @@ public final class BrowserProcessCleaner {
 
         } catch (Exception e) {
             logger.error("Exception during JVM-local process cleanup: {}", e.getMessage(), e);
+        }
+    }
+
+    public static void cleanupOldBrowserProfiles() {
+        if (DevModeUtils.isDevMode()) {
+            return;
+        }
+        try {
+            String root = System.getenv("SELENIUM_PROFILE_ROOT");
+            if (root == null || root.isBlank()) {
+                root = java.nio.file.Paths.get(System.getProperty("user.dir"), ".selenium").toString();
+            }
+            String buildTag = System.getenv("BUILD_TAG");
+            if (buildTag == null || buildTag.isBlank()) {
+                buildTag = "local";
+            }
+            buildTag = buildTag.replaceAll("[^a-zA-Z0-9._-]", "_");
+
+            java.nio.file.Path targetDir = java.nio.file.Paths.get(root, buildTag);
+            if (!java.nio.file.Files.exists(targetDir) || !java.nio.file.Files.isDirectory(targetDir)) {
+                return;
+            }
+
+            long cutoffTime = System.currentTimeMillis() - java.time.Duration.ofHours(24).toMillis();
+
+            try (java.util.stream.Stream<java.nio.file.Path> stream = java.nio.file.Files.list(targetDir)) {
+                stream.filter(java.nio.file.Files::isDirectory)
+                        .filter(dir -> {
+                            try {
+                                return java.nio.file.Files.getLastModifiedTime(dir).toMillis() < cutoffTime;
+                            } catch (Exception e) {
+                                return false;
+                            }
+                        })
+                        .forEach(dir -> {
+                            try {
+                                org.apache.commons.io.FileUtils.deleteQuietly(dir.toFile());
+                            } catch (Exception e) {
+                                logger.debug("Could not delete stale profile folder: {}", dir, e);
+                            }
+                        });
+            }
+        } catch (Exception e) {
+            logger.warn("Exception during stale browser profile cleanup: {}", e.getMessage());
         }
     }
 

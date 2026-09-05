@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="BackOffice - SLA Setting Suite" parallel="methods" thread-count="3">
+<suite name="BackOffice - SLA Setting Suite" parallel="classes" thread-count="3">
     <listeners>
         <listener class-name="org.example.listener.Listeners"/>
     </listeners>
@@ -12,40 +12,10 @@
     </test>
     <test verbose="2" name="SLA Setting">
         <classes>
-            <class name="org.example.test.backoffice.manageOrganization.slaSetting.AddSlaSettingTest">
-                <methods>
-                    <include name="addDuplicatePeriodName" />
-                    <include name="saveEmptySLASettingPeriod"/>
-                    <include name="saveEmptyEffectiveDate"/>
-                    <include name="saveEmptySLASettingPeriodAndEffectiveDate"/>
-                    <include name="saveEmptySlaSetting"/>
-                    <include name="saveSlaSettingStatusActive"/>
-                    <include name="saveSlaSettingAsDraft"/>
-                    <include name="saveSlaSettingStatusNotStarted"/>
-                </methods>
-            </class>
-            <class name="org.example.test.backoffice.manageOrganization.slaSetting.EditSlaSettingTest">
-                <methods>
-                    <include name="editSlaSettingStatusDraft"/>
-                    <include name="editSlaSettingStatusNotStarted"/>
-                </methods>
-            </class>
-            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaSettingTest">
-                <methods>
-                    <include name="checkDetailSlaSettingActive"/>
-                    <include name="checkDetailSlaSettingInActive"/>
-                    <include name="deleteSlaSettingStatusNotStarted"/>
-                    <include name="deleteSlaSettingStatusDraft"/>
-                </methods>
-            </class>
-            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaDetailTest">
-                <methods>
-                    <include name="selectCopyFromPrevious"/>
-                    <include name="editSlaDetail"/>
-                    <include name="deleteSlaDetail"/>
-                    <include name="addSlaDetail"/>
-                </methods>
-            </class>
+            <class name="org.example.test.backoffice.manageOrganization.slaSetting.AddSlaSettingTest"/>
+            <class name="org.example.test.backoffice.manageOrganization.slaSetting.EditSlaSettingTest"/>
+            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaSettingTest"/>
+            <class name="org.example.test.backoffice.manageOrganization.slaSetting.SlaDetailTest"/>
         </classes>
     </test>
 </suite>

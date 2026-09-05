@@ -138,10 +138,6 @@ public class ExcelReader {
             }
             config.setPassword(password);
 
-            // Populate URLs into config for backward compatibility
-            config.setUrlBackOffice(urls.getOrDefault("backoffice", ""));
-            config.setUrlFrontOffice(urls.getOrDefault("frontoffice", ""));
-
             accountList.add(config);
         }
         return accountList;

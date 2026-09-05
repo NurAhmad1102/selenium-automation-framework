@@ -1,11 +1,12 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -21,10 +22,15 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
         this.data.set(setOrganizationHelper().getTestData(OrgSheetName.MERGE));
     }
 
+    @AfterMethod(alwaysRun = true)
+    public void cleanMergeOrganizationContext() {
+        data.remove();
+    }
+
     @Test(groups = {"smoke"}, description = "Verify that user can Merge organization")
     public void mergeOrganizationTest(){
         logger.info("Starting test: Merge Organization");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         data.get().setParentPosition("Head of Branch Transformation & Network Planning 1222");
         setOrganizationHelper().mergeOrganization(data.get());
@@ -34,6 +40,7 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(data.get().getPrimaryOrganization()), "Primary Organization node is still displayed in the organization tree after merge");
         CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(data.get().getMergeOrganizationWith()), "Merge Organization With node is still displayed in the organization tree after merge");
 
+        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
         setOrganizationHelper().clickChangeLogButton();
         CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Merge Organization", data.get().getPrimaryOrganization(), data.get().getMergeOrganizationWith(), data.get().getNewOrganizationName()), "Changes Log for Merge Organization is not displayed correctly");
     }
@@ -41,9 +48,8 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
     @Test
     public void mergeOrganizationWithExistingPositionTest(){
         logger.info("Starting test: Merge Organization with existing position");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
         data.get().setJobName(duplicatePositionName);
-        data.get().setParentPosition("Head of Branch Transformation & Network Planning 1222");
 
         setOrganizationHelper().mergeOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.MERGE);
@@ -53,7 +59,7 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
     @Test
     public void mergeOrganizationWithExisingOrganizationNameTest(){
         logger.info("Starting test: Merge Organization with existing organization name");
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
         data.get().setNewOrganizationName(duplicateOrganizationName);
         setOrganizationHelper().mergeOrganization(data.get());

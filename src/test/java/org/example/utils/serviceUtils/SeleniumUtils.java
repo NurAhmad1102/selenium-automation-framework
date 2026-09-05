@@ -22,10 +22,11 @@ public class SeleniumUtils {
         File folder = new File(FOLDER_PATH);
         if(!folder.exists()) folder.mkdirs();
 
-        String destinationFile = FOLDER_PATH + File.separator + testCastName + ".png";
+        String fileName = testCastName + "_" + System.currentTimeMillis() + ".png";
+        String destinationFile = FOLDER_PATH + File.separator + fileName;
         FileUtils.copyFile(source, new File(destinationFile));
         
         // Return relative path for ExtentReports embedding
-        return folderName + "/" + testCastName + ".png";
+        return folderName + "/" + fileName;
     }
 }

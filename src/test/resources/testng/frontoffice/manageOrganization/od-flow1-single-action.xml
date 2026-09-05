@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="FrontOffice - OD Flow 1 Single Action Suite" parallel="methods" thread-count="3">
+<suite name="FrontOffice - OD Flow 1 Single Action Suite" parallel="false" thread-count="3">
     <listeners>
         <listener class-name="org.example.listener.Listeners"/>
     </listeners>
@@ -13,47 +13,13 @@
 
     <test verbose="2" name="My Organization - Update Organization Test">
         <classes>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.UpdateOrganizationFilterTest">
-                <methods>
-                    <include name="validateGeneratePreviewTest"/>
-                </methods>
-            </class>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.AddOrganizationTest">
-                <methods>
-                    <include name="addNewOrganizationTest"/>
-                    <include name="addOrganizationWithExistingOrganizationNameTest"/>
-                    <include name="addOrganizationWithExistingPositionNameTest"/>
-                </methods>
-            </class>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.RemoveOrganizationTest">
-                <methods>
-                    <include name="removeExistingOrganizationTest"/>
-                    <include name="removeNewOrganizationTest"/>
-                </methods>
-            </class>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.MergeOrganizationTest">
-                <methods>
-                    <include name="mergeOrganizationTest"/>
-                    <include name="mergeOrganizationWithExisingOrganizationNameTest"/>
-                    <include name="mergeOrganizationWithExistingPositionTest"/>
-                </methods>
-            </class>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.RenameOrganizationTest">
-                <methods>
-                    <include name="renameOrganizationTest"/>
-                </methods>
-            </class>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.SplitOrganizationTest">
-                <methods>
-                    <include name="splitOrganizationTest"/>
-                    <include name="splitOrganizationTestWithDuplicatePosition"/>
-                </methods>
-            </class>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.MoveOrganizationTest">
-                <methods>
-                    <include name="moveOrganizationTest"/>
-                </methods>
-            </class>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.UpdateOrganizationFilterTest"/>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.AddOrganizationTest"/>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.MergeOrganizationTest"/>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.RenameOrganizationTest"/>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.SplitOrganizationTest"/>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.MoveOrganizationTest"/>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.RemoveOrganizationTest"/>
         </classes>
     </test>
 </suite>

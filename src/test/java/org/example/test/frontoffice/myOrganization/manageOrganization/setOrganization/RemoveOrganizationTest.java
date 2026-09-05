@@ -1,11 +1,12 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -20,11 +21,16 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
         this.data.set(setOrganizationHelper().getTestData(OrgSheetName.REMOVE));
     }
 
+    @AfterMethod(alwaysRun = true)
+    public void cleanRemoveOrganizationContext() {
+        data.remove();
+    }
+
 
     @Test( groups = {"smoke"},description = "Verify Remove existing organization")
     public void removeExistingOrganizationTest() {
         logger.info("Starting test: removeOrganization");
-        String organizationToRemove = data.get().getPrimaryOrganization();        manageOrganizationHelper().goToFlow1();
+        String organizationToRemove = data.get().getPrimaryOrganization();        manageOrganizationHelper().goToFlow1SetOrganization();
         CustomAssert.assertTrue(setOrganizationFlow1Page().isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
 
         setOrganizationHelper().removeOrganization(organizationToRemove);
@@ -45,7 +51,7 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
         OrganizationTestData addNewData = setOrganizationHelper().getTestData(OrgSheetName.ADD_NEW);
         String organizationToRemove = addNewData.getNewOrganizationName();
 
-        manageOrganizationHelper().goToFlow1();
+        manageOrganizationHelper().goToFlow1SetOrganization();
 
 //        KODE PRE CONDITION ADD NEW ORG
         setOrganizationHelper().addNewOrganization(addNewData);

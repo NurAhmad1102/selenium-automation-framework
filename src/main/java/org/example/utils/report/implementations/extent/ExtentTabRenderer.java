@@ -94,6 +94,7 @@ public class ExtentTabRenderer {
                  .append("<div class='outcome-category'>").append(escapeHtml(String.valueOf(log.getOutcomeCategory()))).append("</div></td>")
                  .append("<td>").append(TIME_FORMATTER.format(log.getTimestamp())).append("</td>")
                  .append("<td>").append(escapeHtml(log.getMessage()))
+                 .append(log.getError() != null ? "<pre class='code-block' style='margin-top:5px; color:#c0392b; background:#f9ebea; padding:8px; border-radius:4px; font-size:12px; white-space:pre-wrap;'>" + escapeHtml(stackTraceToString(log.getError())) + "</pre>" : "")
                  .append("</td>")
                  .append("</tr>");
         }

@@ -66,6 +66,15 @@ public class EmployeeMovementModal extends BasePage {
         return isVisible(modalTitle);
     }
 
+    public void clickPositionNameDropdown() {
+        click(toPositionNameDropdown);
+    }
+
+    public boolean isTextDisplayed(String message) {
+        By elementText = By.xpath("//*[normalize-space(.)='" + message + "' and not(*)]");
+        return isVisible(elementText);
+    }
+
     public String getEmployeeName() {
         return getAttributeValue(employeeNameInput, "value");
     }

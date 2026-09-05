@@ -252,12 +252,9 @@ public class TableUtils {
 
     public boolean searchCellByText(String keyword){
         String xpath = String.format("//td[contains(normalize-space(text()), '%s')]", keyword);
-        WebDriverWait wait = new WebDriverWait(DriverManager.getDriver(), Duration.ofSeconds(5)); //TODO: HERE DRIVER
-
         try {
-            WebElement ele = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
-            return ele.isDisplayed();
-        } catch (TimeoutException e) {
+            return !DriverManager.getDriver().findElements(By.xpath(xpath)).isEmpty();
+        } catch (Exception e) {
             return false;
         }
     }

@@ -3,9 +3,9 @@ package org.example.test.frontoffice.myOrganization.manageOrganization;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.OrgSheetName;
+import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ChangesLogModal;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ConfirmationActionModal;
@@ -16,7 +16,7 @@ import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.ManageOrganizationExcelReader;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
 import org.example.utils.CustomAssert;
-import org.testng.Assert;
+import org.example.utils.CustomSoftAssert;
 
 public class SetOrganizationHelper {
     private final Logger logger = LogManager.getLogger(getClass());
@@ -302,31 +302,35 @@ public class SetOrganizationHelper {
 //    AFTER ACTIONS
     public void confirmAction(ConfirmAction action) {
         logger.info("Step: Confirming action: {}", action.getActionName());
-        Assert.assertTrue(confirmationActionModal.isConfirmationModalActionDisplayed(action.getActionName()),
+        CustomAssert.assertTrue(confirmationActionModal.isConfirmationModalActionDisplayed(action.getActionName()),
                 "Confirmation Action modal header is not displayed for action: " + action.getActionName());
         confirmationActionModal.clickYesButton();
         verifySuccessAndContinue(action.getSuccessPastTense());
     }
 
-    private void verifySuccessAndContinue(String successAction) {
-        logger.info("Step: Verifying success modal for action: {}", successAction);
-        Assert.assertTrue(successModal.isSuccessModalHeaderDisplayed(successAction),
-                "Success modal header is not displayed for action: " + successAction);
-        Assert.assertTrue(successModal.isSuccessModalDescriptionDisplayed(successAction),
-                "Success modal description is not correct for action: " + successAction);
-        Assert.assertTrue(successModal.isSuccessModalImageDisplayed(), "Confetti image is not displayed");
-        successModal.clickContinueButton();
+    public void verifyDetailNodeOrganization(OrganizationTestData orgData){
+        logger.info("Step: Verifying detail node organization modal: {}", orgData.getNewOrganizationName());
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+        String positionName = orgData.getJobName();
+
+        clickOrganizationNode(orgData.getNewOrganizationName());
+        softAssert.assertEquals(nodeOrganizationModal.getRcCode(), orgData.getRcCode(), "RC Code is not same as expected");
+
+        nodeOrganizationModal.clickTogglePositionAccordion(positionName);
+        softAssert.assertEquals(nodeOrganizationModal.getJobNameOfPosition(positionName), orgData.getJobName(), "Job Name is not same as expected");
+        softAssert.assertEquals(nodeOrganizationModal.getLocationOfPosition(positionName), orgData.getLocation(), "Location is not same as expected");
+        softAssert.assertAll();
+        nodeOrganizationModal.clickCloseButton();
     }
 
-    @Deprecated
-    public void confirmAction(String actionName) {
-        for (ConfirmAction action : ConfirmAction.values()) {
-            if (action.getActionName().equalsIgnoreCase(actionName)) {
-                confirmAction(action);
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Unknown confirm action: " + actionName);
+    private void verifySuccessAndContinue(String successAction) {
+        logger.info("Step: Verifying success modal for action: {}", successAction);
+        CustomAssert.assertTrue(successModal.isSuccessModalHeaderDisplayed(successAction),
+                "Success modal header is not displayed for action: " + successAction);
+        CustomAssert.assertTrue(successModal.isSuccessModalDescriptionDisplayed(successAction),
+                "Success modal description is not correct for action: " + successAction);
+        CustomAssert.assertTrue(successModal.isSuccessModalImageDisplayed(), "Confetti image is not displayed");
+        successModal.clickContinueButton();
     }
 
     public void clickChangeLogButton() {
@@ -343,7 +347,7 @@ public class SetOrganizationHelper {
     /**
      * Resolves 'Missing parent position' on child organization nodes by selecting the specified parent position name.
      *
-     * @param parentPositionName Name of the parent position to select in the child node modal
+     * @param parentPositionName ke position yang missing parent position
      */
     public void setParentPositionToNode(String parentPositionName) {
         while (verifyMissingParentPositionDisplayed()){

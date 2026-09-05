@@ -47,7 +47,7 @@ public class FilterUpdateOrganizationPage extends BasePage {
 
     private final By searchDropdownOption = By.xpath("//div[@role='combobox']//input[@placeholder='Search'] | //input[@placeholder='Search']");
 
-    @FindBy(xpath = "//button[text()='Generate Preview']")
+    @FindBy(xpath = "//button[normalize-space()='Generate Preview']")
     private WebElement generatePreviewButton;
 
     @FindBy(css = "div.org-tree")

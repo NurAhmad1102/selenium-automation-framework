@@ -3,6 +3,7 @@ package org.example.listener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
+import com.aventstack.extentreports.ExtentReports;
 import org.example.drivers.DriverManager;
 import org.example.utils.ExtentReportNg;
 import org.example.utils.report.core.ReportAPI;
@@ -23,7 +24,10 @@ public class Listeners implements ITestListener, IExecutionListener {
     private final SeleniumUtils seleniumUtils = new SeleniumUtils();
 
     @Override
-    public void onExecutionStart() {}
+    public void onExecutionStart() {
+        org.example.utils.BrowserProcessCleaner.registerShutdownHook();
+        org.example.utils.BrowserProcessCleaner.cleanupOldBrowserProfiles();
+    }
 
     @Override
     public void onExecutionFinish() {
@@ -38,6 +42,25 @@ public class Listeners implements ITestListener, IExecutionListener {
     public void onStart(ITestContext context) {
         // Initialize reporting system
         ExtentImplementation.init();
+
+        if (context != null && context.getSuite() != null) {
+            ExtentReports extent = ExtentReportNg.getReportObject();
+            extent.setSystemInfo("Suite Name", context.getSuite().getName());
+            if (context.getCurrentXmlTest() != null) {
+                extent.setSystemInfo("Test Name", context.getCurrentXmlTest().getName());
+            }
+            extent.setSystemInfo("User", System.getProperty("user.name"));
+            extent.setSystemInfo("OS", System.getProperty("os.name"));
+            extent.setSystemInfo("Java Version", System.getProperty("java.version"));
+            extent.setSystemInfo("Java Home", System.getProperty("java.home"));
+            extent.setSystemInfo("Java VM", System.getProperty("java.vm.name"));
+
+            String browserParam = context.getSuite().getParameter("browser");
+            if (browserParam != null) {
+                extent.setSystemInfo("Browser", browserParam);
+            }
+            extent.setSystemInfo("-----","---------");
+        }
     }
 
     @Override
@@ -64,13 +87,18 @@ public class Listeners implements ITestListener, IExecutionListener {
         if (isManagedByBaseTest(result)) {
             return;
         }
-        TestOutcome outcome = ThrowableOutcomeClassifier.classify(result.getThrowable());
+        Throwable throwable = result.getThrowable();
+        String reason = throwable != null && throwable.getMessage() != null && !throwable.getMessage().isBlank()
+                ? throwable.getMessage()
+                : "No exception message provided";
+        String failMsg = "Test Execution Failed: " + reason;
+        TestOutcome outcome = ThrowableOutcomeClassifier.classify(throwable);
         if (outcome.getStatus() == OutcomeStatus.BROKEN) {
-            ReportAPI.broken("Test Execution Broken", result.getThrowable());
+            ReportAPI.broken(failMsg, throwable);
         } else if (outcome.getStatus() == OutcomeStatus.BLOCKED) {
-            ReportAPI.blocked("Test Blocked", result.getThrowable());
+            ReportAPI.blocked(failMsg, throwable);
         } else {
-            ReportAPI.fail("Test Execution Failed", result.getThrowable());
+            ReportAPI.fail(failMsg, throwable);
         }
 
         WebDriver driver = DriverManager.getDriver();

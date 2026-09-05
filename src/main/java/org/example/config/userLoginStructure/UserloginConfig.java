@@ -5,8 +5,6 @@ public class UserloginConfig {
     private String password;
     private String username;
     private String role;
-    private String urlBackOffice;
-    private String urlFrontOffice;
 
     public String getRole() {
         return role;
@@ -38,37 +36,5 @@ public class UserloginConfig {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    /**
-     * @deprecated Application URL is resolved from the URL sheet, not from account data.
-     */
-    @Deprecated
-    public String getUrlBackOffice() {
-        return urlBackOffice;
-    }
-
-    /**
-     * @deprecated Application URL is resolved from the URL sheet, not from account data.
-     */
-    @Deprecated
-    public void setUrlBackOffice(String urlBackOffice) {
-        this.urlBackOffice = urlBackOffice;
-    }
-
-    /**
-     * @deprecated Application URL is resolved from the URL sheet, not from account data.
-     */
-    @Deprecated
-    public String getUrlFrontOffice() {
-        return urlFrontOffice;
-    }
-
-    /**
-     * @deprecated Application URL is resolved from the URL sheet, not from account data.
-     */
-    @Deprecated
-    public void setUrlFrontOffice(String urlFrontOffice) {
-        this.urlFrontOffice = urlFrontOffice;
     }
 }

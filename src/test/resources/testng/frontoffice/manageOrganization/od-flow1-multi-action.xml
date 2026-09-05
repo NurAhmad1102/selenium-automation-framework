@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="FrontOffice - Multi Action Organization Suite" parallel="false">
+<suite name="FrontOffice - Multi Action Organization Suite" parallel="false" thread-count="3">
     <listeners>
         <listener class-name="org.example.listener.Listeners"/>
     </listeners>
@@ -12,18 +12,7 @@
 
     <test verbose="2" name="My Organization - Multi Action Sequential Tests">
         <classes>
-            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.MultiActionOrganizationTest">
-                <methods>
-                    <include name="movePrimaryAndSplitChildTest"/>
-                    <include name="movePrimaryAndMergeChildTest"/>
-                    <include name="movePrimaryAndRenameChildTest"/>
-                    <include name="renamePrimaryAndMergeChildTest"/>
-                    <include name="renamePrimaryAndSplitChildTest"/>
-                    <include name="splitPrimaryAndSplitChildTest"/>
-                    <include name="splitPrimaryAndRenameChildTest"/>
-                    <include name="splitPrimaryAndMergeChildTest"/>
-                </methods>
-            </class>
+            <class name="org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.MultiActionOrganizationTest"/>
         </classes>
     </test>
 </suite>

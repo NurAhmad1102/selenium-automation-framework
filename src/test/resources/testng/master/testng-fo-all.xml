@@ -6,7 +6,7 @@
     </listeners>
 
     <suite-files>
-        <suite-file path="../frontoffice/od-flow1-all.xml"/>
+        <suite-file path="../frontoffice/manageOrganization/od-flow1-all.xml"/>
         <suite-file path="../frontoffice/manageOrganization/od-flow2-assign-employee.xml"/>
     </suite-files>
 </suite>
