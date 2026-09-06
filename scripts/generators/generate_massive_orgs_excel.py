@@ -127,9 +127,10 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME,
                   auto_populate_proceed=DEFAULT_AUTO_POPULATE_PROCEED,
                   new_job_percentage=DEFAULT_NEW_JOB_PERCENTAGE):
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    loader_dir = os.path.dirname(current_dir)
-    massive_dir = os.path.dirname(loader_dir)
-    data_dir = os.path.join(massive_dir, 'data')
+    project_root = os.path.dirname(os.path.dirname(current_dir))
+    data_dir = os.path.join(project_root, 'src', 'test', 'resources', 'data', 'frontoffice', 'manageOrganization', 'massiveChanges')
+    if not os.path.exists(data_dir):
+        data_dir = os.path.join(project_root, 'src', 'test', 'resources', 'data', 'frontoffice', 'massiveChanges')
 
     template_path = os.path.join(data_dir, 'organization-development-flow1.xlsx')
 
@@ -138,7 +139,7 @@ def generate_orgs(output_filename=DEFAULT_OUTPUT_FILENAME,
     elif os.path.sep in output_filename or '/' in output_filename:
         output_path = os.path.abspath(output_filename)
     else:
-        output_path = os.path.join(current_dir, output_filename)
+        output_path = os.path.join(data_dir, output_filename)
 
     # Load LOVs from data/ subfolder
     with open(os.path.join(data_dir, 'DeptLOV.txt'), 'r', encoding='utf-8') as f:

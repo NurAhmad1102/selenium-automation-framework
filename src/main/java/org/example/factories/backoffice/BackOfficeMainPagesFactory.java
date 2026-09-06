@@ -1,4 +1,4 @@
-package org.example.mainPagesFactory;
+package org.example.factories.backoffice;
 
 import org.example.factories.backoffice.login.BackOfficeLoginPagesFactory;
 import org.example.factories.backoffice.manageOrganization.ManageOrganizationFactory;

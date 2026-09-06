@@ -1,4 +1,4 @@
-package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.model;
+package org.example.model.frontoffice;
 
 public class MassiveOrgModel {
     private String action = "ADD_NEW";

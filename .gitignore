@@ -67,30 +67,25 @@ Desktop.ini
 .env.local
 
 ### Others ###
-context.txt
-refactor.txt
-test_output.txt
-note.txt
-mvn_output.txt
-/notesByAI/Code_review_prompt.txt
-/notesByAI/code_review_analysis.txt
-/actionAndField.txt
-/notesByAI/prompt.md
-/notesByAI/planning.md
-/template_guide.txt
-/notesByAI/build_output.txt
-/notesByAI/dependencies.txt
-/notesByAI/
+/notes/Code_review_prompt.txt
+/notes/code_review_analysis.txt
+/notes/prompt.md
+/notes/planning.md
+/notes/build_output.txt
+/notes/dependencies.txt
+/notes/
 /Guide_for_AI.md
-/progres.md
-/review_layout.md
-/test_layout_log.txt
-/example.html
-/propose.md
-/OUTCOME_RULE_ENGINE_PLAN.md
-/OUTCOME_RULE_ENGINE_PROGRESS.md
 /.agents/
 /docs/images/
-# Ignore semua file .xlsx khusus di dalam direktori massiveChanges
-src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/**/*.xlsx
+# Ignore temporary Excel lock files
+~$*.xlsx
+**/~$*
+
+# Ignore generated Excel files in massiveChanges
+src/test/resources/data/frontoffice/massiveChanges/*generated*.xlsx
+src/test/resources/data/frontoffice/massiveChanges/*multiaction*.xlsx
+src/test/resources/data/frontoffice/manageOrganization/massiveChanges/excelGenerated/
+src/test/resources/data/frontoffice/manageOrganization/massiveChanges/*generated*.xlsx
+src/test/resources/data/frontoffice/manageOrganization/massiveChanges/*multiaction*.xlsx
+
 

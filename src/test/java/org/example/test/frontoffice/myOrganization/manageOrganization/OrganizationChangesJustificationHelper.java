@@ -2,9 +2,9 @@ package org.example.test.frontoffice.myOrganization.manageOrganization;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
+import org.example.factories.frontoffice.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.AssignEmployeePage;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.enums.frontoffice.manageOrganization.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.CurrentOrganizationSection;
 import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.NewJobSection;
 import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.NewPositionSection;
@@ -12,7 +12,7 @@ import org.example.pageObject.frontoffice.manageOrganization.organizationChanges
 import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.ProposedAssignmentEmployeeSection;
 import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.ProposedOrganizationSection;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ActionElementsPage;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.example.utils.CustomAssert;
 import org.example.utils.CustomSoftAssert;
 
@@ -35,11 +35,11 @@ public class OrganizationChangesJustificationHelper {
     public OrganizationChangesJustificationHelper(FrontOfficeMainPagesFactory mainPagesFactory,
                                                  ManageOrganizationHelper manageOrganizationHelper) {
         this.justificationPage = mainPagesFactory.manageOrganization().getOrganizationChangesJustificationPage();
-        this.newJobSection = mainPagesFactory.manageOrganization().getNewJobSection();
-        this.newPositionSection = mainPagesFactory.manageOrganization().getNewPositionSection();
-        this.proposedAssignmentEmployee = mainPagesFactory.manageOrganization().getProposedAssignmentEmployee();
-        this.currentOrganizationSection = mainPagesFactory.manageOrganization().getCurrentOrganizationSection();
-        this.proposedOrganizationSection = mainPagesFactory.manageOrganization().getProposedOrganizationSection();
+        this.newJobSection = mainPagesFactory.manageOrganization().justificationSections().getNewJobSection();
+        this.newPositionSection = mainPagesFactory.manageOrganization().justificationSections().getNewPositionSection();
+        this.proposedAssignmentEmployee = mainPagesFactory.manageOrganization().justificationSections().getProposedAssignmentEmployee();
+        this.currentOrganizationSection = mainPagesFactory.manageOrganization().justificationSections().getCurrentOrganizationSection();
+        this.proposedOrganizationSection = mainPagesFactory.manageOrganization().justificationSections().getProposedOrganizationSection();
 
         this.assignEmployeePage = mainPagesFactory.manageOrganization().getAssignEmployeeFlow2Page();
         this.actionElementsPage = mainPagesFactory.manageOrganization().getActionElementsPage();

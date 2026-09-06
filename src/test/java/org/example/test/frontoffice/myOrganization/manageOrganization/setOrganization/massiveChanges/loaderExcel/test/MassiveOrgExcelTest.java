@@ -3,7 +3,7 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.setOrgani
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.config.MassiveTestConfig;
 import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.loaderExcel.reader.Flow1ExcelExportReader;
-import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.model.MassiveOrgModel;
+import org.example.model.frontoffice.MassiveOrgModel;
 import org.example.utils.CustomAssert;
 import org.testng.annotations.Test;
 

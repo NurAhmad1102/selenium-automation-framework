@@ -2,10 +2,10 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.assignEmp
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.enums.frontoffice.manageOrganization.ConfirmAction;
+import org.example.enums.frontoffice.manageOrganization.OrgMenuAction;
+import org.example.enums.frontoffice.manageOrganization.OrgSheetName;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.example.utils.CustomAssert;
 import org.testng.annotations.Test;
 

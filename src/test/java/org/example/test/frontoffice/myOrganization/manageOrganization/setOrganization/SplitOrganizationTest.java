@@ -1,9 +1,9 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
+import org.example.enums.frontoffice.manageOrganization.ConfirmAction;
+import org.example.enums.frontoffice.manageOrganization.OrgSheetName;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.example.utils.CustomAssert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;

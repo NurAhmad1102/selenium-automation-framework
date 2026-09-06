@@ -1,4 +1,4 @@
-package org.example.test.frontoffice.myOrganization.manageOrganization.data.model;
+package org.example.model.frontoffice;
 
 public class OrganizationTestData {
     // Action Type Identifier (PRIMARY, CHILD_MERGE, CHILD_SPLIT, CHILD_RENAME)

@@ -1,7 +1,7 @@
 package org.example.factories.backoffice.manageOrganization.slaSettingMenu.slaSettingFactory;
 
-import org.example.pageObject.backoffice.slaSettingMenu.SlaSetting.SlaSettingDetail;
-import org.example.pageObject.backoffice.slaSettingMenu.SlaSetting.SlaSettingPage;
+import org.example.pageObject.backoffice.slaSettingMenu.slasetting.SlaSettingDetail;
+import org.example.pageObject.backoffice.slaSettingMenu.slasetting.SlaSettingPage;
 import org.openqa.selenium.WebDriver;
 
 public class SlaSettingFactory {

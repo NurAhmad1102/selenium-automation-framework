@@ -88,7 +88,7 @@ Gunakan sumber berikut saat ada ketidaksamaan informasi:
 - Suite yang benar-benar dijalankan: nilai `-DsuiteXmlFile=...` atau property `suiteXmlFile` di `pom.xml`.
 - Parallel setting: file XML TestNG yang sedang dipakai, bukan asumsi dari README.
 - Data login dan URL: `src/test/resources/data/Data Userlogin.xlsx`.
-- Config domain dan fallback password: `src/test/resources/data/data.json`.
+- Config domain dan fallback password: `../src/test/resources/data/backoffice/slaStatus/data.json`.
 - Account/session behavior: `docs/account-session-logic.md`.
 - Dev Mode configuration & helper: `DevModeUtils.java` dan `.env`.
 - Architecture boundary: `src/test/java/org/example/ArchitectureTest.java`.

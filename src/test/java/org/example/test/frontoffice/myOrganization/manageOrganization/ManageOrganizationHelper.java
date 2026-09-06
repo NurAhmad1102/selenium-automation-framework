@@ -2,14 +2,14 @@ package org.example.test.frontoffice.myOrganization.manageOrganization;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
+import org.example.factories.frontoffice.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.DashboardManageOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.FilterUpdateOrganizationPage;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
+import org.example.enums.frontoffice.manageOrganization.OrgSheetName;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ActionElementsPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.ManageOrganizationExcelReader;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.example.utils.CustomAssert;
 
 import java.time.LocalDate;
