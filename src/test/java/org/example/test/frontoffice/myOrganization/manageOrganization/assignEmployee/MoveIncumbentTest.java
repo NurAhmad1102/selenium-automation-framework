@@ -2,6 +2,7 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.assignEmp
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.example.pageObject.frontoffice.manageOrganization.enums.AssignmentTag;
 import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
@@ -41,7 +42,7 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition + " pada org: " + targetOrg + "!"
         );
 
@@ -97,7 +98,7 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition + " pada org: " + targetOrg + "!"
         );
 
@@ -146,7 +147,7 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition + " pada org: " + targetOrg + "!"
         );
 
@@ -175,19 +176,35 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
 
         OrganizationTestData proposedFlow1Data = assignEmployeeHelper().prepareFlow2ContextWithFlow1Precondition(OrgSheetName.SPLIT, OrgMenuAction.SPLIT);
 
-        String targetOrg = proposedFlow1Data.getNewOrganizationName1();
+        String targetOrg1 = proposedFlow1Data.getNewOrganizationName1();
         String targetLevel = proposedFlow1Data.getLevel();
-        String targetJob = proposedFlow1Data.getJobName();
-        String targetPosition = proposedFlow1Data.getJobName();
+        String targetJob1 = proposedFlow1Data.getJobName();
+        String targetPosition1 = proposedFlow1Data.getJobName();
+
+        String targetOrg2 = proposedFlow1Data.getNewOrganizationName2();
+        String targetJob2 = proposedFlow1Data.getJobName2();
+        String targetPosition2 = proposedFlow1Data.getJobName2();
 
         String employeeIdentifier = currentAssignData.getNip();
 
         assignEmployeeHelper().moveIncumbentFromUnassigned(
                 employeeIdentifier,
                 targetLevel,
-                targetOrg,
-                targetJob,
-                targetPosition,
+                targetOrg1,
+                targetJob1,
+                targetPosition1,
+                currentAssignData.isMobility(),
+                currentAssignData.getMovementCategory(),
+                true // Primary Assignment
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
+
+        assignEmployeeHelper().moveIncumbentFromUnassigned(
+                employeeIdentifier,
+                targetLevel,
+                targetOrg2,
+                targetJob2,
+                targetPosition2,
                 currentAssignData.isMobility(),
                 currentAssignData.getMovementCategory(),
                 false // Primary Assignment
@@ -195,8 +212,13 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
-                "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition + " pada org: " + targetOrg + "!"
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg1, targetPosition1, employeeIdentifier, AssignmentTag.PJS_NEW),
+                "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition1 + " pada org: " + targetOrg1 + "!"
+        );
+
+        CustomAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg2, targetPosition2, employeeIdentifier, AssignmentTag.MOVE),
+                "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition2 + " pada org: " + targetOrg2 + "!"
         );
 
         CustomSoftAssert softAssert = new CustomSoftAssert();
@@ -208,8 +230,14 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
-                "Audit Log Employee Assignment untuk Move Unassigned Employee ke Split Org tidak sesuai!"
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, targetOrg1),
+                "Audit Log Employee Assignment untuk Move Unassigned Employee as PJS ke Split Org tidak sesuai!"
+        );
+
+        assignEmployeeHelper().closeChangeLogModal();
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg2),
+                "Audit Log Employee Assignment untuk Move Unassigned Employee as Primary ke Split Org tidak sesuai!"
         );
         softAssert.assertAll();
 
@@ -244,14 +272,14 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition + " pada org: " + targetOrg + "!"
         );
 
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
-        //used this if only there is one unassigned employee as pre-conditon
-        softAssert.assertFalse(
+        //more than one unassigned employee as pre-conditon
+        softAssert.assertTrue(
                 assignEmployeeHelper().isViewUnassignedButtonClickable(),
                 "View Unassigned button is still clickable, indicating the employee is still unassigned"
         );
@@ -298,7 +326,7 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         assignEmployeeHelper().closeManageIncumbentModal();
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition + " pada org: " + targetOrg + "!"
         );
 
@@ -346,13 +374,13 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
                 true // Set as PJS (Secondary Assignment)
         );
         assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
-        CustomAssert.assertTrue(assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+        CustomAssert.assertTrue(assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.PJS_NEW),
                 "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition + " pada org: " + targetOrg + " sebagai PJS!"
         );
 
         CustomSoftAssert softAssert = new CustomSoftAssert();
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier, AssignmentTag.NONE),
                 "Employee " + employeeIdentifier + " tidak muncul di position asal: " + sourcePosition + " pada org: " + sourceOrg + " setelah di-move sebagai PJS!"
         );
         assignEmployeeHelper().closeManageIncumbentModal();
@@ -366,7 +394,6 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         logger.info("Test Completed Successfully: moveIncumbentAsPjsTest");
     }
 
-//    TODO: ubah ntar dah
     @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Move Incumbent with Mobility considered as YES")
     public void moveIncumbentWithMobilityYesTest() {
         logger.info("Starting test: moveIncumbentWithMobilityYesTest");
@@ -398,7 +425,7 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         );
         assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition + " pada org: " + targetOrg + " setelah Move dengan Mobility YES!"
         );
         assignEmployeeHelper().closeManageIncumbentModal();
@@ -413,7 +440,6 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         logger.info("Test Completed Successfully: moveIncumbentWithMobilityYesTest");
     }
 
-    //TODO: move incumben to FTE full
     @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Move Incumbent into Position when FTE is full (Negative Test)")
     public void moveIncumbentIntoPositionFTEFullTest(){
         logger.info("Starting test: moveIncumbentIntoPositionFTEFullTest");
@@ -432,10 +458,6 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         String targetPosition = proposedData.getCurrentPosition();
 
         String employeeIdentifier = currentAssignData.getNip();
-
-//        assignEmployeeHelper().removeIncumbent(sourceOrg, sourcePosition, employeeIdentifier);
-//        assignEmployeeHelper().confirmAction(ConfirmAction.REMOVE);
-
         manageOrganizationHelper().goToFlow1SetOrganization();
         manageOrganizationHelper().goToFlow2AssignEmployee();
         CustomAssert.assertTrue(
@@ -450,5 +472,74 @@ public class MoveIncumbentTest extends AssignEmployeeBaseTest {
         );
 
         logger.info("Test Completed Successfully: moveIncumbentIntoPositionFTEFullTest");
+    }
+
+    @Test(groups = {"smoke", "assignEmployee"}, description = "Verify Move Unassigned Employee Into Position with New Job")
+    public void moveUnassignedEmployeeIntoPositionWithNewJobTest() {
+        logger.info("Starting test: moveUnassignedEmployeeIntoPositionWithNewJobTest");
+
+        OrganizationTestData currentAssignData = assignEmployeeHelper().getAssignEmployeeData("INSIDE");
+
+        OrganizationTestData proposedFlow1Data = setOrganizationHelper().getTestData(OrgSheetName.ADD_NEW);
+//        Ubah nama job dari excel jadi job baru
+        proposedFlow1Data.setJobName(createNewJobName);
+
+        manageOrganizationHelper().goToFlow1SetOrganization();
+        setOrganizationHelper().addNewOrganization(proposedFlow1Data);
+        setOrganizationHelper().fillJobPositionWithNewJob(
+                proposedFlow1Data,
+                OrgMenuAction.ADD_NEW,
+                proposedFlow1Data.getJobName(),
+                true);
+
+        setOrganizationHelper().confirmAction(ConfirmAction.ADD);
+        manageOrganizationHelper().goToFlow2AssignEmployee();
+
+        // data awal sebelum diremove
+        String sourceOrg = currentAssignData.getCurrentOrg();
+        String sourcePosition = currentAssignData.getCurrentPosition();
+
+        String targetOrg = proposedFlow1Data.getNewOrganizationName();
+        String targetLevel = proposedFlow1Data.getLevel();
+        String targetJob = proposedFlow1Data.getJobName();
+        String targetPosition = proposedFlow1Data.getJobName();
+
+        String employeeIdentifier = currentAssignData.getNip();
+
+        assignEmployeeHelper().removeIncumbent(sourceOrg, sourcePosition, employeeIdentifier);
+        assignEmployeeHelper().confirmAction(ConfirmAction.REMOVE);
+
+        assignEmployeeHelper().moveIncumbentFromUnassigned(
+                employeeIdentifier,
+                targetLevel,
+                targetOrg,
+                targetJob,
+                targetPosition,
+                currentAssignData.isMobility(),
+                currentAssignData.getMovementCategory(),
+                false // Primary Assignment
+        );
+        assignEmployeeHelper().confirmAction(ConfirmAction.MOVE);
+
+        CustomAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
+                "Employee " + employeeIdentifier + " tidak muncul di position target: " + targetPosition + " pada org: " + targetOrg + "!"
+        );
+
+        CustomSoftAssert softAssert = new CustomSoftAssert();
+
+        //used this if only there is one unassigned employee as pre-conditon
+        softAssert.assertFalse(
+                assignEmployeeHelper().isViewUnassignedButtonClickable(),
+                "View Unassigned button is still clickable, indicating the employee is still unassigned"
+        );
+        assignEmployeeHelper().closeManageIncumbentModal();
+        softAssert.assertTrue(
+                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                "Audit Log Employee Assignment untuk Move Unassigned Employee ke Added Org tidak sesuai!"
+        );
+        softAssert.assertAll();
+
+        logger.info("Test Completed Successfully: moveUnassignedEmployeeIntoPositionWithNewJobTest");
     }
 }

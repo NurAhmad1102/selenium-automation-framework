@@ -28,14 +28,8 @@ public class FrontOfficeSideMenu extends BasePage {
      * @param menu Enum dari FrontOfficeMenu
      */
     public void expandMainMenu(FrontOfficeMenu menu) {
-        By locator = By.xpath(
-                String.format(
-                        "//nav[contains(@class,'ui-sidebar-menu-list-theme')]" +
-                                "//a[contains(@class,'ui-sidebar-item-theme')]" +
-                                "[.//span[normalize-space()='%s']]",
-                        menu.getLabel()
-                ));
-        click(locator);
+        String locator = String.format("//nav[contains(@class, 'ui-sidebar-menu-list-theme')]//a[.//span[normalize-space()='%s']]", menu.getLabel());
+        click(By.xpath(locator));
     }
 
     /**

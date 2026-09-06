@@ -8,5 +8,6 @@
     <suite-files>
         <suite-file path="../frontoffice/manageOrganization/od-flow1-all.xml"/>
         <suite-file path="../frontoffice/manageOrganization/od-flow2-assign-employee.xml"/>
+        <suite-file path="../frontoffice/manageOrganization/od-flow3-organization-changes-justification.xml"/>
     </suite-files>
 </suite>

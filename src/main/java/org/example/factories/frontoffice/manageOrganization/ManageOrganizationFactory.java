@@ -5,6 +5,12 @@ import org.example.pageObject.frontoffice.manageOrganization.DashboardManageOrga
 import org.example.pageObject.frontoffice.manageOrganization.FilterUpdateOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.AssignEmployeePage;
+import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.CurrentOrganizationSection;
+import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.NewJobSection;
+import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.NewPositionSection;
+import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.OrganizationChangesJustificationPage;
+import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.ProposedAssignmentEmployeeSection;
+import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.ProposedOrganizationSection;
 import org.openqa.selenium.WebDriver;
 
 public class ManageOrganizationFactory {
@@ -16,6 +22,13 @@ public class ManageOrganizationFactory {
     private SetOrganizationModalFactory modalFactory;
     private AssignEmployeePage assignEmployeePage;
     private AssignEmployeeModalFactory assignEmployeeModalFactory;
+
+    private OrganizationChangesJustificationPage organizationChangesJustificationPage;
+    private CurrentOrganizationSection currentOrganizationSection;
+    private ProposedOrganizationSection proposedOrganizationSection;
+    private ProposedAssignmentEmployeeSection proposedAssignmentEmployeeSection;
+    private NewPositionSection newPositionSection;
+    private NewJobSection newJobSection;
 
     public ManageOrganizationFactory(WebDriver driver) {
         this.driver = driver;
@@ -70,4 +83,45 @@ public class ManageOrganizationFactory {
         return actionElementsPage;
     }
 
+    public OrganizationChangesJustificationPage getOrganizationChangesJustificationPage() {
+        if (organizationChangesJustificationPage == null) {
+            organizationChangesJustificationPage = new OrganizationChangesJustificationPage(driver);
+        }
+        return organizationChangesJustificationPage;
+    }
+
+    public CurrentOrganizationSection getCurrentOrganizationSection() {
+        if (currentOrganizationSection == null) {
+            currentOrganizationSection = new CurrentOrganizationSection(driver);
+        }
+        return currentOrganizationSection;
+    }
+
+    public ProposedOrganizationSection getProposedOrganizationSection() {
+        if (proposedOrganizationSection == null) {
+            proposedOrganizationSection = new ProposedOrganizationSection(driver);
+        }
+        return proposedOrganizationSection;
+    }
+
+    public ProposedAssignmentEmployeeSection getProposedAssignmentEmployee() {
+        if (proposedAssignmentEmployeeSection == null) {
+            proposedAssignmentEmployeeSection = new ProposedAssignmentEmployeeSection(driver);
+        }
+        return proposedAssignmentEmployeeSection;
+    }
+
+    public NewPositionSection getNewPositionSection() {
+        if (newPositionSection == null) {
+            newPositionSection = new NewPositionSection(driver);
+        }
+        return newPositionSection;
+    }
+
+    public NewJobSection getNewJobSection() {
+        if (newJobSection == null) {
+            newJobSection = new NewJobSection(driver);
+        }
+        return newJobSection;
+    }
 }

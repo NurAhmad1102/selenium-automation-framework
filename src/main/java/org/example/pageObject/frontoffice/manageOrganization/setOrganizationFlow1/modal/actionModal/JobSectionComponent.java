@@ -76,4 +76,18 @@ public class JobSectionComponent extends BasePage {
     public PositionSectionComponent getPosition(int index) {
         return getPositions().get(index);
     }
+
+    public void createNewJobName(String newJobName) {
+        logger.info("Step: Creating new Job Name on-the-fly: [{}]", newJobName);
+        click(jobNameDropdown());
+
+        By addNewBtnLocator = By.xpath("//button[normalize-space()='+ Add New' or contains(., '+ Add New')]");
+        click(addNewBtnLocator);
+
+        By inputJobLocator = By.xpath("//input[@placeholder='Input new job name here' or contains(@placeholder, 'Input new job')]");
+        typeText(driver.findElement(inputJobLocator), newJobName);
+
+        By saveBtnLocator = By.xpath("//button[normalize-space()='Save']");
+        click(saveBtnLocator);
+    }
 }

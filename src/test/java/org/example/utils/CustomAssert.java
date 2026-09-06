@@ -13,7 +13,6 @@ public class CustomAssert {
     public static void assertTrue(boolean condition, String message) {
         if (!condition) {
             ReportAPI.fail("Assertion Failed: " + message, OutcomeCategory.ASSERTION);
-            ReportAPI.elementError("assertion", message, new AssertionError(message));
         }
         Assert.assertTrue(condition, message);
     }
@@ -24,22 +23,20 @@ public class CustomAssert {
             String fullMessage = String.format("Assertion Failed: %s (Expected: [%s], but found: [%s])", 
                     message, expected, actual);
             ReportAPI.fail(fullMessage, OutcomeCategory.ASSERTION);
-            ReportAPI.elementError("assertion", fullMessage, new AssertionError(fullMessage));
         }
         Assert.assertEquals(actual, expected, message);
     }
 
     public static void fail(String message) {
         ReportAPI.fail("Manual Failure: " + message, OutcomeCategory.ASSERTION);
-        ReportAPI.elementError("assertion", message, new AssertionError(message));
         Assert.fail(message);
     }
 
     public static void assertFalse(boolean condition, String message) {
         if (condition) {
             ReportAPI.fail("Assertion Failed: " + message, OutcomeCategory.ASSERTION);
-            ReportAPI.elementError("assertion", message, new AssertionError(message));
         }
         Assert.assertFalse(condition, message);
     }
 }
+

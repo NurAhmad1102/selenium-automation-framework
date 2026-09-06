@@ -9,6 +9,7 @@ import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.ManageIncumbentModal;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.UnassignedEmployeeListModal;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ActionElementsPage;
+import org.example.pageObject.frontoffice.manageOrganization.enums.AssignmentTag;
 import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
@@ -129,17 +130,7 @@ public class AssignEmployeeHelper {
                 setOrganizationHelper.confirmAction(ConfirmAction.MERGE);
                 break;
             case SPLIT:
-                OrganizationTestData org2Data = new OrganizationTestData(flow1Data);
-                OrganizationTestData jobPositionData = setOrganizationHelper.getTestData(OrgSheetName.JOB_POSITION);
-                if (jobPositionData != null) {
-                    String targetJob = (jobPositionData.getJob() != null && !jobPositionData.getJob().trim().isEmpty())
-                            ? jobPositionData.getJob()
-                            : jobPositionData.getJobName();
-                    if (targetJob != null && !targetJob.trim().isEmpty()) {
-                        org2Data.setJobName(targetJob);
-                        org2Data.setJob(targetJob);
-                    }
-                }
+                OrganizationTestData org2Data = flow1Data.createSecondarySplitData();
                 setOrganizationHelper.splitOrganization(flow1Data, org2Data);
                 setOrganizationHelper.fillJobPositionForSplit(flow1Data, org2Data);
                 setOrganizationHelper.confirmAction(ConfirmAction.SPLIT);
@@ -176,6 +167,35 @@ public class AssignEmployeeHelper {
         addIncumbentModal.selectMovementCategory(category);
         addIncumbentModal.setAsPJS(isPJS);
         addIncumbentModal.clickApplyButton();
+    }
+
+    public void addIncumbentsUntilNoDataFound(String orgName, String positionName, boolean isMobility, String category, boolean isPJS) {
+        logger.info("Phase: --- Adding Incumbents to Position: [{}] in Org: [{}] until No Data Found ---", positionName, orgName);
+        if (!manageIncumbentModal.isModalDisplayed()) {
+            assignEmployeePage.clickManageIncumbentOfNode(orgName);
+        }
+
+        while (!manageIncumbentModal.isAddIncumbentButtonDisabled(positionName)) {
+            manageIncumbentModal.clickAddIncumbentButton(positionName);
+            addIncumbentModal.clickIncumbentNameDropdown();
+
+            //if still there is unassigned employee, this button will be clickable
+            if (!isViewUnassignedButtonClickable()) {
+                logger.info("No available incumbents / No data found in dropdown for position: [{}]. Finishing add incumbent process.", positionName);
+                break;
+            }
+
+            addIncumbentModal.selectFirstAvailableIncumbent();
+            addIncumbentModal.selectMobility(isMobility);
+            addIncumbentModal.selectMovementCategory(category);
+            addIncumbentModal.setAsPJS(isPJS);
+            addIncumbentModal.clickApplyButton();
+            confirmAction(ConfirmAction.ADD);
+        }
+    }
+
+    public void addIncumbentsUntilNoDataFound(String orgName, String positionName, String category) {
+        addIncumbentsUntilNoDataFound(orgName, positionName, true, category, false);
     }
 
     public void moveIncumbentFromUnassigned(String employeeName, String targetLevel, String targetOrgName, String targetJobName, String targetPositionName, boolean isMobility, String category, boolean isPJS) {
@@ -267,6 +287,11 @@ public class AssignEmployeeHelper {
         return changesLogModal.isOrganizationChangeLogDisplayed(actionTitle, dynamicKeywords);
     }
 
+    public void closeChangeLogModal(){
+        logger.info("Step: Closing Changes Log modal");
+        changesLogModal.clickCloseButton();
+    }
+
     public boolean verifyEmployeeInUnassignedListVisible(String employeeName){
         logger.info("Step: Verifying if Employee [{}] is displayed in Unassigned Employee List", employeeName);
         assignEmployeePage.clickViewUnassignedButton();
@@ -285,15 +310,6 @@ public class AssignEmployeeHelper {
         return isDisplayed;
     }
 
-    public boolean verifyEmployeeInPositionVisible(String orgName, String positionName, String employeeNameOrId) {
-        logger.info("Step: Verifying if Employee [{}] is displayed in Org: {} Position: {}", employeeNameOrId, orgName, positionName);
-        assignEmployeePage.clickManageIncumbentOfNode(orgName);
-        manageIncumbentModal.expandPositionAccordion(positionName);
-        boolean isDisplayed = manageIncumbentModal.isIncumbentDisplayed(employeeNameOrId);
-        manageIncumbentModal.clickCloseButton();
-        return isDisplayed;
-    }
-
     public boolean verifyEmployeeInPositionNotVisible(String orgName, String positionName, String employeeNameOrId) {
         logger.info("Step: Verifying if Employee [{}] is NOT displayed in Org: {} Position: {}", employeeNameOrId, orgName, positionName);
         assignEmployeePage.clickManageIncumbentOfNode(orgName);
@@ -302,6 +318,45 @@ public class AssignEmployeeHelper {
         manageIncumbentModal.clickCloseButton();
         return isNotDisplayed;
     }
+
+    public boolean verifyEmployeeInPositionVisible(
+            String orgName,
+            String positionName,
+            String employeeNameOrId,
+            AssignmentTag expectedTag) {
+
+        logger.info("Step: Verifying if Employee [{}] with Tag [{}] is displayed in Org: {} Position: {}",
+                employeeNameOrId, expectedTag, orgName, positionName);
+        assignEmployeePage.clickManageIncumbentOfNode(orgName);
+        manageIncumbentModal.expandPositionAccordion(positionName);
+
+        boolean isEmployeeDisplayed = manageIncumbentModal.isIncumbentDisplayed(employeeNameOrId);
+        if (!isEmployeeDisplayed) {
+            logger.error("[FAILED] Employee [{}] is NOT displayed in Org: [{}] Position: [{}]", employeeNameOrId, orgName, positionName);
+            manageIncumbentModal.clickCloseButton();
+            return false;
+        }
+
+        logger.info("[PASSED] Employee [{}] is displayed in Org: [{}] Position: [{}]", employeeNameOrId, orgName, positionName);
+
+        boolean allTagsDisplayed = true;
+        if (expectedTag != null && expectedTag != AssignmentTag.NONE) {
+            for (String tag : expectedTag.getTags()) {
+                boolean isTagDisplayed = manageIncumbentModal.isTagDisplayed(employeeNameOrId, tag);
+                if (!isTagDisplayed) {
+                    logger.error("[FAILED] Tag [{}] is NOT displayed for Employee [{}] in Org: [{}] Position: [{}]", tag, employeeNameOrId, orgName, positionName);
+                    allTagsDisplayed = false;
+                } else {
+                    logger.info("[PASSED] Tag [{}] is displayed for Employee [{}]", tag, employeeNameOrId);
+                }
+            }
+        }
+
+        manageIncumbentModal.clickCloseButton();
+        return isEmployeeDisplayed && allTagsDisplayed;
+    }
+
+
 
 
 

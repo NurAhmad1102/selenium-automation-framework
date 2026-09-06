@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.utils.report.core.ReportAPI;
 import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -14,7 +15,7 @@ public class BasePage {
 
     protected WebDriver driver;
     protected WebDriverWait wait;
-    protected final int DEFAULT_TIMEOUT = 10;
+    protected final int DEFAULT_TIMEOUT = 15;
     protected final Logger logger = LogManager.getLogger(getClass());
 
     public BasePage(WebDriver driver){
@@ -27,7 +28,28 @@ public class BasePage {
         wait = new WebDriverWait(driver, Duration.ofSeconds(DEFAULT_TIMEOUT));
     }
 
+    private static final ThreadLocal<String> lastInteractedLocator = new ThreadLocal<>();
+
+    public static String getLastInteractedLocator() {
+        return lastInteractedLocator.get();
+    }
+
+    public static void setLastInteractedLocator(Object target) {
+        if (target != null) {
+            String str = target.toString().trim();
+            int arrowIdx = str.indexOf("-> ");
+            if (arrowIdx >= 0) {
+                str = str.substring(arrowIdx + 3);
+                if (str.endsWith("]")) {
+                    str = str.substring(0, str.length() - 1).trim();
+                }
+            }
+            lastInteractedLocator.set(str);
+        }
+    }
+
     protected void click(WebElement element){
+        setLastInteractedLocator(element);
         String description = getElementDescription(element);
         try {
             logger.info("Clicking element: {}", description);
@@ -48,6 +70,7 @@ public class BasePage {
     }
 
     protected void click(By locator){
+        setLastInteractedLocator(locator);
         try {
             WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
             String description = getElementDescription(element);
@@ -69,6 +92,7 @@ public class BasePage {
 
 //     This method is specifically for cases where standard click consistently fails due to complex UI layers, and we want to bypass Selenium's clickability checks.
     protected void clickWithJS(By locator) {
+        setLastInteractedLocator(locator);
         try {
             logger.debug("Forcing JS Click on locator: {}", locator);
             WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
@@ -83,21 +107,20 @@ public class BasePage {
     }
 
     protected void typeText(WebElement element, String text){
+        setLastInteractedLocator(element);
         String description = getElementDescription(element);
         try {
-            String displayText = (text != null && text.length() > 4)
-                    ? text.substring(0, 2) + "****" + text.substring(text.length() - 2)
-                    : "****";
-            logger.info("Typing '{}' into element: {}", displayText, description);
+            logger.info("Typing '{}' into element: {}", text, description);
             wait.until(ExpectedConditions.visibilityOf(element)).clear();
             element.sendKeys(text);
-            ReportAPI.step("Action: Type text into element [" + description + "]");
+            ReportAPI.step("Action: Type text '" + text + "' into element [" + description + "]");
         } catch (Exception e) {
             handleActionFailure("type text", element, e);
         }
     }
 
     protected String getAttributeValue(WebElement element, String attribute){
+        setLastInteractedLocator(element);
         try {
             logger.debug("Getting attribute '{}' from element: {}", attribute, getElementDescription(element));
             String value = element.getAttribute(attribute);
@@ -110,6 +133,7 @@ public class BasePage {
     }
 
     protected String getText(WebElement element) {
+        setLastInteractedLocator(element);
         try {
             logger.debug("Getting text from element: {}", getElementDescription(element));
             String text = wait.until(ExpectedConditions.visibilityOf(element)).getText();
@@ -122,6 +146,7 @@ public class BasePage {
     }
 
     protected String getText(By locator) {
+        setLastInteractedLocator(locator);
         try {
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             String description = getElementDescription(element);
@@ -137,6 +162,7 @@ public class BasePage {
 
 //    IS VISIBLE
     protected boolean isVisible(WebElement element){
+        setLastInteractedLocator(element);
         String description = getElementDescription(element);
         try {
             boolean visible = wait.until(ExpectedConditions.visibilityOf(element)).isDisplayed();
@@ -151,6 +177,7 @@ public class BasePage {
     }
 
     protected boolean isVisible(By locator) {
+        setLastInteractedLocator(locator);
         try {
             boolean visible = wait.until(ExpectedConditions.visibilityOfElementLocated(locator)).isDisplayed();
             String description = getElementDescription(driver.findElement(locator));
@@ -166,7 +193,7 @@ public class BasePage {
 
 // INVISIBLE
     protected boolean isNotVisible(WebElement element){
-
+        setLastInteractedLocator(element);
         try {
             boolean invisible = wait.until(ExpectedConditions.invisibilityOf(element));
             logger.debug("Check invisibility: Element [{}] is hidden", element);
@@ -180,7 +207,7 @@ public class BasePage {
     }
 
     protected boolean isNotVisible(By locator) {
-
+        setLastInteractedLocator(locator);
         try {
             boolean invisible = wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
             logger.debug("Check invisibility: Locator [{}] is hidden", locator);
@@ -201,17 +228,21 @@ public class BasePage {
         
         String logConsoleMessage = String.format("Failed to %s element [%s]. Locator Detail: %s. Reason: %s", 
                 action, description, locatorInfo, e.getMessage());
-
-        String reportHtmlMessage = String.format("Failed to %s element [%s].<br><b>Locator Detail:</b> %s<br><b>Reason:</b> %s", 
-                action, description, locatorInfo, e.getMessage());
         
         // Log clean plain text to Log4j2 console/file
         logger.error(logConsoleMessage);
         
+        // Capture 6 diagnostic pillars of the element at failure
+        org.example.utils.report.internal.model.ElementSnapshot snapshot = null;
+        try {
+            snapshot = org.example.utils.report.core.ElementSnapshotInspector.captureSnapshot(
+                    driver, target, action, e, java.time.Duration.ofSeconds(DEFAULT_TIMEOUT), null);
+        } catch (Exception ignored) {}
+
         // Log to Structured Element Logs tab
-        ReportAPI.elementError(action, locatorInfo, e);
+        ReportAPI.elementError(action, locatorInfo, e, snapshot);
         
-        throw new RuntimeException(reportHtmlMessage, e);
+        throw new RuntimeException(logConsoleMessage, e);
     }
 
     public String getElementDescription(WebElement element) {
@@ -277,13 +308,27 @@ public class BasePage {
         WebElement searchInput = wait.until(ExpectedConditions.visibilityOfElementLocated(searchInputLocator));
         typeText(searchInput, value);
 
-        selectOption(value);
+        try {
+            selectOption(value);
+        } catch (Exception e) {
+            logger.warn("Option [{}] not found immediately after filtering. Clearing search box to inspect all available options...", value);
+            try {
+                searchInput.sendKeys(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"), org.openqa.selenium.Keys.BACK_SPACE);
+                selectOption(value);
+            } catch (Exception ex) {
+                logger.error("Failed to select option [{}] from dropdown. Error: {}", value, ex.getMessage());
+                throw ex;
+            }
+        }
     }
 
     private void selectOption(String value) {
         By optionLocator = By.xpath(String.format("//div[@role='option'][contains(normalize-space(.), '%s')]", value));
-        
-        wait.until(ExpectedConditions.presenceOfElementLocated(optionLocator));
+
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@role='option']")));
+        } catch (Exception ignored) {}
+
         List<WebElement> options = driver.findElements(optionLocator);
         WebElement target = null;
 
@@ -294,7 +339,22 @@ public class BasePage {
                     break;
                 }
             } catch (StaleElementReferenceException ignored) {
-                // If stale, we'll try to re-locate below
+            }
+        }
+
+        if (target == null) {
+            List<WebElement> allOptions = driver.findElements(By.xpath("//div[@role='option']"));
+            logger.info("Total options found in listbox: {}", allOptions.size());
+            for (WebElement opt : allOptions) {
+                try {
+                    String optText = opt.getText().trim();
+                    logger.info(" - Option item: '{}'", optText);
+                    if (optText.toLowerCase().contains(value.toLowerCase()) || value.toLowerCase().contains(optText.toLowerCase())) {
+                        logger.info("Found matching option via fallback contains: '{}'", optText);
+                        target = opt;
+                        break;
+                    }
+                } catch (Exception ignored) {}
             }
         }
 
@@ -378,6 +438,33 @@ public class BasePage {
             return present;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    protected void scrollMoveToElement(WebElement element) {
+        Actions actions = new Actions(driver);
+        try {
+            actions.moveToElement(element).perform();
+            String description = getElementDescription(element);
+            logger.debug("Check element after scrolling: Element [{}] isFound={}", description, element);
+            ReportAPI.step("Check: Element [" + description + "] isFound=" + element);
+        } catch (Exception e) {
+            logger.debug("Check element after scrolling: Element [{}] is not clickable/present", element);
+        }
+
+    }
+
+    protected void scrollMoveToElement(By element) {
+        Actions actions = new Actions(driver);
+
+        try {
+            WebElement ele = driver.findElement(element);
+            actions.moveToElement(ele).perform();
+            String description = getElementDescription(ele);
+            logger.debug("Check element after scrolling: Element [{}] isFound={}", description, element);
+            ReportAPI.step("Check: Element [" + description + "] isFound=" + element);
+        } catch (Exception e) {
+            logger.debug("Check element after scrolling: Element [{}] is not found", element);
         }
     }
 

@@ -6,6 +6,11 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
+import java.util.List;
 
 public class AddIncumbentModal extends BasePage {
 
@@ -49,6 +54,10 @@ public class AddIncumbentModal extends BasePage {
         selectDropdownModal(incumbentNameDropdown, incumbentName);
     }
 
+    public void clickIncumbentNameDropdown() {
+        click(incumbentNameDropdown);
+    }
+
     public void selectMobility(boolean isMobility) {
         if (isMobility) {
             click(mobilityYesRadio);
@@ -89,5 +98,19 @@ public class AddIncumbentModal extends BasePage {
 
     public void clickContinueButton() {
         click(continueButtonModal);
+    }
+
+    public void waitForDropdownDataLoaded() {
+        By loadingLocator = By.xpath("//div[@role='listbox']//*[contains(normalize-space(), 'Loading')] | //div[@role='option'][contains(., 'Loading')]");
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.invisibilityOfElementLocated(loadingLocator));
+        } catch (Exception ignored) {}
+    }
+
+    public void selectFirstAvailableIncumbent() {
+        waitForDropdownDataLoaded();
+        By firstValidOption = By.xpath("(//div[@role='listbox']//div[@role='option'][not(contains(., 'Loading')) and not(contains(., 'No data found'))] | //div[@role='option'][not(contains(., 'Loading')) and not(contains(., 'No data found'))])[1]");
+        click(firstValidOption);
     }
 }

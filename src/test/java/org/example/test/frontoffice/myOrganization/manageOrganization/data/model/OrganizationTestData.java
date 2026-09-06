@@ -56,7 +56,7 @@ public class OrganizationTestData {
     private String currentPosition;
     private String movementMobility;
     private boolean isMobility = false;
-    private String movementCategory = "Career Progression / Job Enlargement";
+    private String movementCategory;
     private boolean isPJS = false;
 
     public OrganizationTestData() {}
@@ -204,7 +204,9 @@ public class OrganizationTestData {
     public String getOrganizationName() { return organizationName; }
     public void setOrganizationName(String organizationName) { this.organizationName = organizationName; }
 
+    @Deprecated(since = "Use getFteNumbers() instead")
     public String getFte() { return fte; }
+    @Deprecated(since = "Use setFteNumbers() instead")
     public void setFte(String fte) { this.fte = fte; }
 
     public String getJob() { return job; }
@@ -236,4 +238,18 @@ public class OrganizationTestData {
 
     public boolean isDottedMatrix() { return isDottedMatrix; }
     public void setDottedMatrix(boolean dottedMatrix) { isDottedMatrix = dottedMatrix; }
+
+    /**
+     * Membuat data Organization 2 khusus untuk aksi Split Organization.
+     * Wajib menggunakan JOB_NAME_2 dari Excel sheet SPLIT tanpa fallback.
+     */
+    public OrganizationTestData createSecondarySplitData() {
+        if (this.jobName2 == null || this.jobName2.trim().isEmpty()) {
+            throw new IllegalStateException("JOB_NAME_2 tidak terisi di Excel untuk aksi Split Organization. QA wajib mengisi kolom JOB_NAME_2 di Sheet SPLIT!");
+        }
+        OrganizationTestData secondaryData = new OrganizationTestData(this);
+        secondaryData.setJobName(this.jobName2.trim());
+        secondaryData.setJob(this.jobName2.trim());
+        return secondaryData;
+    }
 }

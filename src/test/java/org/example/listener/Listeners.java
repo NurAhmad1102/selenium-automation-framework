@@ -105,7 +105,7 @@ public class Listeners implements ITestListener, IExecutionListener {
         if (driver != null) {
             try {
                 String screenShotPath = seleniumUtils.getScreenShotPath(result.getMethod().getMethodName(), driver);
-                ReportAPI.addScreenshot(screenShotPath);
+                ReportAPI.attachScreenshotToLastFailureOrAdd(screenShotPath);
             } catch (Exception e) {
                 logger.error("Failed to capture screenshot for failed test: {}",
                         result.getMethod().getMethodName(), e);

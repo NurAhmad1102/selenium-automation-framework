@@ -15,6 +15,7 @@ import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.actionModal.*;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.ManageOrganizationExcelReader;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.model.MassiveOrgModel;
 import org.example.utils.CustomAssert;
 import org.example.utils.CustomSoftAssert;
 
@@ -132,10 +133,6 @@ public class SetOrganizationHelper {
         fillJobPosition(data, action, action == OrgMenuAction.ADD_NEW || action == OrgMenuAction.MERGE || action == OrgMenuAction.SPLIT, true);
     }
 
-    public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte) {
-        fillJobPosition(data, action, setFte, true);
-    }
-
     public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte, boolean proceed) {
 
         if (action == OrgMenuAction.RENAME){
@@ -179,6 +176,39 @@ public class SetOrganizationHelper {
         }
     }
 
+    public void fillJobPositionWithNewJob(
+            OrganizationTestData data,
+            OrgMenuAction action,
+            String customJobName,
+            boolean setFte
+            ) {
+        if (action == OrgMenuAction.RENAME){
+            CustomAssert.assertTrue(renameFormModal.isRenameJobPositionVisible(), "Rename Job Position modal header is not displayed after click next to modal Job & Position details");
+        } else {
+            CustomAssert.assertTrue(addJobPositionModal.isModalHeaderDisplayed(), "Add Job Position modal header is not displayed after click next to modal Job & Position details");
+        }
+        logger.info("Phase: --- Filling Job & Position Details with New Job Creation: [{}] ---", customJobName);
+
+        var jobSection = addJobPositionModal.getJobSection(data.getJobIndex());
+        jobSection.createNewJobName(customJobName);
+
+        var positionSection = jobSection.getPosition(data.getPositionIndex());
+        positionSection.selectPositionNamingType(data.getPositionNamingType());
+        positionSection.selectLocation(data.getLocation());
+        positionSection.selectParentPositionName(data.getParentPosition());
+
+        if (setFte) {
+            logger.info("Step: Setting FTE to [{}]", data.getFteNumbers());
+            positionSection.setFTE(data.getFteNumbers());
+        }
+
+        if (action == OrgMenuAction.ADD_NEW) {
+            positionSection.selectDottedMatrix(data.isDottedMatrix());
+        }
+
+        clickButtonProceedJobPosition(action);
+    }
+
     private void clickButtonProceedJobPosition(OrgMenuAction action) {
         if (action == OrgMenuAction.RENAME) {
             logger.info("Action: Clicking Apply button to finalize");
@@ -204,6 +234,50 @@ public class SetOrganizationHelper {
         logger.info("Phase: --- Adding New Organization: {}---", data.getNewOrganizationName());
         clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.ADD_NEW);
         setOrganizationName(data, OrgMenuAction.ADD_NEW);
+    }
+
+    public void addMassiveOrganizationNode(MassiveOrgModel model) {
+        logger.info("Phase: --- Adding Massive Org Node [{}] (Level {}) under Parent [{}] ---",
+                model.getOrgName(), model.getLevel(), model.getParentOrgName());
+
+        clickKebabButtonOfNode(model.getParentOrgName(), OrgMenuAction.ADD_NEW);
+
+        logger.info("Step: Inputting Organization Name [{}] and RC Code [{}]", model.getOrgName(), model.getRcCode());
+        addFormModal.setOrgNewName(model.getOrgName());
+        addFormModal.clickRCCodeDropdown(model.getRcCode());
+        addFormModal.clickNext();
+
+        CustomAssert.assertTrue(addJobPositionModal.isModalHeaderDisplayed(),
+                "Add Job Position modal header is not displayed");
+
+        logger.info("Phase: --- Filling Job & Position for Massive Node [{}] ---", model.getOrgName());
+        var jobSection = addJobPositionModal.getJobSection(0);
+        logger.info("Step: Selecting Job Name [{}]", model.getJobName());
+        jobSection.selectJobName(model.getJobName());
+
+        var positionSection = jobSection.getPosition(0);
+        logger.info("Step: Selecting Position Naming Type [{}]", model.getPositionNamingType());
+        positionSection.selectPositionNamingType(model.getPositionNamingType());
+
+        logger.info("Step: Selecting Location [{}]", model.getLocation());
+        positionSection.selectLocation(model.getLocation());
+
+        logger.info("Step: Selecting Parent Position Name [{}]", model.getParentPositionName());
+        positionSection.selectParentPositionName(model.getParentPositionName());
+
+        logger.info("Step: Setting FTE [{}] and Dotted Matrix [{}]", model.getFte(), model.isDottedMatrix());
+        positionSection.setFTE(model.getFte());
+        positionSection.selectDottedMatrix(model.isDottedMatrix());
+
+        // Final step: Clear and input custom Position Name after all other dropdowns are filled
+        // so that selecting Location does not re-trigger auto-generation of Position Name
+        logger.info("Step: Typing Custom Position Name [{}] (Final Step before Add)", model.getPositionName());
+        positionSection.setPositionName(model.getPositionName());
+
+        logger.info("Action: Clicking Add button to finalize Job & Position");
+        addJobPositionModal.clickAddButton();
+
+        confirmAction(ConfirmAction.ADD);
     }
 
 //    REMOVE ORGANIZATION
@@ -313,6 +387,8 @@ public class SetOrganizationHelper {
         CustomSoftAssert softAssert = new CustomSoftAssert();
         String positionName = orgData.getJobName();
 
+        softAssert.assertTrue(setOrganizationPage.isTagNewNodeOrgDisplayed(orgData.getNewOrganizationName()),
+                "Organization doesn't have tag new");
         clickOrganizationNode(orgData.getNewOrganizationName());
         softAssert.assertEquals(nodeOrganizationModal.getRcCode(), orgData.getRcCode(), "RC Code is not same as expected");
 
@@ -364,7 +440,7 @@ public class SetOrganizationHelper {
             editJobsPositionsModal.clickSaveButton();
             confirmationActionModal.clickYesButton();
             successModal.clickContinueButton();
-            nodeOrganizationModal.clickCloseButton();
+//            nodeOrganizationModal.clickCloseButton();
         }
     }
 

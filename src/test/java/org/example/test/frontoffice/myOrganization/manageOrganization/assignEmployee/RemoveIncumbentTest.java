@@ -2,6 +2,7 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.assignEmp
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.example.pageObject.frontoffice.manageOrganization.enums.AssignmentTag;
 import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
@@ -77,7 +78,7 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
 
         // di position primary yang exisiting tetap ada
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(currentAssignData.getCurrentOrg(), currentAssignData.getCurrentPosition(), employeeIdentifier),
+                assignEmployeeHelper().verifyEmployeeInPositionVisible(currentAssignData.getCurrentOrg(), currentAssignData.getCurrentPosition(), employeeIdentifier, AssignmentTag.NONE),
                 "Employee does not exist in existing position"
         );
 

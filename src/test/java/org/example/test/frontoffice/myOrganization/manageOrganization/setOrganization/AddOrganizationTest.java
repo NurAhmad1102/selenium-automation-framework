@@ -67,4 +67,26 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
         CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicatePositionMessage), "Inline error message is not displayed");
 
     }
+
+    @Test(groups = {"smoke"},description = "Verify that user can add new organization with valid data")
+    public void addOrganizationWithNewJobTest() {
+        logger.info("Starting test: addNewOrganization");
+        manageOrganizationHelper().goToFlow1SetOrganization();
+
+        setOrganizationHelper().addNewOrganization(data.get());
+        data.get().setJobName(createNewJobName);
+        setOrganizationHelper().fillJobPositionWithNewJob(
+                data.get(),
+                OrgMenuAction.ADD_NEW,
+                data.get().getJobName(),
+                true);
+
+        setOrganizationHelper().confirmAction(ConfirmAction.ADD);
+        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
+
+        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
+
+        setOrganizationHelper().clickChangeLogButton();
+        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("New Organization", data.get().getNewOrganizationName(), data.get().getPrimaryOrganization()), "Changes Log for New Organization is not displayed correctly");
+    }
 }

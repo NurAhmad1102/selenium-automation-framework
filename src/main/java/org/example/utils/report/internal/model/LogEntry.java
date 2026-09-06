@@ -30,6 +30,7 @@ public class LogEntry {
     private OutcomeCategory outcomeCategory;
     private String outcomeReason;
     private boolean affectsFinalOutcome;
+    private ElementSnapshot elementSnapshot;
 
     public LogEntry(LogCategory category, Status status, String message) {
         this(category, status, message, Instant.now());
@@ -87,6 +88,8 @@ public class LogEntry {
     public void setOutcomeReason(String outcomeReason) { this.outcomeReason = outcomeReason; }
     public boolean isAffectsFinalOutcome() { return affectsFinalOutcome; }
     public void setAffectsFinalOutcome(boolean affectsFinalOutcome) { this.affectsFinalOutcome = affectsFinalOutcome; }
+    public ElementSnapshot getElementSnapshot() { return elementSnapshot; }
+    public void setElementSnapshot(ElementSnapshot elementSnapshot) { this.elementSnapshot = elementSnapshot; }
 
     private static OutcomeStatus mapStatus(Status status) {
         if (status == Status.FAIL) {

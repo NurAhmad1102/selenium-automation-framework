@@ -182,8 +182,12 @@ public class FilterUpdateOrganizationPage extends BasePage {
         click(optionElement);
     }
 
-    public void selectNewOrganizationEffectiveDate(int effectiveDate) {
-        String newEffectiveDate = String.format("//button[@name='day' and text()='%d' and @tabindex='0' and contains(@class, 'text-primary-500')]", effectiveDate);
+    public void selectNewOrganizationEffectiveDate(String monthName) {
+        logger.info("Select New Organization Effective Date: {}", monthName);
+        String newEffectiveDate = String.format(
+                "//button[normalize-space()='%s' and not(@disabled)]",
+                monthName
+        );
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath(newEffectiveDate))).click();
     }
 }
