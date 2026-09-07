@@ -52,7 +52,7 @@ public class MassiveOrgExcelTest extends ManageOrganizationBaseTest {
             setOrganizationHelper().addMassiveOrganizationNode(org);
 
             CustomAssert.assertTrue(
-                    setOrganizationHelper().isNodeOrganizationDisplayed(org.getOrgName()),
+                    setOrganizationVerifier().isNodeOrganizationDisplayed(org.getOrgName()),
                     "Node organization [" + org.getOrgName() + "] is not displayed on tree canvas after creation"
             );
             logger.info("Node [{}] verified on canvas successfully", org.getOrgName());
@@ -63,7 +63,7 @@ public class MassiveOrgExcelTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().clickChangeLogButton();
 
         for (MassiveOrgModel org : orgList) {
-            boolean isLogged = setOrganizationHelper().verifyOrganizationChangesLog(
+            boolean isLogged = setOrganizationVerifier().verifyOrganizationChangesLog(
                     "New Organization",
                     org.getOrgName(),
                     org.getParentOrgName()

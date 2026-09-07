@@ -101,21 +101,6 @@ public class SetOrganizationHelper {
         setOrganizationPage().selectMenuActionFlow1(action);
     }
 
-    public boolean isNodeOrganizationDisplayed(String orgName) {
-        logger.info("Step: Search Organization Name: Get Organization Node: {}", orgName);
-        return setOrganizationPage().isNodeOrganizationDisplayed(orgName);
-    }
-
-    public boolean isNodeOrganizationInvisible(String orgName) {
-        logger.info("Step: Search Organization Name: Get Organization Node: {}", orgName);
-        return setOrganizationPage().isNodeOrganizationInvisible(orgName);
-    }
-
-    public boolean isInlineErrorMessageDisplayed(String orgName) {
-        logger.info("Step: Validation inline error message: Get Inline Error Message: {}", orgName);
-        return addFormModal().isInlineErrorMessageDisplayed(orgName);
-    }
-
     // PERFORM ACTIONS
     public void fillJobPosition(OrganizationTestData data, OrgMenuAction action) {
         fillJobPosition(data, action, action == OrgMenuAction.ADD_NEW || action == OrgMenuAction.MERGE || action == OrgMenuAction.SPLIT, true);
@@ -123,6 +108,8 @@ public class SetOrganizationHelper {
 
     public void fillJobPosition(OrganizationTestData data, OrgMenuAction action, boolean setFte, boolean proceed) {
         logger.info("Phase: --- Filling Job & Position Details ---");
+
+        addJobPositionModal().waitForJobPositionModalHeader(action);
 
         var jobSection = addJobPositionModal().getJobSection(data.getJobIndex());
         logger.info("Step: Working on Job Section index [{}]", data.getJobIndex());
@@ -165,6 +152,8 @@ public class SetOrganizationHelper {
     ) {
         logger.info("Phase: --- Filling Job & Position Details with New Job Creation: [{}] ---", customJobName);
 
+        addJobPositionModal().waitForJobPositionModalHeader(action);
+
         var jobSection = addJobPositionModal().getJobSection(data.getJobIndex());
         jobSection.createNewJobName(customJobName);
 
@@ -198,11 +187,6 @@ public class SetOrganizationHelper {
         }
     }
 
-    public boolean verifyMissingParentPositionDisplayed() {
-        logger.info("Step: Verify missing parent position displayed in the organization tree");
-        return setOrganizationPage().isMissingParentPositionNodeDisplayed();
-    }
-
     public void addNewOrganization(OrganizationTestData data) {
         logger.info("Phase: --- Adding New Organization: {}---", data.getNewOrganizationName());
         clickKebabButtonOfNode(data.getPrimaryOrganization(), OrgMenuAction.ADD_NEW);
@@ -221,6 +205,7 @@ public class SetOrganizationHelper {
         addFormModal().clickNext();
 
         logger.info("Phase: --- Filling Job & Position for Massive Node [{}] ---", model.getOrgName());
+        addJobPositionModal().waitForJobPositionModalHeader(OrgMenuAction.ADD_NEW);
         var jobSection = addJobPositionModal().getJobSection(0);
         logger.info("Step: Selecting Job Name [{}]", model.getJobName());
         jobSection.selectJobName(model.getJobName());
@@ -310,6 +295,7 @@ public class SetOrganizationHelper {
     }
 
     public void fillJobPositionForSplit(OrganizationTestData dataOrg1, OrganizationTestData dataOrg2, boolean proceed) {
+        addJobPositionModal().waitForJobPositionModalHeader(OrgMenuAction.SPLIT);
         logger.info("Step: Filling Job & Position for Organization 1");
         addJobPositionModal().selectOrganizationTab("Organization 1");
         fillJobPosition(dataOrg1, OrgMenuAction.SPLIT, false, false);
@@ -345,22 +331,14 @@ public class SetOrganizationHelper {
         successModal().clickContinueButton();
     }
 
-    public void verifyDetailNodeOrganization(OrganizationTestData orgData) {
-        new SetOrganizationVerifier(mainPagesFactory).verifyDetailNodeOrganization(orgData);
-    }
-
     public void clickChangeLogButton() {
         logger.info("Step: Clicking Changelog button");
         changesLogModal().openChangesLogModal();
         changesLogModal().selectOrganizationChangesTab();
     }
 
-    public boolean verifyOrganizationChangesLog(String actionTitle, String... dynamicOrgKeywords) {
-        return new SetOrganizationVerifier(mainPagesFactory).verifyOrganizationChangesLog(actionTitle, dynamicOrgKeywords);
-    }
-
     public void setParentPositionToNode(String parentPositionName) {
-        while (verifyMissingParentPositionDisplayed()) {
+        while (setOrganizationPage().isMissingParentPositionNodeDisplayed()) {
             setOrganizationPage().clickNodeMissingParentPosition();
             nodeOrganizationModal().clickEditButton();
 

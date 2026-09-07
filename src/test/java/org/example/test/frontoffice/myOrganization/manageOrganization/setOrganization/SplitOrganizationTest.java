@@ -41,20 +41,20 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
         String org1Name = org1Data.getNewOrganizationName1();
         String org2Name = org2Data.getNewOrganizationName2();
 
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(org1Name),
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationDisplayed(org1Name),
                     "Split Organization 1 node is not displayed in the organization tree");
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(org2Name),
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationDisplayed(org2Name),
                     "Split Organization 2 node is not displayed in the organization tree");
 
-//        ORG 1 verification
+//        Org 1
         convertNewOrganizationNameForSplit(org1Data, 1);
-        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
-//        ORG 2 verification
+        setOrganizationVerifier().verifyDetailNodeOrganization(data.get());
+//        org 2
         convertNewOrganizationNameForSplit(org2Data, 2);
-        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
+        setOrganizationVerifier().verifyDetailNodeOrganization(data.get());
 
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Split Organization", org1Data.getPrimaryOrganization(), org1Name, org2Name),
+        CustomAssert.assertTrue(setOrganizationVerifier().verifyOrganizationChangesLog("Split Organization", org1Data.getPrimaryOrganization(), org1Name, org2Name),
                 "Changes Log for Split Organization is not displayed correctly");
     }
 
@@ -68,7 +68,7 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
         org2Data.setNewOrganizationName2(duplicateOrganizationName);
 
         setOrganizationHelper().splitOrganization(org1Data, org2Data);
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed");
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed");
     }
 
     @Test(groups = {"smoke"}, description = "Verify that user cannot split organization with same Organization name in Both New Organization")
@@ -81,7 +81,7 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
         org2Data.setNewOrganizationName2(org1Data.getNewOrganizationName1());
 
         setOrganizationHelper().splitOrganization(org1Data, org2Data);
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationNameInBothOrg), "Inline error message is not displayed");
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(duplicateOrganizationNameInBothOrg), "Inline error message is not displayed");
     }
 
     @Test(groups = {"smoke"}, description = "Verify that user cannot split organization with duplicate position")
@@ -94,10 +94,10 @@ public class SplitOrganizationTest extends ManageOrganizationBaseTest {
 
         setOrganizationHelper().splitOrganization(org1Data, org2Data);
         setOrganizationHelper().fillJobPositionForSplit(org1Data, org2Data, true);
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(splitDuplicatePositionInBothOrg), "Inline error message is not displayed");
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(splitDuplicatePositionInBothOrg), "Inline error message is not displayed");
     }
 
-    //to convert the new organization name for split based on the organization number (1 or 2)
+    //organization name for split
     private OrganizationTestData convertNewOrganizationNameForSplit(OrganizationTestData orgData, int OrgNumber) {
         if(OrgNumber == 1) {
             orgData.setNewOrganizationName(orgData.getNewOrganizationName1());

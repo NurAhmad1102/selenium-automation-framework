@@ -18,7 +18,6 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
-        // Initialize data from Excel 'ADD_NEW' sheet
         this.data.set(setOrganizationHelper().getTestData(OrgSheetName.ADD_NEW));
     }
 
@@ -36,12 +35,12 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.ADD_NEW);
 
         setOrganizationHelper().confirmAction(ConfirmAction.ADD);
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
 
-        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
+        setOrganizationVerifier().verifyDetailNodeOrganization(data.get());
 
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("New Organization", data.get().getNewOrganizationName(), data.get().getPrimaryOrganization()), "Changes Log for New Organization is not displayed correctly");
+        CustomAssert.assertTrue(setOrganizationVerifier().verifyOrganizationChangesLog("New Organization", data.get().getNewOrganizationName(), data.get().getPrimaryOrganization()), "Changes Log for New Organization is not displayed correctly");
     }
 
     @Test(description = "Verify that user cannot add new organization with existing organization name")
@@ -51,7 +50,7 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
 
         data.get().setNewOrganizationName(duplicateOrganizationName);
         setOrganizationHelper().addNewOrganization(data.get());
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed");
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed");
     }
 
     @Test(description = "Verify that user cannot add new position with existing position name under the same or others organization")
@@ -64,7 +63,7 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
         data.get().setJobName(duplicatePositionName);
         setOrganizationHelper().addNewOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.ADD_NEW);
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicatePositionMessage), "Inline error message is not displayed");
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(duplicatePositionMessage), "Inline error message is not displayed");
 
     }
 
@@ -82,11 +81,11 @@ public class AddOrganizationTest extends ManageOrganizationBaseTest {
                 true);
 
         setOrganizationHelper().confirmAction(ConfirmAction.ADD);
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "New Organization node is not displayed in the organization tree");
 
-        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
+        setOrganizationVerifier().verifyDetailNodeOrganization(data.get());
 
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("New Organization", data.get().getNewOrganizationName(), data.get().getPrimaryOrganization()), "Changes Log for New Organization is not displayed correctly");
+        CustomAssert.assertTrue(setOrganizationVerifier().verifyOrganizationChangesLog("New Organization", data.get().getNewOrganizationName(), data.get().getPrimaryOrganization()), "Changes Log for New Organization is not displayed correctly");
     }
 }

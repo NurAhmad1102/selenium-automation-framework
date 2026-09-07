@@ -791,7 +791,7 @@ public class ExtentTabRenderer {
 
         return "<details class='stacktrace-details'>"
                 + "<summary class='stacktrace-summary'>"
-                + "<span>🐞 Lihat Full Stack Trace</span>"
+                + "<span>Full Stack Trace</span>"
                 + "<button class='copy-stacktrace-btn' type='button' onclick=\"event.stopPropagation(); copyStackTrace(this, '" + escapeJsString(rawStackTrace) + "')\">Copy Stack Trace</button>"
                 + "</summary>"
                 + "<div class='stacktrace-container'>"

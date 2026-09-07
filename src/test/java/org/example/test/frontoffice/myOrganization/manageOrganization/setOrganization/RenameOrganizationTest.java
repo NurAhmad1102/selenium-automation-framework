@@ -18,7 +18,6 @@ public class RenameOrganizationTest extends ManageOrganizationBaseTest {
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
-        // Initialize data from Excel 'RENAME' sheet
         this.data.set(setOrganizationHelper().getTestData(OrgSheetName.RENAME));
     }
 
@@ -35,13 +34,13 @@ public class RenameOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().renameOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.RENAME);
         setOrganizationHelper().confirmAction(ConfirmAction.RENAME);
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "Renamed Organization node is not displayed in the organization tree");
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(data.get().getPrimaryOrganization()), "Primary Organization node is still displayed in the organization tree after rename");
-        CustomAssert.assertTrue(setOrganizationHelper().verifyMissingParentPositionDisplayed(), "Missing parent position is not displayed after rename organization");
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "Renamed Organization node is not displayed in the organization tree");
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationInvisible(data.get().getPrimaryOrganization()), "Primary Organization node is still displayed in the organization tree after rename");
+        CustomAssert.assertTrue(setOrganizationVerifier().verifyMissingParentPositionDisplayed(), "Missing parent position is not displayed after rename organization");
 
-        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
+        setOrganizationVerifier().verifyDetailNodeOrganization(data.get());
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Rename Organization", data.get().getPrimaryOrganization(), data.get().getNewOrganizationName()), "Changes Log for Rename Organization is not displayed correctly");
+        CustomAssert.assertTrue(setOrganizationVerifier().verifyOrganizationChangesLog("Rename Organization", data.get().getPrimaryOrganization(), data.get().getNewOrganizationName()), "Changes Log for Rename Organization is not displayed correctly");
     }
 
     @Test(groups = {"smoke"},description = "Verify that user can't Rename organization with existing organization name")
@@ -51,7 +50,7 @@ public class RenameOrganizationTest extends ManageOrganizationBaseTest {
         data.get().setNewOrganizationName(duplicateOrganizationName);
 
         setOrganizationHelper().renameOrganization(data.get());
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed when renaming organization with existing organization name");
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed when renaming organization with existing organization name");
     }
 
     @Test(groups = {"smoke"},description = "Verify that user can't Rename organization with existing position name")
@@ -62,7 +61,7 @@ public class RenameOrganizationTest extends ManageOrganizationBaseTest {
 
         setOrganizationHelper().renameOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.RENAME);
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicatePositionMessage), "Inline error message is not displayed when renaming organization with existing position name");
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(duplicatePositionMessage), "Inline error message is not displayed when renaming organization with existing position name");
     }
 
 

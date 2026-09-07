@@ -17,7 +17,6 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
-        // Initialize data from Excel 'REMOVE' sheet
         this.data.set(setOrganizationHelper().getTestData(OrgSheetName.REMOVE));
     }
 
@@ -36,11 +35,11 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().removeOrganization(organizationToRemove);
         setOrganizationHelper().confirmAction(ConfirmAction.REMOVE);
 
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(organizationToRemove),
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationInvisible(organizationToRemove),
                 "Removed Organization node is still displayed in the organization tree");
 
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Remove Organization", organizationToRemove),
+        CustomAssert.assertTrue(setOrganizationVerifier().verifyOrganizationChangesLog("Remove Organization", organizationToRemove),
                 "Changes Log for Remove Organization is not displayed correctly");
     }
 
@@ -53,19 +52,19 @@ public class RemoveOrganizationTest extends ManageOrganizationBaseTest {
 
         manageOrganizationHelper().goToFlow1SetOrganization();
 
-//        KODE PRE CONDITION ADD NEW ORG
+//        pre-condition
         setOrganizationHelper().addNewOrganization(addNewData);
         setOrganizationHelper().fillJobPosition(addNewData, OrgMenuAction.ADD_NEW);
         setOrganizationHelper().confirmAction(ConfirmAction.ADD);
 
-//        KODE REMOVE ORG
+//        remove org
         setOrganizationHelper().removeOrganization(organizationToRemove);
         setOrganizationHelper().confirmAction(ConfirmAction.REMOVE);
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(organizationToRemove),
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationInvisible(organizationToRemove),
                 "Removed Organization node is still displayed in the organization tree");
 
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Remove Organization", organizationToRemove),
+        CustomAssert.assertTrue(setOrganizationVerifier().verifyOrganizationChangesLog("Remove Organization", organizationToRemove),
                 "Changes Log for Remove Organization is not displayed correctly");
     }
 

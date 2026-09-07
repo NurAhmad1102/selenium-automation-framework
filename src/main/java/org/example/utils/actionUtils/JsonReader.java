@@ -13,7 +13,7 @@ import java.nio.file.Path;
 public class JsonReader {
     private static Config config;
 
-    public static Config getConfig(){
+    public static synchronized Config getConfig(){
         if(config == null){
             config = loadConfigData();
         }
@@ -21,17 +21,21 @@ public class JsonReader {
     }
 
     private static Config loadConfigData(){
-      Path configPath = ResourcePathResolver.resolve(
-              "data/data.json",
-              "src/test/resources/data/data.json",
-              "src/test/java/resources/data/data.json"
-      );
-      try (Reader reader = Files.newBufferedReader(configPath, StandardCharsets.UTF_8)) {
-          Gson gson = new Gson();
-          return gson.fromJson(reader, Config.class);
-      } catch (IOException e){
-          throw new RuntimeException("JsonReader "+e);
-      }
+        try {
+            Path configPath = ResourcePathResolver.resolve(
+                    "data/backoffice/slaStatus/data.json",
+                    "src/test/resources/data/backoffice/slaStatus/data.json",
+                    "data/data.json",
+                    "src/test/resources/data/data.json",
+                    "src/test/java/resources/data/data.json"
+            );
+            try (Reader reader = Files.newBufferedReader(configPath, StandardCharsets.UTF_8)) {
+                Gson gson = new Gson();
+                return gson.fromJson(reader, Config.class);
+            }
+        } catch (Exception e){
+            throw new RuntimeException("JsonReader failed to load configuration: " + e.getMessage(), e);
+        }
     }
 }
 

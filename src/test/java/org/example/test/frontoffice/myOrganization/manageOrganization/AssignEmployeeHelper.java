@@ -8,12 +8,10 @@ import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.EmployeeMovementModal;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.ManageIncumbentModal;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.UnassignedEmployeeListModal;
-import org.example.enums.frontoffice.manageOrganization.AssignmentTag;
 import org.example.enums.frontoffice.manageOrganization.ConfirmAction;
 import org.example.enums.frontoffice.manageOrganization.OrgMenuAction;
 import org.example.enums.frontoffice.manageOrganization.OrgSheetName;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ActionElementsPage;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ChangesLogModal;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ConfirmationActionModal;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.SuccessModal;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.ManageOrganizationExcelReader;
@@ -60,10 +58,6 @@ public class AssignEmployeeHelper {
 
     public SuccessModal successModal() {
         return mainPagesFactory.manageOrganization().commonModals().getSuccessModal();
-    }
-
-    public ChangesLogModal changesLogModal() {
-        return mainPagesFactory.manageOrganization().commonModals().getChangesLogModal();
     }
 
     public ActionElementsPage actionElementsPage() {
@@ -178,7 +172,7 @@ public class AssignEmployeeHelper {
             addIncumbentModal().clickIncumbentNameDropdown();
 
             // if still there is unassigned employee, this button will be clickable
-            if (!isViewUnassignedButtonClickable()) {
+            if (!assignEmployeePage().isViewUnassignedButtonClickable()) {
                 logger.info("No available incumbents / No data found in dropdown for position: [{}]. Finishing add incumbent process.", positionName);
                 break;
             }
@@ -267,42 +261,5 @@ public class AssignEmployeeHelper {
         logger.info("Step: Confirming action: {}", action.getActionName());
         confirmationActionModal().clickYesButton();
         successModal().clickContinueButton();
-    }
-
-    public boolean isViewUnassignedButtonClickable() {
-        logger.info("Step: Checking if 'View Unassigned' button is clickable");
-        return assignEmployeePage().isViewUnassignedButtonClickable();
-    }
-
-    public boolean verifyEmployeeAssignmentLog(String actionTitle, String... dynamicKeywords) {
-        logger.info("Step: Verifying Employee Assignment Changes Log for Action [{}] with Keywords {}", actionTitle, dynamicKeywords);
-        changesLogModal().openChangesLogModal();
-        changesLogModal().selectEmployeeAssignmentTab();
-        return changesLogModal().isOrganizationChangeLogDisplayed(actionTitle, dynamicKeywords);
-    }
-
-    public void closeChangeLogModal() {
-        logger.info("Step: Closing Changes Log modal");
-        changesLogModal().clickCloseButton();
-    }
-
-    public boolean verifyEmployeeInUnassignedListVisible(String employeeName) {
-        return new AssignEmployeeVerifier(mainPagesFactory).verifyEmployeeInUnassignedListVisible(employeeName);
-    }
-
-    public boolean verifyEmployeeInUnassignedListNotVisible(String employeeName) {
-        return new AssignEmployeeVerifier(mainPagesFactory).verifyEmployeeInUnassignedListNotVisible(employeeName);
-    }
-
-    public boolean verifyEmployeeInPositionNotVisible(String orgName, String positionName, String employeeNameOrId) {
-        return new AssignEmployeeVerifier(mainPagesFactory).verifyEmployeeInPositionNotVisible(orgName, positionName, employeeNameOrId);
-    }
-
-    public boolean verifyEmployeeInPositionVisible(
-            String orgName,
-            String positionName,
-            String employeeNameOrId,
-            AssignmentTag expectedTag) {
-        return new AssignEmployeeVerifier(mainPagesFactory).verifyEmployeeInPositionVisible(orgName, positionName, employeeNameOrId, expectedTag);
     }
 }

@@ -18,7 +18,6 @@ public class MoveOrganizationTest extends ManageOrganizationBaseTest {
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
-        // Initialize data from Excel 'MOVE' sheet
         this.data.set(setOrganizationHelper().getTestData(OrgSheetName.MOVE));
     }
 
@@ -36,16 +35,16 @@ public class MoveOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.MOVE);
         setOrganizationHelper().confirmAction(ConfirmAction.MOVE);
 
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()),
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()),
                 "Moved Organization node is not displayed in the organization tree");
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getChildOrganization()),
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationDisplayed(data.get().getChildOrganization()),
                 "Child Organization node is not displayed in the organization tree");
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(data.get().getPrimaryOrganization()),
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationInvisible(data.get().getPrimaryOrganization()),
                 "Primary Organization node is still displayed in the organization tree");
 
-        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
+        setOrganizationVerifier().verifyDetailNodeOrganization(data.get());
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Move Organization", data.get().getPrimaryOrganization(), data.get().getNewOrganizationName()),
+        CustomAssert.assertTrue(setOrganizationVerifier().verifyOrganizationChangesLog("Move Organization", data.get().getPrimaryOrganization(), data.get().getNewOrganizationName()),
                 "Changes Log for Move Organization is not displayed correctly");
     }
 
@@ -56,7 +55,7 @@ public class MoveOrganizationTest extends ManageOrganizationBaseTest {
         data.get().setNewOrganizationName(duplicateOrganizationName);
 
         setOrganizationHelper().moveOrganization(data.get());
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage),
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(duplicateOrganizationMessage),
                 "Inline error message is not displayed when moving organization with existing organization name");
     }
 
@@ -68,7 +67,7 @@ public class MoveOrganizationTest extends ManageOrganizationBaseTest {
 
         setOrganizationHelper().moveOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.MOVE);
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicatePositionMessage),
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(duplicatePositionMessage),
                 "Inline error message is not displayed when moving organization with existing position name");
 
     }

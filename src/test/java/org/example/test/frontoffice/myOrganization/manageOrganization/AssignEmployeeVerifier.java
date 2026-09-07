@@ -6,6 +6,7 @@ import org.example.factories.frontoffice.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.AssignEmployeePage;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.ManageIncumbentModal;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.modal.UnassignedEmployeeListModal;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.ChangesLogModal;
 import org.example.enums.frontoffice.manageOrganization.AssignmentTag;
 
 public class AssignEmployeeVerifier {
@@ -28,8 +29,25 @@ public class AssignEmployeeVerifier {
         return mainPagesFactory.manageOrganization().assignEmployeeModals().getUnassignedEmployeeListModal();
     }
 
+    private ChangesLogModal changesLogModal() {
+        return mainPagesFactory.manageOrganization().commonModals().getChangesLogModal();
+    }
+
     public boolean isViewUnassignedButtonClickable() {
+        logger.info("Step: Checking if 'View Unassigned' button is clickable");
         return assignEmployeePage().isViewUnassignedButtonClickable();
+    }
+
+    public boolean verifyEmployeeAssignmentLog(String actionTitle, String... dynamicKeywords) {
+        logger.info("Step: Verifying Employee Assignment Changes Log for Action [{}] with Keywords {}", actionTitle, dynamicKeywords);
+        changesLogModal().openChangesLogModal();
+        changesLogModal().selectEmployeeAssignmentTab();
+        return changesLogModal().isOrganizationChangeLogDisplayed(actionTitle, dynamicKeywords);
+    }
+
+    public void closeChangeLogModal() {
+        logger.info("Step: Closing Changes Log modal");
+        changesLogModal().clickCloseButton();
     }
 
     public boolean verifyEmployeeInUnassignedListVisible(String employeeName) {
