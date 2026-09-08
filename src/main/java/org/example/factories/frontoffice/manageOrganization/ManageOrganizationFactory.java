@@ -1,16 +1,11 @@
 package org.example.factories.frontoffice.manageOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ActionElementsPage;
 import org.example.pageObject.frontoffice.manageOrganization.DashboardManageOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.FilterUpdateOrganizationPage;
-import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.assignEmployeeFlow2.AssignEmployeePage;
-import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.CurrentOrganizationSection;
-import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.NewJobSection;
-import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.NewPositionSection;
 import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.OrganizationChangesJustificationPage;
-import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.ProposedAssignmentEmployeeSection;
-import org.example.pageObject.frontoffice.manageOrganization.organizationChangesJustificationFlow3.ProposedOrganizationSection;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ActionElementsPage;
+import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.openqa.selenium.WebDriver;
 
 public class ManageOrganizationFactory {
@@ -19,26 +14,23 @@ public class ManageOrganizationFactory {
     private FilterUpdateOrganizationPage filterUpdateOrganizationPage;
     private SetOrganizationPage setOrganizationPage;
     private ActionElementsPage actionElementsPage;
-    private SetOrganizationModalFactory modalFactory;
     private AssignEmployeePage assignEmployeePage;
-    private AssignEmployeeModalFactory assignEmployeeModalFactory;
-
     private OrganizationChangesJustificationPage organizationChangesJustificationPage;
-    private CurrentOrganizationSection currentOrganizationSection;
-    private ProposedOrganizationSection proposedOrganizationSection;
-    private ProposedAssignmentEmployeeSection proposedAssignmentEmployeeSection;
-    private NewPositionSection newPositionSection;
-    private NewJobSection newJobSection;
+
+    private SetOrganizationModalFactory setOrganizationModalFactory;
+    private AssignEmployeeModalFactory assignEmployeeModalFactory;
+    private CommonModalFactory commonModalFactory;
+    private JustificationSectionFactory justificationSectionFactory;
 
     public ManageOrganizationFactory(WebDriver driver) {
         this.driver = driver;
     }
 
-    public SetOrganizationModalFactory modals() {
-        if (modalFactory == null) {
-            modalFactory = new SetOrganizationModalFactory(driver);
+    public SetOrganizationModalFactory setOrganizationModals() {
+        if (setOrganizationModalFactory == null) {
+            setOrganizationModalFactory = new SetOrganizationModalFactory(driver);
         }
-        return modalFactory;
+        return setOrganizationModalFactory;
     }
 
     public AssignEmployeeModalFactory assignEmployeeModals() {
@@ -46,6 +38,20 @@ public class ManageOrganizationFactory {
             assignEmployeeModalFactory = new AssignEmployeeModalFactory(driver);
         }
         return assignEmployeeModalFactory;
+    }
+
+    public CommonModalFactory commonModals() {
+        if (commonModalFactory == null) {
+            commonModalFactory = new CommonModalFactory(driver);
+        }
+        return commonModalFactory;
+    }
+
+    public JustificationSectionFactory justificationSections() {
+        if (justificationSectionFactory == null) {
+            justificationSectionFactory = new JustificationSectionFactory(driver);
+        }
+        return justificationSectionFactory;
     }
 
     public DashboardManageOrganizationPage getDashboardManageOrganizationPage() {
@@ -88,40 +94,5 @@ public class ManageOrganizationFactory {
             organizationChangesJustificationPage = new OrganizationChangesJustificationPage(driver);
         }
         return organizationChangesJustificationPage;
-    }
-
-    public CurrentOrganizationSection getCurrentOrganizationSection() {
-        if (currentOrganizationSection == null) {
-            currentOrganizationSection = new CurrentOrganizationSection(driver);
-        }
-        return currentOrganizationSection;
-    }
-
-    public ProposedOrganizationSection getProposedOrganizationSection() {
-        if (proposedOrganizationSection == null) {
-            proposedOrganizationSection = new ProposedOrganizationSection(driver);
-        }
-        return proposedOrganizationSection;
-    }
-
-    public ProposedAssignmentEmployeeSection getProposedAssignmentEmployee() {
-        if (proposedAssignmentEmployeeSection == null) {
-            proposedAssignmentEmployeeSection = new ProposedAssignmentEmployeeSection(driver);
-        }
-        return proposedAssignmentEmployeeSection;
-    }
-
-    public NewPositionSection getNewPositionSection() {
-        if (newPositionSection == null) {
-            newPositionSection = new NewPositionSection(driver);
-        }
-        return newPositionSection;
-    }
-
-    public NewJobSection getNewJobSection() {
-        if (newJobSection == null) {
-            newJobSection = new NewJobSection(driver);
-        }
-        return newJobSection;
     }
 }

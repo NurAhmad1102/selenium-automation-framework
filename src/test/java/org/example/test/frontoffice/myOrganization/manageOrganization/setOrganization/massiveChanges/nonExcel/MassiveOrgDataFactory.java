@@ -3,7 +3,7 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.setOrgani
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.loaderExcel.utils.UniqueSeedManager;
-import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.model.MassiveOrgModel;
+import org.example.model.frontoffice.MassiveOrgModel;
 import org.example.utils.resource.ResourcePathResolver;
 
 import java.io.BufferedReader;
@@ -23,13 +23,17 @@ public class MassiveOrgDataFactory {
 
         try {
             Path resolved = ResourcePathResolver.resolve(
-                    "org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/data/" + fileName,
-                    "src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/data/" + fileName,
-                    "target/test-classes/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/data/" + fileName
+                    "data/frontoffice/manageOrganization/massiveChanges/" + fileName,
+                    "src/test/resources/data/frontoffice/manageOrganization/massiveChanges/" + fileName,
+                    "data/frontoffice/massiveChanges/" + fileName,
+                    "src/test/resources/data/frontoffice/massiveChanges/" + fileName
             );
             file = resolved.toFile();
         } catch (Exception e) {
-            File directFile = Paths.get("src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/data/", fileName).toFile();
+            File directFile = Paths.get("src/test/resources/data/frontoffice/manageOrganization/massiveChanges/", fileName).toFile();
+            if (!directFile.exists()) {
+                directFile = Paths.get("src/test/resources/data/frontoffice/massiveChanges/", fileName).toFile();
+            }
             if (directFile.exists()) {
                 file = directFile;
             }

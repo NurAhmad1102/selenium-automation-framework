@@ -39,7 +39,7 @@ Sistem reporting menggunakan **event-driven architecture** dengan ExtentReports 
 [ExtentReports (Spark Reporter)]  <- output: reports/index.html
 ```
 
-Selain itu, **Log4j2** memiliki custom appender (`ExtentReportAppender`) yang secara otomatis menjembatani semua log `logger.info/warn/error()` ke `ReportAPI` tanpa perlu kode tambahan di Page Object.
+Selain itu, **Log4j2** memiliki custom appender (`ExtentReportAppender`) yang secara otomatis menjembatani log `logger.warn/error()` sebagai safety net ke `ReportAPI`. Log langkah UI dieksekusi via `ReportAPI.step()` di `BasePage` dan Action Helpers, sementara `logger.info/debug` difokuskan untuk stream konsol dan file log developer.
 
 ---
 
@@ -72,10 +72,10 @@ Selain itu, **Log4j2** memiliki custom appender (`ExtentReportAppender`) yang se
    │     └─ ReportEventBus.postLog(entry)
    │           └─ ExtentImplementation.onLogAdded(entry)  [opsional, real-time]
    │
-   └─ logger.info/warn/error() di Page Object / Utils
+   └─ logger.warn/error() di Page Object / Utils
          └─ Log4j2 → ExtentReportAppender.append()
                └─ cek ThreadContext "testMethod" (routing ke test yang benar)
-               └─ ReportAPI.step/fail() dipanggil otomatis
+               └─ ReportAPI.warning/fail() dipanggil otomatis (safety net)
 
 4. Test selesai (sukses / gagal / skip)
    └─ BaseTest.tearDown() → finalizeReport()
@@ -317,14 +317,15 @@ src/
 | Method | Deskripsi |
 |--------|-----------|
 | `createAppender(...)` | Factory method (dipanggil oleh Log4j2 saat parsing `log4j2.xml`). |
-| `append(event)` | Dipanggil setiap ada log event. Cek `testMethod` di ThreadContext untuk routing, lalu panggil `ReportAPI.fail/step()` sesuai level. |
+| `append(event)` | Dipanggil setiap ada log event. Cek `testMethod` di ThreadContext untuk routing, lalu panggil `ReportAPI.fail()` atau `ReportAPI.warning()` sesuai level. |
 
 **Routing logic:**
 - `ERROR` → `ReportAPI.fail(message, throwable)`
-- `WARN` → `ReportAPI.step("WARN: " + message)`
-- `INFO` → `ReportAPI.step(message)`
+- `WARN` → `ReportAPI.warning("WARN: " + message)`
 - Jika `ReportAPI.isTestActive()` false → log diabaikan
 - Jika `testMethod` di event berbeda dengan thread aktif → log diabaikan (parallel safety)
+
+> **Catatan Optimasi Refactor**: `Level.INFO` dari Log4j2 sengaja tidak diteruskan oleh `ExtentReportAppender` ke `ReportAPI.step` untuk mencegah duplikasi baris log pada tab DETAILS. Seluruh aksi UI di Page Object (`BasePage`, `CustomDropdownComponent`) dan Action Helpers memanggil `ReportAPI.step` secara eksplisit dan terarah untuk langkah bisnis, sementara `logger.info/debug` difokuskan untuk stream konsol dan file log developer.
 
 ---
 

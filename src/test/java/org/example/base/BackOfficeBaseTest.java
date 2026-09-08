@@ -2,7 +2,7 @@ package org.example.base;
 
 import org.example.factories.backoffice.login.BackOfficeLoginPagesFactory;
 import org.example.factories.backoffice.sideMenu.SideMenuFactory;
-import org.example.mainPagesFactory.BackOfficeMainPagesFactory;
+import org.example.factories.backoffice.BackOfficeMainPagesFactory;
 import org.example.utils.account.UserRole;
 import org.example.utils.config.UrlProvider;
 import org.testng.ITestResult;

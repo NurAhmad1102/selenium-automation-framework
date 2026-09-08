@@ -3,8 +3,8 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.setOrgani
 public class MassiveTestConfig {
 
     // --- File Paths ---
-    public static final String SOURCE_TEMPLATE_EXCEL_PATH = "src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/data/organization-development-flow1.xlsx";
-    public static final String GENERATED_OUTPUT_EXCEL_PATH = "src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/generator/organization-development-flow1-generated.xlsx";
+    public static final String SOURCE_TEMPLATE_EXCEL_PATH = "data/frontoffice/manageOrganization/massiveChanges/organization-development-flow1.xlsx";
+    public static final String GENERATED_OUTPUT_EXCEL_PATH = "data/frontoffice/manageOrganization/massiveChanges/excelGenerated/organization-development-flow1-generated.xlsx";
 
     // --- Generation & Execution Control Parameters ---
     public static final boolean AUTO_POPULATE_PROCEED = true; // true: unique seed suffix; false: static deterministic names

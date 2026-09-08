@@ -2,7 +2,7 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.setOrgani
 
 import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.loaderExcel.reader.Flow1ExcelExportReader;
 import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.loaderExcel.utils.UniqueSeedManager;
-import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.model.MassiveOrgModel;
+import org.example.model.frontoffice.MassiveOrgModel;
 import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.nonExcel.MassiveOrgDataFactory;
 import org.example.utils.CustomAssert;
 import org.testng.annotations.BeforeMethod;
@@ -82,7 +82,7 @@ public class Flow1ExcelExportReaderTest {
 
     @Test(description = "Verify that Flow1ExcelExportReader can parse MultiAction Excel (3493)")
     public void testReadMultiActionFrom3493Excel() {
-        String path3493 = "src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/MultiAction/organization-development-flow1-3493.xlsx";
+        String path3493 = "data/frontoffice/manageOrganization/massiveChanges/organization-development-flow1-3493.xlsx";
         List<MassiveOrgModel> actionList = Flow1ExcelExportReader.readMultiActionOrgsFromExcel(path3493, false);
 
         CustomAssert.assertFalse(actionList.isEmpty(), "Action list from 3493 should not be empty");
@@ -101,7 +101,7 @@ public class Flow1ExcelExportReaderTest {
 
     @Test(description = "Verify that Flow1ExcelExportReader can parse newly generated MultiAction Excel")
     public void testReadNewlyGeneratedMultiActionExcel() {
-        String pathGenerated = "src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/generator/organization-development-flow1-multiaction.xlsx";
+        String pathGenerated = "data/frontoffice/manageOrganization/massiveChanges/excelGenerated/organization-development-flow1-multiaction.xlsx";
         List<MassiveOrgModel> actionList = Flow1ExcelExportReader.readMultiActionOrgsFromExcel(pathGenerated, false);
 
         CustomAssert.assertFalse(actionList.isEmpty(), "Action list from generated multiaction should not be empty");

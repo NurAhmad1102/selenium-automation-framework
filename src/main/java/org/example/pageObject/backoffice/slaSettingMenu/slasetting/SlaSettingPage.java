@@ -1,4 +1,4 @@
-package org.example.pageObject.backoffice.slaSettingMenu.SlaSetting;
+package org.example.pageObject.backoffice.slaSettingMenu.slasetting;
 
 import org.example.pageObject.base.BasePage;
 import org.openqa.selenium.By;

@@ -2,11 +2,11 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.assignEmp
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.pageObject.frontoffice.manageOrganization.enums.AssignmentTag;
-import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.enums.frontoffice.manageOrganization.AssignmentTag;
+import org.example.enums.frontoffice.manageOrganization.ConfirmAction;
+import org.example.enums.frontoffice.manageOrganization.OrgMenuAction;
+import org.example.enums.frontoffice.manageOrganization.OrgSheetName;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.example.utils.CustomAssert;
 import org.example.utils.CustomSoftAssert;
 import org.testng.annotations.Test;
@@ -49,7 +49,7 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
                         " pada org " + targetOrg + "!"
@@ -57,14 +57,14 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
 
         assignEmployeeHelper().closeManageIncumbentModal();
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionNotVisible(sourceOrg, sourcePosition, employeeIdentifier),
+                assignEmployeeVerifier().verifyEmployeeInPositionNotVisible(sourceOrg, sourcePosition, employeeIdentifier),
                 "Employee " + employeeIdentifier +
                         " masih muncul di Manage Incumbent di position: " + sourcePosition +
                         " pada org " + sourceOrg + "!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add Incumbent setelah remove tidak sesuai!"
         );
 
@@ -106,20 +106,20 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier, AssignmentTag.PJS_NEW),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier, AssignmentTag.PJS_NEW),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Manage Incumbent di position: " + sourcePosition +
                         " pada org " + sourceOrg + "!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInUnassignedListVisible(employeeIdentifier),
+                assignEmployeeVerifier().verifyEmployeeInUnassignedListVisible(employeeIdentifier),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Unassigned List!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, sourceOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, sourceOrg),
                 "Audit Log Employee Assignment untuk Change Assignment Type tidak sesuai!"
         );
 
@@ -150,7 +150,7 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
 
         CustomSoftAssert softAssert = new CustomSoftAssert();
         softAssert.assertFalse(
-                assignEmployeeHelper().isViewUnassignedButtonClickable(),
+                assignEmployeeVerifier().isViewUnassignedButtonClickable(),
                 "There is no incumbent. View Button should be disabled!"
         );
 
@@ -166,14 +166,14 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
 
         //"Move" cause employee has another assignment in the same org tree, if no "New"
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier, AssignmentTag.MOVE),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Manage Incumbent di position: " + sourcePosition +
                         " pada org " + sourceOrg + "dengan Tag "+ AssignmentTag.MOVE + "!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, sourceOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, sourceOrg),
                 "Audit Log Employee Assignment untuk Change Assignment Type tidak sesuai!"
         );
 
@@ -210,21 +210,21 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
                         " pada org " + targetOrg + "!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionNotVisible(sourceOrg, sourcePosition, employeeIdentifier),
+                assignEmployeeVerifier().verifyEmployeeInPositionNotVisible(sourceOrg, sourcePosition, employeeIdentifier),
                 "Employee " + employeeIdentifier +
                         " masih muncul di Manage Incumbent di position: " + sourcePosition +
                         " pada org " + sourceOrg + "!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add Existing Incumbent tidak sesuai!"
         );
 
@@ -260,14 +260,14 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.NEW),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.NEW),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
                         " pada org " + targetOrg + "!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add Existing Incumbent tidak sesuai!"
         );
 
@@ -303,13 +303,13 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier, AssignmentTag.NONE),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(sourceOrg, sourcePosition, employeeIdentifier, AssignmentTag.NONE),
                 "Incumbent tidak muncul di primary position: " + sourcePosition +
                         " pada org: " + sourceOrg
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.PJS_NEW),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.PJS_NEW),
                 "Incumbent tidak muncul as PJS di target position: " + targetPosition +
                         " pada org: " + targetOrg
         );
@@ -317,7 +317,7 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         assignEmployeeHelper().closeManageIncumbentModal();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Assign Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add PJS tidak sesuai!"
         );
 
@@ -373,19 +373,19 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
                         " pada org " + targetOrg + "!"
         );
 
         softAssert.assertFalse(
-                assignEmployeeHelper().isViewUnassignedButtonClickable(),
+                assignEmployeeVerifier().isViewUnassignedButtonClickable(),
                 "Tombol View Unassigned seharusnya disable ketika tidak ada Unassigned Employee!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add Incumbent ke Renamed Org tidak sesuai!"
         );
 
@@ -419,19 +419,19 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
                         " pada org " + targetOrg + "!"
         );
 
         softAssert.assertFalse(
-                assignEmployeeHelper().isViewUnassignedButtonClickable(),
+                assignEmployeeVerifier().isViewUnassignedButtonClickable(),
                 "Tombol View Unassigned seharusnya disable ketika tidak ada Unassigned Employee!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add Incumbent ke Moved Org tidak sesuai!"
         );
 
@@ -466,20 +466,20 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeName, AssignmentTag.MOVE),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeName, AssignmentTag.MOVE),
                 "Employee " + employeeName +
                         " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
                         " pada org " + targetOrg + "!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInUnassignedListNotVisible(employeeName),
+                assignEmployeeVerifier().verifyEmployeeInUnassignedListNotVisible(employeeName),
                 "Employee " + employeeName +
                         " masih muncul di Unassigned List!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add Incumbent ke Merged Org tidak sesuai!"
         );
 
@@ -512,19 +512,19 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
                         " pada org " + targetOrg + "!"
         );
 
         softAssert.assertFalse(
-                assignEmployeeHelper().isViewUnassignedButtonClickable(),
+                assignEmployeeVerifier().isViewUnassignedButtonClickable(),
                 "Tombol View Unassigned seharusnya disable ketika tidak ada Unassigned Employee!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add Incumbent ke Split Org tidak sesuai!"
         );
 
@@ -574,21 +574,21 @@ public class AddIncumbentTest extends AssignEmployeeBaseTest {
         CustomSoftAssert softAssert = new CustomSoftAssert();
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(targetOrg, targetPosition, employeeIdentifier, AssignmentTag.MOVE),
                 "Employee " + employeeIdentifier +
                         " tidak muncul di Manage Incumbent setelah Add Incumbent di position: " + targetPosition +
                         " pada org " + targetOrg + "!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionNotVisible(sourceOrg, sourcePosition, employeeIdentifier),
+                assignEmployeeVerifier().verifyEmployeeInPositionNotVisible(sourceOrg, sourcePosition, employeeIdentifier),
                 "Employee " + employeeIdentifier +
                         " masih muncul di Manage Incumbent di position: " + sourcePosition +
                         " pada org " + sourceOrg + "!"
         );
 
         softAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Move Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Add Existing Incumbent tidak sesuai!"
         );
 

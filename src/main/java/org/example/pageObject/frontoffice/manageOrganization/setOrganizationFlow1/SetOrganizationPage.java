@@ -1,7 +1,7 @@
 package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1;
 
 import org.example.pageObject.base.BasePage;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.enums.frontoffice.manageOrganization.OrgMenuAction;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;

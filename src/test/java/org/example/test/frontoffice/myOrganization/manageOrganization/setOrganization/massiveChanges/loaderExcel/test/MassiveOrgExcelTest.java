@@ -3,7 +3,7 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.setOrgani
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.config.MassiveTestConfig;
 import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.loaderExcel.reader.Flow1ExcelExportReader;
-import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.model.MassiveOrgModel;
+import org.example.model.frontoffice.MassiveOrgModel;
 import org.example.utils.CustomAssert;
 import org.testng.annotations.Test;
 
@@ -52,7 +52,7 @@ public class MassiveOrgExcelTest extends ManageOrganizationBaseTest {
             setOrganizationHelper().addMassiveOrganizationNode(org);
 
             CustomAssert.assertTrue(
-                    setOrganizationHelper().isNodeOrganizationDisplayed(org.getOrgName()),
+                    setOrganizationVerifier().isNodeOrganizationDisplayed(org.getOrgName()),
                     "Node organization [" + org.getOrgName() + "] is not displayed on tree canvas after creation"
             );
             logger.info("Node [{}] verified on canvas successfully", org.getOrgName());
@@ -63,7 +63,7 @@ public class MassiveOrgExcelTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().clickChangeLogButton();
 
         for (MassiveOrgModel org : orgList) {
-            boolean isLogged = setOrganizationHelper().verifyOrganizationChangesLog(
+            boolean isLogged = setOrganizationVerifier().verifyOrganizationChangesLog(
                     "New Organization",
                     org.getOrgName(),
                     org.getParentOrgName()

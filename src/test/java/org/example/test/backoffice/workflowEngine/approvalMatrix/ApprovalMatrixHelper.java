@@ -2,7 +2,7 @@ package org.example.test.backoffice.workflowEngine.approvalMatrix;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.mainPagesFactory.BackOfficeMainPagesFactory;
+import org.example.factories.backoffice.BackOfficeMainPagesFactory;
 import org.example.utils.actionUtils.ActionUtils;
 import org.openqa.selenium.WebDriver;
 

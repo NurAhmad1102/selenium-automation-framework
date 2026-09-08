@@ -2,11 +2,11 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.assignEmp
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.pageObject.frontoffice.manageOrganization.enums.AssignmentTag;
-import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.enums.frontoffice.manageOrganization.AssignmentTag;
+import org.example.enums.frontoffice.manageOrganization.ConfirmAction;
+import org.example.enums.frontoffice.manageOrganization.OrgMenuAction;
+import org.example.enums.frontoffice.manageOrganization.OrgSheetName;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.example.utils.CustomAssert;
 import org.testng.annotations.Test;
 
@@ -29,16 +29,16 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
         assignEmployeeHelper().confirmAction(ConfirmAction.REMOVE);
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionNotVisible(sourceOrg, sourcePosition, employeeIdentifier),
+                assignEmployeeVerifier().verifyEmployeeInPositionNotVisible(sourceOrg, sourcePosition, employeeIdentifier),
                 "Employee still exist in existing position");
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInUnassignedListVisible(employeeIdentifier),
+                assignEmployeeVerifier().verifyEmployeeInUnassignedListVisible(employeeIdentifier),
                 "Employee does not exist in unassigned list"
         );
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Remove Employee", employeeIdentifier, sourceOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Remove Employee", employeeIdentifier, sourceOrg),
                 "Audit Log Employee Assignment untuk Remove Incumbent tidak sesuai!"
         );
 
@@ -72,18 +72,18 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
 
         // di position pjs yang di add baru akan hilang
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionNotVisible(targetOrg, targetPosition, employeeIdentifier),
+                assignEmployeeVerifier().verifyEmployeeInPositionNotVisible(targetOrg, targetPosition, employeeIdentifier),
                 "Employee still exist in new position, after removing him/her as pjs from this position"
         );
 
         // di position primary yang exisiting tetap ada
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionVisible(currentAssignData.getCurrentOrg(), currentAssignData.getCurrentPosition(), employeeIdentifier, AssignmentTag.NONE),
+                assignEmployeeVerifier().verifyEmployeeInPositionVisible(currentAssignData.getCurrentOrg(), currentAssignData.getCurrentPosition(), employeeIdentifier, AssignmentTag.NONE),
                 "Employee does not exist in existing position"
         );
 
         CustomAssert.assertFalse(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Remove Incumbent", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Remove Incumbent", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Remove PJS tidak sesuai, log tetap masuk!"
         );
 
@@ -108,12 +108,12 @@ public class RemoveIncumbentTest extends AssignEmployeeBaseTest {
         assignEmployeeHelper().confirmAction(ConfirmAction.REMOVE);
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeInPositionNotVisible(targetOrg, targetPosition, employeeIdentifier),
+                assignEmployeeVerifier().verifyEmployeeInPositionNotVisible(targetOrg, targetPosition, employeeIdentifier),
                 "Employee still exist in existing position as PJS"
         );
 
         CustomAssert.assertTrue(
-                assignEmployeeHelper().verifyEmployeeAssignmentLog("Remove Employee", employeeIdentifier, targetOrg),
+                assignEmployeeVerifier().verifyEmployeeAssignmentLog("Remove Employee", employeeIdentifier, targetOrg),
                 "Audit Log Employee Assignment untuk Remove PJS tidak sesuai!"
         );
 

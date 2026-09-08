@@ -2,22 +2,38 @@
 
 Framework automation UI berbasis Java 17, Selenium 4, TestNG, Maven, ExtentReports, Log4j2, Apache POI, dan ArchUnit.
 
-## Status Refactor Aman
+## Status Arsitektur & Refactor Terkini
 
-Refactor ini fokus ke area ringan-sedang dan tidak mengubah inti lifecycle automation.
+Framework telah mengalami restrukturisasi dan refaktorisasi arsitektur komprehensif:
 
-Yang diubah:
-- Resource test dipindahkan ke standar Maven: `src/test/resources`.
-- JSON dan Excel reader memakai `ResourcePathResolver` dengan fallback ke path lama.
-- Password default bisa dioverride lewat system property atau environment variable.
-- Network log memakai batas waktu `capturedBefore` saat flush error.
-- README disesuaikan dengan struktur aktual.
+1. **Modularisasi Factory**:
+   - `ManageOrganizationFactory` dipecah menjadi factory modular:
+     - `setOrganizationModals()`: modal khusus Flow 1 (`AddFormModal`, `MergeFormModal`, `MoveFormModal`, `RenameFormModal`, `SplitFormModal`, dsb.)
+     - `assignEmployeeModals()`: modal khusus Flow 2 (`AddIncumbentModal`, `EmployeeMovementModal`, `ManageIncumbentModal`, `UnassignedEmployeeListModal`)
+     - `commonModals()`: modal bersama lintas flow (`ConfirmationActionModal`, `SuccessModal`, `ChangesLogModal`)
+     - `justificationSections()`: sub-section khusus Flow 3
+   - Menghilangkan cross-flow dependency dan eager modal initialization.
 
-Yang tidak diubah:
-- `BaseTest` setup/teardown lifecycle.
-- `BasePage` click, wait, type, dropdown, dan action helper.
-- `DriverManager`.
-- Test class dan flow bisnis yang sudah ada.
+2. **Pemisahan Tegas Action Helper & Verifier (Pola AAA)**:
+   - **Action Helper** (`SetOrganizationHelper`, `AssignEmployeeHelper`): Berfungsi 100% murni sebagai alur aksi UI / Flow Coordinator. Seluruh wrapper assertion, verifikasi audit log, dan query pemeriksaan telah dihapus.
+   - **Verifier** (`SetOrganizationVerifier`, `AssignEmployeeVerifier`): Berfungsi 100% murni menangani verifikasi, assertions (`CustomAssert`, `CustomSoftAssert`), pengecekan tags incumbent, serta audit log changes.
+
+3. **Data Caching & Immutability**:
+   - `ManageOrganizationExcelReader` menerapkan deep-cloning pada data cache sebelum default merging dijalankan (`new OrganizationTestData(rawData)`).
+   - Objek di dalam cache terisolasi dari mutasi data antar test method (`data.setJobName(...)`).
+
+4. **Dekopling BasePage & Custom Dropdown**:
+   - Logika manipulasi DOM listbox/dropdown Radix diisolasi ke `CustomDropdownComponent.java`.
+   - `BasePage` berfokus pada core interactions, sementara logging log4j2 dan ExtentReport diselaraskan tanpa duplikasi log.
+
+5. **Restrukturisasi Direktori & Standarisasi Package**:
+   - Model data terpusat di `org.example.model.frontoffice`.
+   - Enums Front Office terpusat di `org.example.enums.frontoffice.manageOrganization`.
+   - Main factories terpusat di `org.example.factories.frontoffice` dan `org.example.factories.backoffice`.
+   - Casing package Back Office diseragamkan ke lowercase (`org.example.pageObject.backoffice.slaSettingMenu.slasetting`).
+   - Resource LOV dan template dipindahkan ke `src/test/resources/data/frontoffice/massiveChanges/`.
+   - Generator scripts Python dipindahkan ke `scripts/generators/`.
+   - Dokumentasi bisnis dialokasikan ke `docs/businessLogic/` dan `docs/massiveChanges/`.
 
 ## Stack
 
@@ -37,8 +53,18 @@ Yang tidak diubah:
 ```text
 src/main/java/org/example/
   config/                 Model konfigurasi
-  factories/              Factory untuk Page Object
+  enums/
+    frontoffice/
+      manageOrganization/ Enums Front Office (AssignmentTag, ConfirmAction, OrgMenuAction, OrgSheetName)
+  factories/
+    frontoffice/          FrontOfficeMainPagesFactory, ManageOrganizationFactory, modal factories
+    backoffice/           BackOfficeMainPagesFactory, SlaSettingFactory
+  model/
+    frontoffice/          Data model (OrganizationTestData, MassiveOrgModel)
   pageObject/             Page Object dan component UI
+    common/               CustomDropdownComponent
+    frontoffice/          Page & Modals Front Office
+    backoffice/           Page & Modals Back Office
   utils/
     actionUtils/          JSON reader dan action utilities
     report/               Reporting API dan Extent implementation
@@ -48,51 +74,88 @@ src/test/java/org/example/
   base/                   BaseTest, BackOfficeBaseTest, FrontOfficeBaseTest
   drivers/                DriverManager ThreadLocal
   listener/               TestNG listener
-  mainPagesFactory/       Entry factory per interface
-  test/                   Test class per module
+  test/
+    frontoffice/          Test classes, Action Helpers, dan Verifiers
+    backoffice/           Test classes Back Office
   utils/                  Test utilities, account, assertion, table, service
 
 src/test/resources/
   data/
-    data.json
     Data Userlogin.xlsx
-    frontoffice/Manage_organization_Data_Test.xlsx
-  testng/
-    master/
-      testng-all.xml
-    frontoffice/
-      od-flow1-all.xml
-      od-flow1-single-action.xml
-      od-flow1-multi-action.xml
-      od-flow1-smoke.xml
     backoffice/
-      sla-setting.xml
-    debug/
-      debug-local.xml
-      debug-fo.xml
+      slaStatus/          data.json
+    frontoffice/
+      manageOrganization/ Manage_organization_Data_Test.xlsx
+      massiveChanges/     DeptLOV.txt, JobLOV.txt, LocationLOV.txt, Rc_codeLOV.txt
+  testng/
+    master/               testng-all.xml
+    frontoffice/          od-flow1-all.xml, od-flow1-smoke.xml, etc.
+    backoffice/           sla-setting.xml
   log4j2.xml
+
+scripts/
+  generators/             Python test data generator scripts
+
+docs/
+  businessLogic/          Business-Flow-1-Set-Organization.md, Business_Flow_2-Assign_Employee.md
+  massiveChanges/         Dokumentasi massive changes & performance
 ```
 
 ## Arsitektur Singkat
 
 ```text
-Test Class
-  -> BackOfficeBaseTest / FrontOfficeBaseTest
-  -> BaseTest
-  -> MainPagesFactory
-  -> Module Factory
-  -> Page Object
-  -> BasePage action helper
+Test Class (turunan ManageOrganizationBaseTest)
+  │
+  ├── Action Phase:
+  │     └─ setOrganizationHelper() / assignEmployeeHelper()
+  │           └─ Lazy Page Object / Modals via Factory
+  │                 └─ BasePage / CustomDropdownComponent
+  │
+  └── Assertion Phase:
+        └─ setOrganizationVerifier() / assignEmployeeVerifier()
+              └─ CustomAssert / CustomSoftAssert
+              └─ Direct Page / Modal Inspection
+              └─ ChangesLogModal Verification
+```
+
+### Standar Penulisan Test (Pola AAA)
+
+```java
+@Test(groups = {"smoke"}, description = "Verify that user can add new organization with valid data")
+public void addNewOrganizationTest() {
+    // 1. Arrange
+    OrganizationTestData data = setOrganizationHelper().getTestData(OrgSheetName.ADD_NEW);
+
+    // 2. Act (Murni Alur Aksi UI via Helper)
+    manageOrganizationHelper().goToFlow1SetOrganization();
+    setOrganizationHelper().addNewOrganization(data);
+    setOrganizationHelper().fillJobPosition(data, OrgMenuAction.ADD_NEW);
+    setOrganizationHelper().confirmAction(ConfirmAction.ADD);
+
+    // 3. Assert (Murni Verifikasi via Verifier)
+    CustomAssert.assertTrue(
+        setOrganizationVerifier().isNodeOrganizationDisplayed(data.getNewOrganizationName()),
+        "New Organization node is not displayed in the organization tree"
+    );
+    setOrganizationVerifier().verifyDetailNodeOrganization(data);
+
+    // Audit Log Verification
+    setOrganizationHelper().clickChangeLogButton();
+    CustomAssert.assertTrue(
+        setOrganizationVerifier().verifyOrganizationChangesLog("New Organization", data.getNewOrganizationName(), data.getPrimaryOrganization()),
+        "Changes Log for New Organization is not displayed correctly"
+    );
+}
 ```
 
 Komponen utama:
-- `DriverManager`: menyimpan `WebDriver` per thread.
+- `DriverManager`: menyimpan `WebDriver` per thread via `ThreadLocal`.
 - `DevModeUtils`: mengelola status & port Developer Mode (Dev Mode) untuk menempelkan driver ke browser lokal yang sedang berjalan.
 - `LoginDataRepository`: membaca `Data Userlogin.xlsx` sekali untuk account dan URL.
 - `AccountAllocator`: mengalokasikan akun per role, menyimpan alias akun per test thread, dan melepas semua akun saat teardown.
 - `UrlProvider`: mengambil URL Back Office / Front Office dari sheet `URL`.
 - `OfficeSessionSwitcher`: switch user dan switch URL Front Office / Back Office dalam satu test thread.
-- `ReportAPI`: pintu masuk logging/reporting.
+- `ReportAPI`: pintu masuk logging/reporting ke ExtentReports.
 - `NetworkMonitor`: capture HTTP 4xx/5xx via CDP.
 - `ArchitectureTest`: guard agar test tidak instantiate Page Object langsung.
 
@@ -190,10 +253,16 @@ src/test/resources/data/data.json
 Data Front Office Manage Organization:
 
 ```text
-src/test/resources/data/frontoffice/Manage_organization_Data_Test.xlsx
+src/test/resources/data/frontoffice/manageOrganization/Manage_organization_Data_Test.xlsx
 ```
 
-Reader resource memakai `ResourcePathResolver`, sehingga file dibaca dari classpath saat test berjalan. Fallback ke path lama tetap tersedia untuk kompatibilitas, tetapi path standar baru adalah `src/test/resources`.
+Data LOV & Template Massive Changes:
+
+```text
+src/test/resources/data/frontoffice/massiveChanges/
+```
+
+Reader resource memakai `ResourcePathResolver`, sehingga file dibaca dari classpath saat test berjalan dengan fallback otomatis ke filesystem.
 
 ## Account Session dan Multi User
 
@@ -235,8 +304,9 @@ Alias seperti `submitter` dan `approver` hanya berlaku dalam satu test method da
 
 Dokumentasi teknis lengkap:
 - **Account & Session Logic:** [`docs/account-session-logic.md`](docs/account-session-logic.md)
-- **Business Flow 1 (Set Organization):** [`docs/business-flow-1-set-organization.md`](src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/data/businessLogic/Business-Flow-1-Set-Organization.md)
-- **Business Flow 2 (Assign Employee):** [`docs/Business_Flow_2-Assign_Employee.md`](src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/data/businessLogic/Business_Flow_2-Assign_Employee.md)
+- **Business Flow 1 (Set Organization):** [`docs/businessLogic/Business-Flow-1-Set-Organization.md`](docs/businessLogic/Business-Flow-1-Set-Organization.md)
+- **Business Flow 2 (Assign Employee):** [`docs/businessLogic/Business_Flow_2-Assign_Employee.md`](docs/businessLogic/Business_Flow_2-Assign_Employee.md)
+- **Reporting System:** [`REPORT.md`](REPORT.md)
 - **Project Alignment Guide:** [`docs/project-alignment-guide.md`](docs/project-alignment-guide.md)
 
 ## Password Override

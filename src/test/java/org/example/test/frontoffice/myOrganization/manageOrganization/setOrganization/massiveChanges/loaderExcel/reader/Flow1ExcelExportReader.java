@@ -3,7 +3,7 @@ package org.example.test.frontoffice.myOrganization.manageOrganization.setOrgani
 import org.apache.poi.ss.usermodel.*;
 import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.config.MassiveTestConfig;
 import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.loaderExcel.utils.UniqueSeedManager;
-import org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization.massiveChanges.model.MassiveOrgModel;
+import org.example.model.frontoffice.MassiveOrgModel;
 import org.example.utils.resource.ResourcePathResolver;
 
 import java.io.FileInputStream;
@@ -36,8 +36,9 @@ public class Flow1ExcelExportReader {
             }
         }
         if (filePath == null) {
+            String target = (customPath != null && !customPath.isBlank()) ? customPath : DEFAULT_EXCEL_PATH;
             try {
-                filePath = ResourcePathResolver.resolve(customPath, DEFAULT_EXCEL_PATH);
+                filePath = ResourcePathResolver.resolve(target, DEFAULT_EXCEL_PATH, FALLBACK_TEMPLATE_PATH);
             } catch (Exception e) {
                 filePath = ResourcePathResolver.resolve(FALLBACK_TEMPLATE_PATH);
             }
@@ -128,8 +129,9 @@ public class Flow1ExcelExportReader {
             }
         }
         if (filePath == null) {
+            String target = (customPath != null && !customPath.isBlank()) ? customPath : DEFAULT_EXCEL_PATH;
             try {
-                filePath = ResourcePathResolver.resolve(customPath, DEFAULT_EXCEL_PATH);
+                filePath = ResourcePathResolver.resolve(target, DEFAULT_EXCEL_PATH, FALLBACK_TEMPLATE_PATH);
             } catch (Exception e) {
                 filePath = ResourcePathResolver.resolve(FALLBACK_TEMPLATE_PATH);
             }

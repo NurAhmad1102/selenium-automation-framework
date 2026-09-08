@@ -1,8 +1,8 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.data;
 
 import org.apache.poi.ss.usermodel.*;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.enums.frontoffice.manageOrganization.OrgSheetName;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.example.utils.resource.ResourcePathResolver;
 
 import java.io.FileInputStream;
@@ -30,17 +30,18 @@ public class ManageOrganizationExcelReader {
             throw new IndexOutOfBoundsException("Row index " + rowIndex + " is out of bounds for sheet: " + sheetName + " (total rows: " + list.size() + ")");
         }
 
-        OrganizationTestData data = list.get(rowIndex);
+        OrganizationTestData rawData = list.get(rowIndex);
+        OrganizationTestData clonedData = new OrganizationTestData(rawData);
 
         if (sheet != OrgSheetName.JOB_POSITION) {
             List<OrganizationTestData> jobPositionList = DATA_CACHE.computeIfAbsent(OrgSheetName.JOB_POSITION.getSheetName(), k -> readExcelData(OrgSheetName.JOB_POSITION));
             if (jobPositionList != null && !jobPositionList.isEmpty()) {
                 int jobPosIndex = Math.min(rowIndex, jobPositionList.size() - 1);
-                mergeJobPositionDefaults(data, jobPositionList.get(jobPosIndex));
+                mergeJobPositionDefaults(clonedData, jobPositionList.get(jobPosIndex));
             }
         }
 
-        return new OrganizationTestData(data);
+        return clonedData;
     }
 
     public static OrganizationTestData getDataByAction(OrgSheetName sheet, String actionName) {
@@ -75,9 +76,9 @@ public class ManageOrganizationExcelReader {
     public static List<OrganizationTestData> readExcelData(OrgSheetName sheet) {
         String sheetName = sheet.getSheetName();
         Path filePath = ResourcePathResolver.resolve(
-                "data/frontoffice/Manage_organization_Data_Test.xlsx",
-                "src/test/resources/data/frontoffice/Manage_organization_Data_Test.xlsx",
-                "src/test/java/resources/data/frontoffice/Manage_organization_Data_Test.xlsx"
+                "data/frontoffice/manageOrganization/Manage_organization_Data_Test.xlsx",
+                "src/test/resources/data/frontoffice/manageOrganization/Manage_organization_Data_Test.xlsx",
+                "src/test/resources/data/frontoffice/Manage_organization_Data_Test.xlsx"
         );
 
         List<OrganizationTestData> dataList = new ArrayList<>();
