@@ -4,7 +4,7 @@ Framework automation UI berbasis Java 17, Selenium 4, TestNG, Maven, ExtentRepor
 
 ## Status Arsitektur & Refactor Terkini
 
-Framework telah mengalami restrukturisasi dan refaktorisasi arsitektur komprehensif:
+Framework arsitektur modular:
 
 1. **Modularisasi Factory**:
    - `ManageOrganizationFactory` dipecah menjadi factory modular:
