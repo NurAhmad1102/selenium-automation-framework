@@ -1,94 +1,53 @@
 ### Maven ###
 target/
 !.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+### IDEs ###
+# IntelliJ IDEA
+.idea/
 *.iws
 *.iml
 *.ipr
-
-### Eclipse ###
+# Eclipse
 .apt_generated
 .classpath
 .factorypath
 .project
-.settings
-.springBeans
-.sts4-cache
-
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/shelf/
-.idea/dictionaries/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
+.settings/
+# VS Code
 .vscode/
 
-### Mac OS ###
+### OS Specific ###
 .DS_Store
-
-### Logs ###
-logs/
-*.log
-
-### Test Reports and Capture ###
-reports/
-target/surefire-reports/
-target/failsafe-reports/
-.selenium/
-.kilo/
-
-### Documentation ###
-Documentations/
-
-### Windows ###
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-### Env ###
+### Temporary & Lock Files ###
+**/~$*
+*.tmp
+
+### Logs & Environment ###
+logs/
+*.log
 .env
 .env.local
 
-### Others ###
-context.txt
-refactor.txt
-test_output.txt
-note.txt
-mvn_output.txt
-Test Results - D__Automation_Refactor_AutomationTest_src_test_java_resources_testng_testng_xml.html
-/notesByAI/Code_review_prompt.txt
-/notesByAI/code_review_analysis.txt
-/actionAndField.txt
-/notesByAI/prompt.md
-/notesByAI/planning.md
-/template_guide.txt
-/notesByAI/build_output.txt
-/notesByAI/dependencies.txt
-/notesByAI/
-/Guide_for_AI.md
-/progres.md
-/review_layout.md
-/test_layout_log.txt
-/example.html
-/propose.md
-/OUTCOME_RULE_ENGINE_PLAN.md
-/OUTCOME_RULE_ENGINE_PROGRESS.md
+### Test Reports & Drivers ###
+reports/
+.selenium/
+.kilo/
+
+### Documentation & Agents ###
 /.agents/
 /docs/images/
+/Guide_for_AI.md
+
+### Local Notes & Scratch ###
+/notes/
+/notesByAI/
+
+### Generated Test Data ###
+**/massiveChanges/**/excelGenerated/
+**/massiveChanges/**/*generated*.xlsx
+**/massiveChanges/**/*multiaction*.xlsx
