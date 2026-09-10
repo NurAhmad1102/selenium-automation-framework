@@ -1,10 +1,10 @@
-# 📖 Dokumentasi Logic & Arsitektur Automasi Massive Organization (Flow 1)
+# Dokumentasi Logic & Arsitektur Automasi Massive Organization (Flow 1)
 
-Dokumentasi ini merangkum seluruh arsitektur, aliran data, penataan package terstruktur, serta petunjuk eksekusi untuk modul **Massive Add Organization & Position Automation (D1 s/d D6)** pada FrontOffice Manage Organization Set Organization Flow 1.
+Dokumentasi ini merangkum seluruh arsitektur, data flow, structure package, serta petunjuk eksekusi untuk modul **Massive Add Organization & Position Automation (D1 s/d D6)** pada FrontOffice Manage Organization Set Organization Flow 1.
 
 ---
 
-## 📁 1. Struktur Package Terstruktur (`massiveChanges`)
+## 1. Struktur Package Terstruktur (`massiveChanges`)
 
 Lokasi Root Package:
 `src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/`
@@ -38,7 +38,7 @@ massiveChanges/
 
 ---
 
-## ⚙️ 2. Centralized Configuration ([`ExcelLoaderConfig.java`](file:///d:/MyCave/Refactor/AutomationTest/src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/ExcelLoaderConfig.java))
+## 2. Centralized Configuration ([`ExcelLoaderConfig.java`](file:///d:/MyCave/Refactor/AutomationTest/src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/ExcelLoaderConfig.java))
 
 Seluruh parameter eksekusi dan path file ditampung secara terpusat:
 
@@ -54,7 +54,7 @@ Seluruh parameter eksekusi dan path file ditampung secara terpusat:
 
 ---
 
-## 🔒 3. Logika Garansi Bebas Duplikat Terpusat ([`UniqueSeedManager.java`](file:///d:/MyCave/Refactor/AutomationTest/src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/UniqueSeedManager.java))
+## 3. Logika Garansi Bebas Duplikat Terpusat ([`UniqueSeedManager.java`](file:///d:/MyCave/Refactor/AutomationTest/src/test/java/org/example/test/frontoffice/myOrganization/manageOrganization/setOrganization/massiveChanges/loaderExcel/UniqueSeedManager.java))
 
 Untuk menjamin bahwa nama organisasi dan posisi **TIDAK PERNAH DUPLIKAT** (baik antar-flow Non-Excel vs Excel, maupun antar-run lintas hari), digunakan pilar **Precision Timestamp Suffixing**:
 
@@ -67,7 +67,7 @@ $$\text{Suffix Unik} = \text{\ `[SYSTEM_TIMESTAMP_MILLIS]`\ `[ATOMIC_COUNTER]`}$
 
 ---
 
-## 🔄 4. Aliran Data: Non-Excel vs Excel Flow
+## 4. Data Flow: Non-Excel vs Excel Flow
 
 ### A. Non-Excel Flow (`massiveChanges.nonExcel`)
 ```
@@ -87,7 +87,7 @@ $$\text{Suffix Unik} = \text{\ `[SYSTEM_TIMESTAMP_MILLIS]`\ `[ATOMIC_COUNTER]`}$
 
 ---
 
-## 🎛️ 5. Fleksibilitas Batas Jumlah Node (`limit` / `targetOrgCount`)
+## 5. Fleksibilitas Batas Jumlah Node (`limit` / `targetOrgCount`)
 
 Parameter `limit` bersifat **BEBAS (Fleksibel)**:
 - Pengguna dapat mengisikan angka integer berapapun (misal: `1`, `3`, `5`, `7`, `10`, `15`, `30`).
@@ -95,7 +95,7 @@ Parameter `limit` bersifat **BEBAS (Fleksibel)**:
 
 ---
 
-## 🚀 6. Perintah Eksekusi
+## 6. Perintah Eksekusi
 
 ### A. Regenerasi Data ke File Excel Baru:
 ```powershell
