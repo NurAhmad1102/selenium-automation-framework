@@ -13,6 +13,7 @@ import org.example.model.frontoffice.OrganizationTestData;
 import org.example.utils.CustomAssert;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.Locale;
 
@@ -57,7 +58,7 @@ public class ManageOrganizationHelper {
 
     public void setFilterUpdateOrganizationPage(boolean isNewProposal) {
         logger.info("Step: Setting filter update organization page");
-        String monthDate = LocalDate.now().getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+        String monthDate = setCutOffFilterMonth();
 
         if (!isNewProposal) {
             copyFromPreviousProposal();
@@ -80,7 +81,7 @@ public class ManageOrganizationHelper {
 
     public void setFilterUpdateOrganizationPage(boolean isNewProposal, String Directorate) {
         logger.info("Step: Setting filter update organization page");
-        String monthDate = LocalDate.now().getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+        String monthDate = setCutOffFilterMonth();
 
         if (!isNewProposal) {
             copyFromPreviousProposal();
@@ -147,4 +148,23 @@ public class ManageOrganizationHelper {
         actionElementsPage.clickSaveAsDraftButton();
         actionElementsPage.clickYesButtonPopUp();
     }
+
+    private String setCutOffFilterMonth() {
+        LocalDate date = LocalDate.now();
+        int cutOffDate = 10; // assuming the cut-off date is th 10th every month
+
+        int monthNumber = date.getMonthValue();
+
+        if (date.getDayOfMonth() > cutOffDate) {
+            monthNumber++;
+        }
+
+        if (monthNumber > 12) {
+            monthNumber = 1;
+        }
+
+        return Month.of(monthNumber)
+                .getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+    }
+
 }
