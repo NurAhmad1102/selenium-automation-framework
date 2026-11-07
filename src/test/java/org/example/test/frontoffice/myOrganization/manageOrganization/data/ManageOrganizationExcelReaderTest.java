@@ -1,7 +1,7 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.data;
 
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.enums.frontoffice.manageOrganization.OrgSheetName;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

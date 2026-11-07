@@ -13,7 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestDataFactory{
-    static Config config = JsonReader.getConfig();
+    private static Config config;
+
+    private static synchronized Config getConfig() {
+        if (config == null) {
+            config = JsonReader.getConfig();
+        }
+        return config;
+    }
 
     //   User Login
     public static String getPassword(){
@@ -27,7 +34,8 @@ public class TestDataFactory{
             return envPassword;
         }
 
-        return config.getUserlogin().getPassword();
+        Config cfg = getConfig();
+        return (cfg != null && cfg.getUserlogin() != null) ? cfg.getUserlogin().getPassword() : null;
     }
 
 //    rest for nip, username kalo butuh
@@ -36,29 +44,29 @@ public class TestDataFactory{
 
     // SLA Detail Config
     public static MultipleConfig getMultipleConfig() {
-        return config.getSlaDetailProperty().getMultiple();
+        return getConfig().getSlaDetailProperty().getMultiple();
     }
 
     public static SingleConfig getSingleConfig() {
-        return config.getSlaDetailProperty().getSingle();
+        return getConfig().getSlaDetailProperty().getSingle();
     }
 
     // SLA Period Creation
     public static String getEffTodayPeriodName() {
-        return config.getCreate().getEffToday().getSlaPeriod();
+        return getConfig().getCreate().getEffToday().getSlaPeriod();
     }
 
     public static String getEffFuturePeriodName() {
-        return config.getCreate().getEffFuture().getSlaPeriod();
+        return getConfig().getCreate().getEffFuture().getSlaPeriod();
     }
 
     public static String getEffFutureDate() {
-        return config.getCreate().getEffFuture().getEffDate();
+        return getConfig().getCreate().getEffFuture().getEffDate();
     }
 
     // SLA Status List
     public static List<String> getSlaStatusList() {
-        return config.getSlaSetting().getSlaStatus();
+        return getConfig().getSlaSetting().getSlaStatus();
     }
 
     // Default Actions
@@ -68,41 +76,41 @@ public class TestDataFactory{
 
     // Alert Messages
     public static String getEmptySlaPeriodMessage() {
-        return config.getAlertMessage().getEmptyMandatoryField().getFieldSlaPeriod();
+        return getConfig().getAlertMessage().getEmptyMandatoryField().getFieldSlaPeriod();
     }
 
     public static String getEmptyEffDateMessage() {
-        return config.getAlertMessage().getEmptyMandatoryField().getFieldEffDate();
+        return getConfig().getAlertMessage().getEmptyMandatoryField().getFieldEffDate();
     }
 
     public static String getEmptySlaDetailMessage() {
-        return config.getAlertMessage().getEmptyData().getSlaDetail();
+        return getConfig().getAlertMessage().getEmptyData().getSlaDetail();
     }
 
     public static String getSuccessNotifyMessage() {
-        return config.getAlertMessage().getNotify().getSuccess();
+        return getConfig().getAlertMessage().getNotify().getSuccess();
     }
 
     public static String getAlreadyExistNotifyMessage() {
-        return config.getAlertMessage().getNotify().getAlreadyExist();
+        return getConfig().getAlertMessage().getNotify().getAlreadyExist();
     }
 
     // Confirmation Messages
     public static ConfirmationDetailConfig getAddConfirmation() {
-        return config.getConfirmation().getAdd();
+        return getConfig().getConfirmation().getAdd();
     }
 
     public static ConfirmationDetailConfig getUpdateConfirmation() {
-        return config.getConfirmation().getUpdate();
+        return getConfig().getConfirmation().getUpdate();
     }
 
     public static ConfirmationDetailConfig getDeleteConfirmation() {
-        return config.getConfirmation().getDelete();
+        return getConfig().getConfirmation().getDelete();
     }
 
     // Previous SLA
     public static SlaExistingConfig getPreviousSlaExisting() {
-        return config.getSlaExisting();
+        return getConfig().getSlaExisting();
     }
 
     // Utility to build expected SLA detail row

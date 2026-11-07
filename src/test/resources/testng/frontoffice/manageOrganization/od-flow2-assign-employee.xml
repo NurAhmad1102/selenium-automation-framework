@@ -11,7 +11,7 @@
         </classes>
     </test>
 
-    <test verbose="2" name="My Organization - Assign Employee Test">
+    <test verbose="2" name="Manage Organization - Flow 2: Assign Employee Test">
         <classes>
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.AddIncumbentTest"/>
             <class name="org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee.MoveIncumbentTest"/>

@@ -1,6 +1,6 @@
 package org.example.base;
 
-import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
+import org.example.factories.frontoffice.FrontOfficeMainPagesFactory;
 import org.example.utils.account.UserRole;
 import org.example.utils.config.UrlProvider;
 import org.testng.ITestResult;

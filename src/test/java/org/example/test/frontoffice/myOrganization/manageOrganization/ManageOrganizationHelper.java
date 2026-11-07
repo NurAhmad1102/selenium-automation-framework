@@ -2,17 +2,20 @@ package org.example.test.frontoffice.myOrganization.manageOrganization;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.mainPagesFactory.FrontOfficeMainPagesFactory;
+import org.example.factories.frontoffice.FrontOfficeMainPagesFactory;
 import org.example.pageObject.frontoffice.manageOrganization.DashboardManageOrganizationPage;
 import org.example.pageObject.frontoffice.manageOrganization.FilterUpdateOrganizationPage;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
+import org.example.enums.frontoffice.manageOrganization.OrgSheetName;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.ActionElementsPage;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.SetOrganizationPage;
 import org.example.test.frontoffice.myOrganization.manageOrganization.data.ManageOrganizationExcelReader;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.example.utils.CustomAssert;
 
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.TextStyle;
+import java.util.Locale;
 
 public class ManageOrganizationHelper {
     private final Logger logger = LogManager.getLogger(getClass());
@@ -55,7 +58,7 @@ public class ManageOrganizationHelper {
 
     public void setFilterUpdateOrganizationPage(boolean isNewProposal) {
         logger.info("Step: Setting filter update organization page");
-        int todayDate = LocalDate.now().getDayOfMonth();
+        String monthDate = setCutOffFilterMonth();
 
         if (!isNewProposal) {
             copyFromPreviousProposal();
@@ -63,7 +66,7 @@ public class ManageOrganizationHelper {
             OrganizationTestData filterData = ManageOrganizationExcelReader.getSingleData(OrgSheetName.SET_FILTER);
 
             filterUpdateOrganizationPage.clickEffectiveDateDropdown();
-            filterUpdateOrganizationPage.selectNewOrganizationEffectiveDate(todayDate);
+            filterUpdateOrganizationPage.selectNewOrganizationEffectiveDate(monthDate);
             filterUpdateOrganizationPage.clickCalenderApplyButton();
             
             logger.info("Step: Selecting Directorate: {}", filterData.getDirectorate());
@@ -71,6 +74,26 @@ public class ManageOrganizationHelper {
             
             logger.info("Step: Selecting Sub Directorate: {}", filterData.getSubDirectorate());
             filterUpdateOrganizationPage.selectSubDirectorate(filterData.getSubDirectorate());
+
+            filterUpdateOrganizationPage.clickGeneratePreviewButton();
+        }
+    }
+
+    public void setFilterUpdateOrganizationPage(boolean isNewProposal, String Directorate) {
+        logger.info("Step: Setting filter update organization page");
+        String monthDate = setCutOffFilterMonth();
+
+        if (!isNewProposal) {
+            copyFromPreviousProposal();
+        } else {
+            OrganizationTestData filterData = ManageOrganizationExcelReader.getSingleData(OrgSheetName.SET_FILTER);
+
+            filterUpdateOrganizationPage.clickEffectiveDateDropdown();
+            filterUpdateOrganizationPage.selectNewOrganizationEffectiveDate(monthDate);
+            filterUpdateOrganizationPage.clickCalenderApplyButton();
+
+            logger.info("Step: Selecting Directorate: {}", Directorate);
+            filterUpdateOrganizationPage.selectDirectorate(Directorate);
 
             filterUpdateOrganizationPage.clickGeneratePreviewButton();
         }
@@ -93,13 +116,55 @@ public class ManageOrganizationHelper {
         navigateToUpdateOrganization();
         setFilterUpdateOrganizationPage(true);
         filterUpdateOrganizationPage.clickNextButton();
+        logger.info("Step: Navigating to Flow 1 (Set Organization)");
+        CustomAssert.assertTrue(setOrganizationPage.isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
+    }
+
+    public void goToFlow1SetOrganization(String Directorate){
+        navigateToUpdateOrganization();
+        setFilterUpdateOrganizationPage(true, Directorate);
+        filterUpdateOrganizationPage.clickNextButton();
         CustomAssert.assertTrue(setOrganizationPage.isSetOrganizationHeaderDisplayed(), "Set Organization header is not displayed");
     }
 
     public void goToFlow2AssignEmployee() {
         logger.info("Step: Navigating from Flow 1 Canvas to Flow 2 (Assign Employee)");
+        passProposedOrgCanvas();
+    }
+
+    public void goToFlow3OrgChangesJustification(){
+        logger.info("Step: Navigating from Flow 2 Canvas to Flow 3 (Organization Changes Justification)");
+        passProposedOrgCanvas();
+    }
+
+    private void passProposedOrgCanvas(){
         actionElementsPage.clickNextButton();
         setOrganizationHelper.nextToAssignEmployee();
         actionElementsPage.clickYesButtonPopUp();
     }
+
+    public void saveAsDraft(){
+        logger.info("Step: Saving current changes as Draft");
+        actionElementsPage.clickSaveAsDraftButton();
+        actionElementsPage.clickYesButtonPopUp();
+    }
+
+    private String setCutOffFilterMonth() {
+        LocalDate date = LocalDate.now();
+        int cutOffDate = 10; // assuming the cut-off date is th 10th every month
+
+        int monthNumber = date.getMonthValue();
+
+        if (date.getDayOfMonth() > cutOffDate) {
+            monthNumber++;
+        }
+
+        if (monthNumber > 12) {
+            monthNumber = 1;
+        }
+
+        return Month.of(monthNumber)
+                .getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+    }
+
 }

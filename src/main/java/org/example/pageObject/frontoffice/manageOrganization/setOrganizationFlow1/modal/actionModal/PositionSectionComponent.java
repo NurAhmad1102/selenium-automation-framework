@@ -6,6 +6,7 @@ import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -63,10 +64,49 @@ public class PositionSectionComponent extends BasePage {
         );
     }
 
+    private WebElement positionNameField() {
+        return getFreshRoot().findElement(
+                By.xpath(".//label[contains(.,'Position Name') or contains(.,'Area of Responsibility') or contains(.,'Job Scope') or contains(.,'Position')]/following::input[not(contains(@name,'.mpp'))][1]")
+        );
+    }
+
     private WebElement fteField() {
         return getFreshRoot().findElement(
                 By.xpath(".//input[contains(@name,'.mpp')]")
         );
+    }
+
+    public void setPositionName(String positionName) {
+        logger.info("Step: Setting Position Name to: {}", positionName);
+        WebElement element = positionNameField();
+        wait.until(ExpectedConditions.visibilityOf(element));
+        click(element);
+
+        // 1. Thoroughly clear existing text via keyboard and JS
+        element.sendKeys(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"), org.openqa.selenium.Keys.BACK_SPACE);
+        try {
+            ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+                    "arguments[0].value = '';" +
+                    "arguments[0].dispatchEvent(new Event('input', { bubbles: true }));" +
+                    "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+                    element
+            );
+        } catch (Exception ignored) {}
+
+        // 2. Type the new custom position name
+        element.sendKeys(positionName);
+
+        // 3. Dispatch events so React commits the custom position name to form state
+        try {
+            ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+                    "arguments[0].dispatchEvent(new Event('input', { bubbles: true }));" +
+                    "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));" +
+                    "arguments[0].dispatchEvent(new Event('blur', { bubbles: true }));",
+                    element
+            );
+        } catch (Exception ignored) {}
+
+        logger.info("Verified Position Name input value: [{}]", element.getAttribute("value"));
     }
 
     public void selectPositionNamingType(String value){

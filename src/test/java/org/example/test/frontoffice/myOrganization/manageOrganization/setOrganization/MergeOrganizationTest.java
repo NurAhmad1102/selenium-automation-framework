@@ -1,9 +1,9 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.setOrganization;
 
-import org.example.pageObject.frontoffice.manageOrganization.enums.ConfirmAction;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgSheetName;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.enums.frontoffice.manageOrganization.ConfirmAction;
+import org.example.enums.frontoffice.manageOrganization.OrgMenuAction;
+import org.example.enums.frontoffice.manageOrganization.OrgSheetName;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
 import org.example.utils.CustomAssert;
 import org.testng.annotations.AfterMethod;
@@ -18,7 +18,6 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
     @BeforeMethod
     public void initManageOrganizationContext(org.testng.ITestResult result) {
         super.initManageOrganizationContext(result);
-        // Initialize data from Excel 'MERGE' sheet
         this.data.set(setOrganizationHelper().getTestData(OrgSheetName.MERGE));
     }
 
@@ -36,13 +35,13 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
         setOrganizationHelper().mergeOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.MERGE);
         setOrganizationHelper().confirmAction(ConfirmAction.MERGE);
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "Merged Organization node is not displayed in the organization tree");
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(data.get().getPrimaryOrganization()), "Primary Organization node is still displayed in the organization tree after merge");
-        CustomAssert.assertTrue(setOrganizationHelper().isNodeOrganizationInvisible(data.get().getMergeOrganizationWith()), "Merge Organization With node is still displayed in the organization tree after merge");
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationDisplayed(data.get().getNewOrganizationName()), "Merged Organization node is not displayed in the organization tree");
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationInvisible(data.get().getPrimaryOrganization()), "Primary Organization node is still displayed in the organization tree after merge");
+        CustomAssert.assertTrue(setOrganizationVerifier().isNodeOrganizationInvisible(data.get().getMergeOrganizationWith()), "Merge Organization With node is still displayed in the organization tree after merge");
 
-        setOrganizationHelper().verifyDetailNodeOrganization(data.get());
+        setOrganizationVerifier().verifyDetailNodeOrganization(data.get());
         setOrganizationHelper().clickChangeLogButton();
-        CustomAssert.assertTrue(setOrganizationHelper().verifyOrganizationChangesLog("Merge Organization", data.get().getPrimaryOrganization(), data.get().getMergeOrganizationWith(), data.get().getNewOrganizationName()), "Changes Log for Merge Organization is not displayed correctly");
+        CustomAssert.assertTrue(setOrganizationVerifier().verifyOrganizationChangesLog("Merge Organization", data.get().getPrimaryOrganization(), data.get().getMergeOrganizationWith(), data.get().getNewOrganizationName()), "Changes Log for Merge Organization is not displayed correctly");
     }
 
     @Test
@@ -53,7 +52,7 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
 
         setOrganizationHelper().mergeOrganization(data.get());
         setOrganizationHelper().fillJobPosition(data.get(), OrgMenuAction.MERGE);
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicatePositionMessage), "Inline error message is not displayed when merging organization with existing position name");
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(duplicatePositionMessage), "Inline error message is not displayed when merging organization with existing position name");
     }
 
     @Test
@@ -63,6 +62,6 @@ public class MergeOrganizationTest extends ManageOrganizationBaseTest {
 
         data.get().setNewOrganizationName(duplicateOrganizationName);
         setOrganizationHelper().mergeOrganization(data.get());
-        CustomAssert.assertTrue(setOrganizationHelper().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed when merging organization with existing organization name");
+        CustomAssert.assertTrue(setOrganizationVerifier().isInlineErrorMessageDisplayed(duplicateOrganizationMessage), "Inline error message is not displayed when merging organization with existing organization name");
     }
 }

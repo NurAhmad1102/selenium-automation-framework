@@ -1,4 +1,4 @@
-package org.example.pageObject.frontoffice.manageOrganization.enums;
+package org.example.enums.frontoffice.manageOrganization;
 
 public enum OrgMenuAction {
     RENAME("Rename"),

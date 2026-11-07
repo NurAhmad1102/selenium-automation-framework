@@ -23,6 +23,9 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
     private final ThreadLocal<ManageOrganizationHelper> manageOrganizationHelper = new ThreadLocal<>();
     private final ThreadLocal<SetOrganizationHelper> setOrganizationHelper = new ThreadLocal<>();
     private final ThreadLocal<AssignEmployeeHelper> assignEmployeeHelper = new ThreadLocal<>();
+    private final ThreadLocal<OrganizationChangesJustificationHelper> justificationHelper = new ThreadLocal<>();
+    private final ThreadLocal<SetOrganizationVerifier> setOrganizationVerifier = new ThreadLocal<>();
+    private final ThreadLocal<AssignEmployeeVerifier> assignEmployeeVerifier = new ThreadLocal<>();
     private final ThreadLocal<ActionUtils> actionUtils = new ThreadLocal<>();
 
     @Override
@@ -44,6 +47,9 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
         setOrganizationHelper.set(new SetOrganizationHelper(getFrontOfficePages()));
         manageOrganizationHelper.set(new ManageOrganizationHelper(getFrontOfficePages(), setOrganizationHelper.get()));
         assignEmployeeHelper.set(new AssignEmployeeHelper(getFrontOfficePages(), manageOrganizationHelper.get(), setOrganizationHelper.get()));
+        justificationHelper.set(new OrganizationChangesJustificationHelper(getFrontOfficePages(), manageOrganizationHelper.get()));
+        setOrganizationVerifier.set(new SetOrganizationVerifier(getFrontOfficePages()));
+        assignEmployeeVerifier.set(new AssignEmployeeVerifier(getFrontOfficePages()));
         actionUtils.set(new ActionUtils(DriverManager.getDriver()));
     }
 
@@ -94,6 +100,9 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
         manageOrganizationHelper.remove();
         setOrganizationHelper.remove();
         assignEmployeeHelper.remove();
+        justificationHelper.remove();
+        setOrganizationVerifier.remove();
+        assignEmployeeVerifier.remove();
         actionUtils.remove();
     }
 
@@ -110,7 +119,7 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
     }
 
     protected SetOrganizationModalFactory setOrganizationModals() {
-        return getFrontOfficePages().manageOrganization().modals();
+        return getFrontOfficePages().manageOrganization().setOrganizationModals();
     }
 
     protected ManageOrganizationHelper manageOrganizationHelper() {
@@ -123,6 +132,18 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
 
     protected AssignEmployeeHelper assignEmployeeHelper() {
         return assignEmployeeHelper.get();
+    }
+
+    protected OrganizationChangesJustificationHelper justificationHelper() {
+        return justificationHelper.get();
+    }
+
+    protected SetOrganizationVerifier setOrganizationVerifier() {
+        return setOrganizationVerifier.get();
+    }
+
+    protected AssignEmployeeVerifier assignEmployeeVerifier() {
+        return assignEmployeeVerifier.get();
     }
 
     protected String loginNip() {
@@ -139,6 +160,7 @@ public abstract class ManageOrganizationBaseTest extends FrontOfficeBaseTest {
 
 
     //    TODO: ganti data ini nanti, selama dev biarkan dulu
+    protected String createNewJobName = "Head Of Sales & Marketing Octo AHM";
     protected String duplicateOrganizationName = "Special Asset ID";
     protected String duplicatePositionName = "Head of Foreclosed Asset & Business Planning";
 

@@ -29,9 +29,17 @@ public class ChangesLogModal extends BasePage {
     @FindBy(xpath = "//button[@role='tab' and contains(., 'Employee Assignment')]")
     private WebElement employeeAssignmentTab;
 
+    @FindBy(css = "svg.absolute.top-5.right-5.cursor-pointer")
+    private WebElement closeButton;
+
     public void openChangesLogModal() {
         click(moreButton);
         click(viewChangesLogMenuItem);
+    }
+
+
+    public void clickCloseButton() {
+        click(closeButton);
     }
 
     public void selectOrganizationChangesTab() {

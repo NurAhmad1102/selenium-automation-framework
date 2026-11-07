@@ -25,7 +25,9 @@ public class ManageIncumbentModal extends BasePage {
     }
 
     public void clickCloseButton() {
-        click(closeButton);
+        if (isModalDisplayed()) {
+            click(closeButton);
+        }
     }
 
     public void expandPositionAccordion(String positionName) {
@@ -93,5 +95,28 @@ public class ManageIncumbentModal extends BasePage {
             return btn.getAttribute("disabled") != null || "true".equalsIgnoreCase(btn.getAttribute("aria-disabled"));
         }
         return false;
+    }
+
+    public boolean isTagDisplayed(String employeeNameOrId, String expectedTag) {
+        String lowerTag = expectedTag.toLowerCase();
+        String xpath = String.format(
+                "//div[@role='dialog']//section[.//h1[contains(., '%1$s')] or .//h2[contains(., '%1$s')]]//span[translate(normalize-space(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='%2$s' or normalize-space()='%3$s']",
+                employeeNameOrId,
+                lowerTag,
+                expectedTag
+        );
+        return isVisible(By.xpath(xpath));
+    }
+
+    public boolean isTagNewDisplayed(String employeeName) {
+        return isTagDisplayed(employeeName, "New");
+    }
+
+    public boolean isTagPjsDisplayed(String employeeName) {
+        return isTagDisplayed(employeeName, "PJS");
+    }
+
+    public boolean isTagMoveDisplayed(String employeeName) {
+        return isTagDisplayed(employeeName, "Move");
     }
 }

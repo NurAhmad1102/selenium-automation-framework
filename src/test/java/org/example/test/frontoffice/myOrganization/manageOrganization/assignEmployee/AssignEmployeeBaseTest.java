@@ -1,7 +1,7 @@
 package org.example.test.frontoffice.myOrganization.manageOrganization.assignEmployee;
 
 import org.example.test.frontoffice.myOrganization.manageOrganization.ManageOrganizationBaseTest;
-import org.example.test.frontoffice.myOrganization.manageOrganization.data.model.OrganizationTestData;
+import org.example.model.frontoffice.OrganizationTestData;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;

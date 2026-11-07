@@ -1,9 +1,7 @@
-package org.example.mainPagesFactory;
+package org.example.factories.frontoffice;
 
-import org.example.drivers.DriverManager;
 import org.example.factories.frontoffice.login.FrontOfficeLoginPagesFactory;
 import org.example.factories.frontoffice.manageOrganization.ManageOrganizationFactory;
-import org.example.factories.frontoffice.manageOrganization.SetOrganizationModalFactory;
 import org.example.factories.frontoffice.sideMenuFactory.FrontOfficeSideMenuFactory;
 import org.openqa.selenium.WebDriver;
 

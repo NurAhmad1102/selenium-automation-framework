@@ -1,11 +1,13 @@
 package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.actionModal;
 
+import org.example.enums.frontoffice.manageOrganization.OrgMenuAction;
 import org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1.modal.BaseFormModal;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,29 @@ public class AddJobPositionModal extends BaseFormModal {
     private final By addButton = By.xpath("//div[@role='dialog']//button[normalize-space(text())='Add']");
     private final By applyButton = By.xpath("//div[@role='dialog']//button[normalize-space(text())='Apply']");
     private final By moveButton = By.xpath("//div[@role='dialog']//button[normalize-space(text())='Move']");
+
+    public void waitForJobPositionModalHeader(OrgMenuAction action) {
+        String expectedTitle = (action == OrgMenuAction.RENAME)
+                ? "Rename Job & Position"
+                : "Add Job & Position";
+        logger.info("Step: Waiting for Job & Position modal header [{}]", expectedTitle);
+        By headerLocator = By.xpath(String.format(
+                "//h2[normalize-space()='%s']", expectedTitle));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(headerLocator));
+    }
+
+    public boolean isJobPositionModalHeaderDisplayed(OrgMenuAction action) {
+        try {
+            String expectedTitle = (action == OrgMenuAction.RENAME)
+                    ? "Rename Job & Position"
+                    : "Add Job & Position";
+            By headerLocator = By.xpath(String.format(
+                    "//h2[normalize-space()='%s']", expectedTitle));
+            return isVisible(headerLocator);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
 
 

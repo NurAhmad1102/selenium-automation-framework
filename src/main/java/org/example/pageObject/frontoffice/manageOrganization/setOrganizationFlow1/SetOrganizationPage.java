@@ -1,7 +1,7 @@
 package org.example.pageObject.frontoffice.manageOrganization.setOrganizationFlow1;
 
 import org.example.pageObject.base.BasePage;
-import org.example.pageObject.frontoffice.manageOrganization.enums.OrgMenuAction;
+import org.example.enums.frontoffice.manageOrganization.OrgMenuAction;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -58,6 +58,19 @@ public class SetOrganizationPage extends BasePage {
         WebElement menuItem = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpathExpression)));
         click(menuItem);
     }
+
+    public boolean isTagNewNodeOrgDisplayed(String organizationName) {
+        String xpath =
+                String.format(
+                        "//span[normalize-space()='%s']" +
+                                "/ancestor::div[contains(@class,'bg-white') and contains(@class,'cursor-pointer')]" +
+                                "//span[normalize-space()='New']",
+                        organizationName
+                );
+
+        return isVisible(By.xpath(xpath));
+    }
+
 
     public boolean isMissingParentPositionNodeDisplayed() {
         return isPresent(MissingParentPositionNode);

@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.example.drivers.DriverManager;
 import org.example.model.SlaDetailModel;
 import org.example.model.SlaSettingModel;
-import org.example.pageObject.backoffice.slaSettingMenu.SlaSetting.SlaSettingPage;
+import org.example.pageObject.backoffice.slaSettingMenu.slasetting.SlaSettingPage;
 import org.example.pageObject.backoffice.slaSettingMenu.DashboardSlaSettingPage;
 import org.example.pageObject.backoffice.slaSettingMenu.SlaRowComponent;
 import org.openqa.selenium.By;
