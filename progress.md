@@ -1,7 +1,7 @@
 # 🚀 Progress: Selenium Automation Framework Refactoring
 
 ## 📌 Context & Objective
-Project ini telah berhasil direfaktor dari project otomasi spesifik (`automations-arjuna`) menjadi **Reusable Selenium Automation Framework** kelas enterprise yang **100% Agnostic** (bebas dari nama project/domain/perusahaan tertentu) di branch **`framework-automation`** agar:
+Project ini telah berhasil direfaktor dari project otomasi monolitik legacy menjadi **Reusable Selenium Automation Framework** kelas enterprise yang **100% Agnostic** (bebas dari nama project/domain/perusahaan tertentu) di branch **`framework-automation`** agar:
 1. Dapat langsung digunakan sebagai library / template untuk project aplikasi web baru tanpa menulis ulang infrastruktur.
 2. Siap dipublikasikan ke repositori public (GitHub) dengan standar open-source, package modular, dan arsitektur kelas enterprise.
 3. Mendukung multi-browser, parallel execution, dynamic remote debugging (`devMode` attaching ke port 9222), pelaporan kustom (ExtentReports dengan tab element snapshot dan network error capture CDP), dynamic browser profile, dan account allocation yang thread-safe.
@@ -10,7 +10,7 @@ Project ini telah berhasil direfaktor dari project otomasi spesifik (`automation
 
 ## 📐 Agnostic & Design Rules (Terverifikasi & Diuji)
 1. **Zero Project-Specific Words in Core Module**:
-   - Terverifikasi via ArchUnit (`CoreArchitectureTest`): Tidak ada import atau referensi ke `org.example..` maupun `com.arjuna..`.
+   - Terverifikasi via ArchUnit (`CoreArchitectureTest`): Tidak ada import atau dependensi ke package aplikasi manapun.
    - Package name: `com.automation.framework.core.*`.
 2. **Interface-Driven Extensibility**:
    - Otentikasi dan login: `LoginHandler` & `NoOpLoginHandler` & `UserAccount`.
