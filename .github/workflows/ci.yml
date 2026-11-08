@@ -1,0 +1,50 @@
+name: Automation Framework CI
+
+on:
+  push:
+    branches: [ main, master, framework-automation ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    name: Build & Verify (Java 17)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Set up Google Chrome (Headless)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget curl unzip
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Compile Reactor
+        run: mvn clean test-compile
+
+      - name: Run Core Tests & Architecture Guard
+        run: mvn test -pl framework-core
+
+      - name: Run Sample E2E Tests (Headless)
+        run: mvn test -pl framework-sample -Dbrowser.headless=true
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-reports
+          path: |
+            reports/
+            framework-sample/target/surefire-reports/

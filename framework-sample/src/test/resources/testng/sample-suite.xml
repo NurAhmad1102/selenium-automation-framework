@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Sample Framework Suite" verbose="1">
+    <listeners>
+        <listener class-name="com.automation.framework.core.listener.FrameworkListener"/>
+    </listeners>
+    <test name="Sample Test">
+        <classes>
+            <class name="com.automation.framework.sample.tests.SampleSearchTest"/>
+        </classes>
+    </test>
+</suite>

@@ -1,426 +1,426 @@
-# Automation Test Framework
+# 🚀 Enterprise Selenium 4 Automation Framework
 
-Framework automation UI berbasis Java 17, Selenium 4, TestNG, Maven, ExtentReports, Log4j2, Apache POI, dan ArchUnit.
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=flat-square&logo=githubactions)](.github/workflows/ci.yml)
+[![Java](https://img.shields.io/badge/Java-17%2B-blue?style=flat-square&logo=openjdk)](https://openjdk.org/)
+[![Selenium](https://img.shields.io/badge/Selenium-4.44.0-43B02A?style=flat-square&logo=selenium)](https://www.selenium.dev/)
+[![TestNG](https://img.shields.io/badge/TestNG-7.10.2-red?style=flat-square)](https://testng.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 
-## Status Arsitektur & Refactor Terkini
+Framework otomatisasi pengujian web berbasis **Java 17** dan **Selenium 4** yang dirancang dengan standar arsitektur kelas enterprise, **100% project-agnostic**, dan modular. Siap digunakan sebagai fondasi reusable untuk berbagai macam aplikasi web tanpa perlu membangun infrastruktur otomasi dari awal.
 
-Framework arsitektur modular:
+---
 
-1. **Modularisasi Factory**:
-   - `ManageOrganizationFactory` dipecah menjadi factory modular:
-     - `setOrganizationModals()`: modal khusus Flow 1 (`AddFormModal`, `MergeFormModal`, `MoveFormModal`, `RenameFormModal`, `SplitFormModal`, dsb.)
-     - `assignEmployeeModals()`: modal khusus Flow 2 (`AddIncumbentModal`, `EmployeeMovementModal`, `ManageIncumbentModal`, `UnassignedEmployeeListModal`)
-     - `commonModals()`: modal bersama lintas flow (`ConfirmationActionModal`, `SuccessModal`, `ChangesLogModal`)
-     - `justificationSections()`: sub-section khusus Flow 3
-   - Menghilangkan cross-flow dependency dan eager modal initialization.
+## 📑 Daftar Isi
+- [Daftar Tools & Teknologi](#-daftar-tools--teknologi)
+- [Arsitektur & Struktur Proyek](#-arsitektur--struktur-proyek)
+- [Fungsi Komponen Utama](#-fungsi-komponen-utama)
+- [Prasyarat Sistem](#-prasyarat-sistem)
+- [Panduan Penggunaan (Contoh 1 Test Lengkap)](#-panduan-penggunaan-contoh-1-test-lengkap)
+- [Fitur Unggulan](#-fitur-unggulan)
+  - [Developer Mode (DevMode)](#1-developer-mode-devmode---hemat-waktu-debugging)
+  - [Pelaporan Interaktif 3-Tab & CDP Error Capture](#2-pelaporan-interaktif-3-tab--cdp-error-capture)
+  - [Multi-User Account Pooling](#3-multi-user-account-pooling-thread-safe)
+  - [Komponen UI Modern (Dropdown Radix UI & WebTable)](#4-penanganan-komponen-ui-modern)
+- [Integrasi CI/CD](#-integrasi-cicd)
+- [Troubleshooting & FAQ](#-troubleshooting--faq)
+- [Dokumentasi Lengkap](#-dokumentasi-lengkap)
+- [Lisensi](#-lisensi)
 
-2. **Pemisahan Tegas Action Helper & Verifier (Pola AAA)**:
-   - **Action Helper** (`SetOrganizationHelper`, `AssignEmployeeHelper`): Berfungsi 100% murni sebagai alur aksi UI / Flow Coordinator. Seluruh wrapper assertion, verifikasi audit log, dan query pemeriksaan telah dihapus.
-   - **Verifier** (`SetOrganizationVerifier`, `AssignEmployeeVerifier`): Berfungsi 100% murni menangani verifikasi, assertions (`CustomAssert`, `CustomSoftAssert`), pengecekan tags incumbent, serta audit log changes.
+---
 
-3. **Data Caching & Immutability**:
-   - `ManageOrganizationExcelReader` menerapkan deep-cloning pada data cache sebelum default merging dijalankan (`new OrganizationTestData(rawData)`).
-   - Objek di dalam cache terisolasi dari mutasi data antar test method (`data.setJobName(...)`).
+## 🛠️ Daftar Tools & Teknologi
 
-4. **Dekopling BasePage & Custom Dropdown**:
-   - Logika manipulasi DOM listbox/dropdown Radix diisolasi ke `CustomDropdownComponent.java`.
-   - `BasePage` berfokus pada core interactions, sementara logging log4j2 dan ExtentReport diselaraskan tanpa duplikasi log.
+Framework ini mengintegrasikan pustaka-pustaka terbaik di ekosistem Java & QA Automation:
 
-5. **Restrukturisasi Direktori & Standarisasi Package**:
-   - Model data terpusat di `org.example.model.frontoffice`.
-   - Enums Front Office terpusat di `org.example.enums.frontoffice.manageOrganization`.
-   - Main factories terpusat di `org.example.factories.frontoffice` dan `org.example.factories.backoffice`.
-   - Casing package Back Office diseragamkan ke lowercase (`org.example.pageObject.backoffice.slaSettingMenu.slasetting`).
-   - Resource LOV dan template dipindahkan ke `src/test/resources/data/frontoffice/massiveChanges/`.
-   - Generator scripts Python dipindahkan ke `scripts/generators/`.
-   - Dokumentasi bisnis dialokasikan ke `docs/businessLogic/` dan `docs/massiveChanges/`.
+| Alat / Library | Versi | Peran & Fungsi dalam Framework |
+|----------------|-------|--------------------------------|
+| **Java SDK** | `17 (LTS)` | Bahasa pemrograman utama dengan performa modern, Records, dan Pattern Matching. |
+| **Selenium WebDriver** | `4.44.0` | Mesin penggerak browser web (Chrome, Firefox, Edge) berbasis W3C WebDriver standard. |
+| **TestNG** | `7.10.2` | Test runner, lifecycle management (`@Test`, `@BeforeMethod`, `@DataProvider`), dan eksekusi paralel. |
+| **ExtentReports** | `5.0.9` | Mesin pelaporan HTML interaktif yang telah dikustomisasi menjadi antarmuka 3-Tab. |
+| **Chrome DevTools Protocol (CDP)** | `v148+` | Monitoring lalu lintas jaringan secara real-time untuk mendeteksi error HTTP (4xx / 5xx) backend. |
+| **Apache POI** | `5.3.0` | Utilitas pembaca data pengujian dari file Microsoft Excel (`.xlsx`). |
+| **Google Gson** | `2.12.1` | Serialisasi dan deserialisasi data pengujian berformat JSON ke dalam Java POJO / model. |
+| **Log4j2** | `2.24.3` | Logging terstruktur asynchronous berkecepatan tinggi dengan level granular (INFO, DEBUG, ERROR). |
+| **ArchUnit** | `1.4.1` | Penjaga arsitektur kode (Architecture Guard) untuk memastikan modul core tetap 100% agnostic. |
+| **Lombok** | `1.18.30` | Reduksi boilerplate kode (`@Data`, `@Getter`, `@Builder`). |
+| **Apache Maven** | `3.8+` | Manajemen build, dependensi, dan siklus hidup multi-module reactor. |
+| **GitHub Actions** | `v4` | Otomasi pipeline CI/CD untuk pengujian headless di lingkungan cloud Linux. |
 
-## Stack
+---
 
-| Area | Teknologi |
-| --- | --- |
-| Language | Java 17 |
-| Build | Maven |
-| Test runner | TestNG |
-| UI automation | Selenium 4 |
-| Reporting | ExtentReports + custom tab renderer |
-| Logging | Log4j2 |
-| Test data | JSON + Excel via Apache POI |
-| Architecture guard | ArchUnit |
+## 🏛️ Arsitektur & Struktur Proyek
 
-## Struktur Project
-
-```text
-src/main/java/org/example/
-  config/                 Model konfigurasi
-  enums/
-    frontoffice/
-      manageOrganization/ Enums Front Office (AssignmentTag, ConfirmAction, OrgMenuAction, OrgSheetName)
-  factories/
-    frontoffice/          FrontOfficeMainPagesFactory, ManageOrganizationFactory, modal factories
-    backoffice/           BackOfficeMainPagesFactory, SlaSettingFactory
-  model/
-    frontoffice/          Data model (OrganizationTestData, MassiveOrgModel)
-  pageObject/             Page Object dan component UI
-    common/               CustomDropdownComponent
-    frontoffice/          Page & Modals Front Office
-    backoffice/           Page & Modals Back Office
-  utils/
-    actionUtils/          JSON reader dan action utilities
-    report/               Reporting API dan Extent implementation
-    resource/             ResourcePathResolver
-
-src/test/java/org/example/
-  base/                   BaseTest, BackOfficeBaseTest, FrontOfficeBaseTest
-  drivers/                DriverManager ThreadLocal
-  listener/               TestNG listener
-  test/
-    frontoffice/          Test classes, Action Helpers, dan Verifiers
-    backoffice/           Test classes Back Office
-  utils/                  Test utilities, account, assertion, table, service
-
-src/test/resources/
-  data/
-    Data Userlogin.xlsx
-    backoffice/
-      slaStatus/          data.json
-    frontoffice/
-      manageOrganization/ Manage_organization_Data_Test.xlsx
-      massiveChanges/     DeptLOV.txt, JobLOV.txt, LocationLOV.txt, Rc_codeLOV.txt
-  testng/
-    master/               testng-all.xml
-    frontoffice/          od-flow1-all.xml, od-flow1-smoke.xml, etc.
-    backoffice/           sla-setting.xml
-  log4j2.xml
-
-scripts/
-  generators/             Python test data generator scripts
-
-docs/
-  businessLogic/          Business-Flow-1-Set-Organization.md, Business_Flow_2-Assign_Employee.md
-  massiveChanges/         Dokumentasi massive changes & performance
-```
-
-## Arsitektur Singkat
+Proyek ini menggunakan struktur **Maven Multi-Module**:
 
 ```text
-Test Class (turunan ManageOrganizationBaseTest)
-  │
-  ├── Action Phase:
-  │     └─ setOrganizationHelper() / assignEmployeeHelper()
-  │           └─ Lazy Page Object / Modals via Factory
-  │                 └─ BasePage / CustomDropdownComponent
-  │
-  └── Assertion Phase:
-        └─ setOrganizationVerifier() / assignEmployeeVerifier()
-              └─ CustomAssert / CustomSoftAssert
-              └─ Direct Page / Modal Inspection
-              └─ ChangesLogModal Verification
+automations-framework/
+├── .github/workflows/
+│   └── ci.yml                          # ⚙️ GitHub Actions CI Pipeline
+│
+├── framework-core/                     # 📦 CORE LIBRARY (100% Agnostik, Reusable)
+│   ├── pom.xml
+│   └── src/
+│       ├── main/java/com/automation/framework/core/
+│       │   ├── account/                # UserAccount, AccountAllocator (Thread-safe pool)
+│       │   ├── assertion/              # CustomAssert & CustomSoftAssert (Auto-screenshot)
+│       │   ├── auth/                   # LoginHandler & NoOpLoginHandler (Pluggable auth)
+│       │   ├── config/                 # FrameworkConfig (Cascading configuration)
+│       │   ├── data/                   # DataReader, JsonDataReader, ExcelDataReader, ResourcePathResolver
+│       │   ├── driver/                 # DriverManager, DriverFactory, DevModeUtils
+│       │   ├── listener/               # FrameworkListener, BrowserProcessCleaner
+│       │   ├── network/                # NetworkMonitor (CDP), CdpVersionHelper, ApiError
+│       │   ├── page/                   # BasePage, DropdownComponent (Radix/Listbox)
+│       │   ├── report/                 # ReportAPI, ReportEventBus, ExtentTabRenderer (3-Tab HTML)
+│       │   ├── table/                  # WebTable (Dynamic HTML Table parser)
+│       │   ├── test/                   # BaseTest (Generic test lifecycle & teardown)
+│       │   └── utils/                  # SeleniumUtils (Screenshot & file helpers)
+│       └── test/java/com/automation/framework/core/
+│           ├── account/                # AccountAllocatorTest
+│           ├── architecture/           # CoreArchitectureTest (ArchUnit boundary tests)
+│           ├── config/                 # FrameworkConfigTest
+│           └── report/                 # OutcomeResolverTest
+│
+├── framework-sample/                   # 💡 STARTER TEMPLATE & DEMO APPLICATION
+│   ├── pom.xml
+│   └── src/
+│       ├── main/java/com/automation/framework/sample/
+│       │   ├── auth/                   # SampleLoginHandler
+│       │   └── pages/                  # SampleSearchPage (extends BasePage)
+│       └── test/java/com/automation/framework/sample/
+│           ├── base/                   # SampleBaseTest (extends BaseTest)
+│           ├── resources/              # application.properties, log4j2.xml, sample-suite.xml
+│           └── tests/                  # SampleSearchTest (End-to-End Test Case)
+│
+├── docs/framework/                     # 📚 BUKU PANDUAN & DOKUMENTASI TEKNIS
+│   ├── getting-started.md              # Panduan setup awal
+│   ├── page-object-pattern.md          # Panduan penulisan Page Object & komponen
+│   ├── test-data-management.md         # Panduan JSON & Excel DataReader
+│   ├── developer-mode.md               # Panduan Developer Mode (port 9222)
+│   ├── reporting-and-network-monitoring.md # Panduan ExtentReports 3-Tab & CDP
+│   ├── multi-account-and-parallel-testing.md # Panduan Account Pooling & Thread-safety
+│   ├── ci-cd-pipeline.md               # Panduan CI/CD GitHub Actions & Jenkins
+│   └── component-reference.md          # Dokumentasi teknis referensi semua kelas
+│
+├── pom.xml                             # 🛠️ Root Parent POM (framework-parent)
+├── progress.md                         # 📋 Dokumen pelacak progress pengembangan
+├── LICENSE                             # 📄 Lisensi Open Source (Apache 2.0)
+└── README.md                           # 📖 Dokumentasi utama proyek
 ```
 
-### Standar Penulisan Test (Pola AAA)
+---
+
+## 🧩 Fungsi Komponen Utama
+
+Setiap komponen dirancang dengan prinsip **Single Responsibility**, **High Cohesion**, dan **Loose Coupling**:
+
+### 1. Centralized Configuration Layer (`FrameworkConfig`)
+Menggunakan hierarki cascading dinamis tanpa hardcode:
+$$\text{CLI System Properties } (-D) \longrightarrow \text{Environment Variables} \longrightarrow \text{.env File} \longrightarrow \text{application.properties} \longrightarrow \text{framework.properties}$$
+Nilai timeout, peramban target, URL basis, dan flag headless dapat diubah secara instan saat runtime.
+
+### 2. Driver Management (`DriverManager`, `DriverFactory`, `DevModeUtils`)
+* **Thread Safety**: Menyimpan instance browser di dalam `ThreadLocal<WebDriver>`.
+* **Multi-Browser**: Mendukung Chrome, Firefox, dan Microsoft Edge dengan profil terisolasi.
+* **DevMode**: Kemampuan unik untuk menyambungkan Selenium ke browser yang sudah terbuka via remote debugging port 9222.
+
+### 3. Page Object & Component Engine (`BasePage`, `DropdownComponent`, `WebTable`)
+* **Resilient Actions**: Metode `click()`, `type()`, `getText()` dilengkapi explicit wait bawaan dan auto-scroll JavaScript.
+* **Auto JavaScript Fallback**: Bila klik native Selenium terhalang oleh overlay UI (misalnya loading spinner atau modal), `BasePage` otomatis mengeksekusi fallback click via JavaScript tanpa membuat test gagal.
+* **Komponen Khusus**: Dukungan langsung untuk dropdown modern (Radix UI / Headless UI virtual list) dan pembacaan tabel HTML dinamis berdasarkan nama kolom header.
+
+### 4. Pelaporan Interaktif 3-Tab & CDP Error Capture (`ReportAPI`, `ExtentTabRenderer`, `NetworkMonitor`)
+Setiap pengujian menghasilkan laporan HTML yang terbagi ke dalam 3 tab:
+* **Tab 1: DETAILS**: Langkah-langkah pengujian langkah demi langkah.
+* **Tab 2: ELEMENT LOGS**: Diagnostik kegagalan 6-pilar saat elemen tidak ditemukan (Computed CSS, Bounding Box, Element Blocker, OuterHTML, dan ringkasan Stacktrace).
+* **Tab 3: NETWORK LOGS**: Penangkapan otomatis respons backend yang gagal (HTTP status 4xx / 5xx) via Chrome DevTools Protocol tanpa proxy eksternal.
+
+### 5. Multi-User Account Allocator (`AccountAllocator`, `UserAccount`)
+Mekanisme antrean akun pengguna thread-safe berbasis peran (*role-based pooling*). Menghindari tabrakan sesi saat eksekusi paralel dan mendukung skenario workflow bertingkat (misalnya: Maker &rarr; Checker &rarr; Approver).
+
+### 6. Pluggable Authentication (`LoginHandler`)
+Pemisahan logika autentikasi dari framework inti. Pengujian dapat menggunakan form login, bypass cookie SSO, atau token injeksi hanya dengan mengimplementasikan antarmuka `LoginHandler`.
+
+### 7. Data Readers (`DataReader<T>`, `JsonDataReader`, `ExcelDataReader`)
+Membaca data pengujian dari file JSON (dipetakan langsung ke model Java/DTO) atau spreadsheet Excel (`.xlsx`) ke dalam format `List<Map<String, String>>`.
+
+### 8. Cleanup & Anti-Leak Sweeper (`BrowserProcessCleaner`)
+Secara otomatis membersihkan proses zombie (`chromedriver.exe`, `chrome.exe`) dan menghapus folder profil sementara di akhir siklus eksekusi.
+
+---
+
+## 💻 Prasyarat Sistem
+
+Sebelum menjalankan proyek, pastikan perangkat Anda telah terpasang:
+* **Java Development Kit (JDK)**: Versi 17 atau yang lebih baru ([Unduh OpenJDK 17](https://adoptium.net/)).
+* **Apache Maven**: Versi 3.8.0 atau yang lebih baru ([Unduh Maven](https://maven.apache.org/download.cgi)).
+* **Web Browser**: Google Chrome versi terbaru (atau Firefox / Edge).
+* **Git**: Versi 2.30+.
+
+Verifikasi instalasi dengan perintah berikut:
+```bash
+java -version
+mvn -version
+```
+
+---
+
+## 🚀 Panduan Penggunaan (Contoh 1 Test Lengkap)
+
+Berikut adalah panduan lengkap langkah demi langkah untuk membuat dan menjalankan satu skenario pengujian otomasi end-to-end dari awal.
+
+### Langkah 1: Buat Page Object Class
+Buat kelas Page Object yang mewakili halaman web dengan mewarisi `com.automation.framework.core.page.BasePage`. Semua locator dan interaksi elemen dibungkus di sini:
 
 ```java
-@Test(groups = {"smoke"}, description = "Verify that user can add new organization with valid data")
-public void addNewOrganizationTest() {
-    // 1. Arrange
-    OrganizationTestData data = setOrganizationHelper().getTestData(OrgSheetName.ADD_NEW);
+package com.mycompany.pages;
 
-    // 2. Act (Murni Alur Aksi UI via Helper)
-    manageOrganizationHelper().goToFlow1SetOrganization();
-    setOrganizationHelper().addNewOrganization(data);
-    setOrganizationHelper().fillJobPosition(data, OrgMenuAction.ADD_NEW);
-    setOrganizationHelper().confirmAction(ConfirmAction.ADD);
+import com.automation.framework.core.page.BasePage;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 
-    // 3. Assert (Murni Verifikasi via Verifier)
-    CustomAssert.assertTrue(
-        setOrganizationVerifier().isNodeOrganizationDisplayed(data.getNewOrganizationName()),
-        "New Organization node is not displayed in the organization tree"
-    );
-    setOrganizationVerifier().verifyDetailNodeOrganization(data);
+public class SearchPage extends BasePage {
 
-    // Audit Log Verification
-    setOrganizationHelper().clickChangeLogButton();
-    CustomAssert.assertTrue(
-        setOrganizationVerifier().verifyOrganizationChangesLog("New Organization", data.getNewOrganizationName(), data.getPrimaryOrganization()),
-        "Changes Log for New Organization is not displayed correctly"
-    );
+    // 1. Definisikan locator elemen privat
+    private final By searchInputBox = By.name("q");
+    private final By searchSubmitBtn = By.name("btnK");
+    private final By searchResultsContainer = By.id("search");
+
+    // 2. Konstruktor menerima WebDriver
+    public SearchPage(WebDriver driver) {
+        super(driver);
+    }
+
+    // 3. Buat metode aksi yang jelas dan mudah dibaca
+    public SearchPage enterKeyword(String keyword) {
+        type(searchInputBox, keyword);
+        return this;
+    }
+
+    public SearchPage submitSearch() {
+        click(searchSubmitBtn);
+        return this;
+    }
+
+    public boolean isResultDisplayed() {
+        return isDisplayed(searchResultsContainer);
+    }
 }
 ```
 
-Komponen utama:
-- `DriverManager`: menyimpan `WebDriver` per thread via `ThreadLocal`.
-- `DevModeUtils`: mengelola status & port Developer Mode (Dev Mode) untuk menempelkan driver ke browser lokal yang sedang berjalan.
-- `LoginDataRepository`: membaca `Data Userlogin.xlsx` sekali untuk account dan URL.
-- `AccountAllocator`: mengalokasikan akun per role, menyimpan alias akun per test thread, dan melepas semua akun saat teardown.
-- `UrlProvider`: mengambil URL Back Office / Front Office dari sheet `URL`.
-- `OfficeSessionSwitcher`: switch user dan switch URL Front Office / Back Office dalam satu test thread.
-- `ReportAPI`: pintu masuk logging/reporting ke ExtentReports.
-- `NetworkMonitor`: capture HTTP 4xx/5xx via CDP.
-- `ArchitectureTest`: guard agar test tidak instantiate Page Object langsung.
+---
 
-## Menjalankan Test
+### Langkah 2: Konfigurasi Parameter Uji (`application.properties`)
+Tempatkan file konfigurasi di `src/test/resources/application.properties`:
 
+```properties
+# Target Browser: chrome, firefox, edge
+browser=chrome
+
+# Mode Headless (true untuk CI/CD, false untuk inspeksi visual)
+browser.headless=false
+
+# Base URL Aplikasi
+app.base.url=https://www.google.com
+
+# Timeout Pengujian (Detik)
+timeout.explicit.seconds=15
+```
+
+---
+
+### Langkah 3: Buat Kelas Test Base (Opsional untuk Abstraksi URL)
+Wariskan `com.automation.framework.core.test.BaseTest` untuk menentukan URL awal pengujian:
+
+```java
+package com.mycompany.base;
+
+import com.automation.framework.core.config.FrameworkConfig;
+import com.automation.framework.core.test.BaseTest;
+
+public abstract class ApplicationBaseTest extends BaseTest {
+
+    @Override
+    protected String getUrl() {
+        return FrameworkConfig.get("app.base.url", "https://example.com");
+    }
+}
+```
+
+---
+
+### Langkah 4: Tulis Test Case TestNG
+Wariskan kelas base dan tulis skenario uji dengan assertion kustom yang secara otomatis menangkap screenshot jika verifikasi gagal:
+
+```java
+package com.mycompany.tests;
+
+import com.automation.framework.core.assertion.CustomAssert;
+import com.automation.framework.core.driver.DriverManager;
+import com.automation.framework.core.report.core.ReportAPI;
+import com.mycompany.base.ApplicationBaseTest;
+import com.mycompany.pages.SearchPage;
+import org.testng.annotations.Test;
+
+public class SearchWorkflowTest extends ApplicationBaseTest {
+
+    @Test(description = "Memverifikasi pencarian kata kunci dan tampilan hasil")
+    public void testSearchFunctionality() {
+        ReportAPI.step("Inisialisasi Search Page Object");
+        SearchPage searchPage = new SearchPage(DriverManager.getDriver());
+
+        ReportAPI.step("Memasukkan kata kunci pencarian");
+        searchPage.enterKeyword("Selenium Automation Framework");
+
+        ReportAPI.step("Menekan tombol cari");
+        searchPage.submitSearch();
+
+        ReportAPI.step("Memvalidasi hasil pencarian muncul di layar");
+        CustomAssert.assertTrue(
+            searchPage.isResultDisplayed(),
+            "Hasil pencarian harus tampil di layar setelah submit"
+        );
+    }
+}
+```
+
+---
+
+### Langkah 5: Jalankan Pengujian
+
+#### Menjalankan via Maven CLI:
 ```bash
-# Suite default dari pom.xml (master/testng-all.xml)
+# Jalankan seluruh test suite dari terminal
 mvn test
 
-# Architecture rules saja
-mvn test -Dtest=ArchitectureTest
+# Jalankan dalam mode headless
+mvn test -Dbrowser.headless=true
 
-# Test class tertentu
-mvn test -Dtest=AddSlaSettingTest
-
-# Browser tertentu
+# Jalankan hanya pada browser Firefox
 mvn test -Dbrowser=firefox
 ```
 
-Suite default:
-
-```text
-src/test/resources/testng/master/testng-all.xml
-```
-
-Suite Front Office OD smoke:
-
-```text
-src/test/resources/testng/frontoffice/od-flow1-smoke.xml
-```
-
-## Developer Mode (Dev Mode)
-
-Developer Mode memungkinkan pengujian UI berjalan langsung di browser Chrome/Edge lokal yang sudah terbuka tanpa membuka browser baru, tanpa melakukan re-login di setiap eksekusi, dan tanpa menutup window browser setelah test selesai (`driver.quit()` dilewati).
-
-### 1. Menjalankan Browser dengan Remote Debugging Port
-
-Jalankan Chrome/Edge melalui terminal/command line dengan flag remote debugging (default port `9222`):
-
+#### Menjalankan via TestNG Suite XML:
 ```bash
-# Windows Chrome
-chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\chrome-dev-profile"
-
-# Edge
-msedge.exe --remote-debugging-port=9222 --user-data-dir="C:\edge-dev-profile"
+mvn test -DsuiteXmlFile=src/test/resources/testng/sample-suite.xml
 ```
 
-### 2. Memfungsikan Dev Mode
+---
 
-Konfigurasi Dev Mode dibaca dengan urutan prioritas:
-1. **System Property**: `-DdevMode=true` atau `-DdevPort=9222`
-2. **Environment Variable**: `DEV_MODE=true` atau `DEV_PORT=9222`
-3. **File `.env`** pada root project:
-   ```env
-   DEV_MODE=true
-   DEV_PORT=9222
+### Langkah 6: Buka Laporan Interaktif
+Setelah eksekusi selesai, laporan pengujian HTML akan dibuat secara otomatis di direktori `reports/`:
+```text
+reports/
+└── ExtentReport_20261108_161500.html
+```
+Buka file tersebut di browser apa pun untuk melihat visualisasi langkah uji, diagnostik elemen, dan log request API yang gagal.
+
+---
+
+## 🌟 Fitur Unggulan
+
+### 1. Developer Mode (DevMode) - Hemat Waktu Debugging!
+Saat mengembangkan pengujian untuk halaman yang membutuhkan proses login rumit atau multi-step form, Anda tidak perlu mengulang proses login setiap kali test dijalankan.
+
+1. Buka Google Chrome dengan remote debugging port aktif:
+   ```bash
+   chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\chrome-dev-profile"
    ```
+2. Lakukan login secara manual di browser tersebut dan buka halaman yang ingin diuji.
+3. Jalankan pengujian Anda dengan flag `-DdevMode=true`:
+   ```bash
+   mvn test -DdevMode=true -Dtest=SearchWorkflowTest
+   ```
+> **Hasil**: Selenium akan langsung terhubung ke tab browser yang sedang aktif tersebut tanpa membuka browser baru, tanpa login ulang, dan tanpa menutup browser saat test selesai!
 
-### 3. Eksekusi Test dalam Dev Mode
+---
 
-```bash
-# Menggunakan System Property
-mvn test -DdevMode=true -Dtest=MoveOrganizationTest
+### 2. Pelaporan Interaktif 3-Tab & CDP Error Capture
+Laporan pengujian menyediakan transparansi penuh untuk developer dan QA:
+* **DETAILS**: Log eksekusi terstruktur dengan snapshot waktu nyata.
+* **ELEMENT LOGS**: Menganalisa penyebab NoSuchElement atau ElementClickIntercepted hingga ke CSS computed style dan koordinat elemen penutup (*blocker overlay*).
+* **NETWORK LOGS**: Mengidentifikasi kegagalan HTTP 400, 401, 403, 500, atau 502 secara langsung dari DevTools Protocol browser tanpa perlu konfigurasi proxy manual.
 
-# Jika menggunakan file .env (DEV_MODE=true)
-mvn test -Dtest=MoveOrganizationTest
-```
+---
 
-Perilaku utama saat Dev Mode aktif:
-- `DriverFactory` akan menempel (attach) ke instance browser yang berjalan di `127.0.0.1:9222`.
-- Base navigation & login dilewati jika browser sudah berada pada halaman target atau sudah dalam keadaan logged in.
-- `resetBrowserSession()` dan `driver.quit()` dilewati sehingga sesi login dan window browser tetap terbuka untuk mempercepat siklus debugging.
-
-## Konfigurasi Data
-
-Data login dan URL:
-
-```text
-src/test/resources/data/Data Userlogin.xlsx
-```
-
-Sheet `URL` dibaca oleh `UrlProvider`. Base test memakai key:
-
-```text
-Backoffice_staging
-Frontoffice_staging
-```
-
-Data konfigurasi domain:
-
-```text
-src/test/resources/data/data.json
-```
-
-Data Front Office Manage Organization:
-
-```text
-src/test/resources/data/frontoffice/manageOrganization/Manage_organization_Data_Test.xlsx
-```
-
-Data LOV & Template Massive Changes:
-
-```text
-src/test/resources/data/frontoffice/massiveChanges/
-```
-
-Reader resource memakai `ResourcePathResolver`, sehingga file dibaca dari classpath saat test berjalan dengan fallback otomatis ke filesystem.
-
-## Account Session dan Multi User
-
-Setiap test tetap wajib menentukan default role lewat `getRole()` di base/module test. Akun default itu otomatis disimpan dengan alias `default`, sehingga test biasa tidak perlu setup tambahan.
-
-Untuk flow multi-actor, gunakan alias akun di level test method:
-
+### 3. Multi-User Account Pooling (Thread-Safe)
+Kelola ratusan akun pengguna untuk pengujian multi-thread:
 ```java
-@Test
-public void approvalTrxUpdateEmployee() {
-    useCurrentUserAs("submitter");
-    submit();
+// Pinjam akun dengan role "ADMIN"
+UserAccount admin = AccountAllocator.allocate("ADMIN");
 
-    useBackOfficeUser("approver", UserRole.HR_PSOM);
-    approve();
-
-    useBackOfficeUser("submitter");
-    verify();
+try {
+    // Jalankan transaksi admin
+} finally {
+    // Kembalikan akun ke dalam pool
+    AccountAllocator.release(admin);
 }
 ```
 
-Untuk flow lintas aplikasi, helper Front Office dan Back Office tersedia dari semua turunan `BaseTest`:
+---
+
+### 4. Penanganan Komponen UI Modern
+Untuk aplikasi yang dibangun menggunakan React, Vue, Angular, atau komponen modern (Shadcn, Radix UI, Headless UI):
 
 ```java
-@Test
-public void approvalTrxUpdateEmployee() {
-    useCurrentUserAs("submitter");
-    submit();
+// Mengisi Dropdown Virtual List Radix UI
+DropdownComponent dropdown = new DropdownComponent(driver, By.id("organization-select-trigger"));
+dropdown.searchAndSelect("Finance", "Finance Division Jakarta");
 
-    useBackOfficeUser("approver", UserRole.HR_PSOM);
-    approve();
-
-    useFrontOfficeUser("submitter");
-    verify();
-}
+// Membaca Data Tabel HTML Dinamis
+WebTable table = new WebTable(driver, By.id("users-table"));
+int rowIndex = table.findRowIndexByCellValue("Email", "john.doe@example.com");
+table.getCellElement(rowIndex, "Action").findElement(By.cssSelector(".btn-edit")).click();
 ```
 
-Alias seperti `submitter` dan `approver` hanya berlaku dalam satu test method dan tidak perlu ditambahkan ke Excel. Semua akun yang pernah dialokasikan dalam test thread akan dilepas oleh `BaseTest.tearDown()` melalui `releaseAllAccounts()`.
+---
 
-Dokumentasi teknis lengkap:
-- **Account & Session Logic:** [`docs/account-session-logic.md`](docs/account-session-logic.md)
-- **Business Flow 1 (Set Organization):** [`docs/businessLogic/Business-Flow-1-Set-Organization.md`](docs/businessLogic/Business-Flow-1-Set-Organization.md)
-- **Business Flow 2 (Assign Employee):** [`docs/businessLogic/Business_Flow_2-Assign_Employee.md`](docs/businessLogic/Business_Flow_2-Assign_Employee.md)
-- **Reporting System:** [`REPORT.md`](REPORT.md)
-- **Project Alignment Guide:** [`docs/project-alignment-guide.md`](docs/project-alignment-guide.md)
+## 🔄 Integrasi CI/CD
 
-## Password Override
+Framework ini dilengkapi konfigurasi pipeline siap pakai untuk **GitHub Actions** dan **Jenkins**.
 
-Password fallback dari `data.json` dapat dioverride agar secret tidak perlu diubah di repo.
+### GitHub Actions
+File workflow otomatis telah tersedia di [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+Pipeline otomatis menginstal Google Chrome, menjalankan kompilasi multi-module, memvalidasi ArchUnit architecture guard, dan menjalankan pengujian headless setiap kali terjadi `push` atau `pull_request`.
 
-```bash
-mvn test -Dautomation.password=your-password
-```
+---
 
-Atau:
+## ❓ Troubleshooting & FAQ
 
-```bash
-AUTOMATION_PASSWORD=your-password
-```
+### 1. `IllegalStateException: chromedriver must be executable`
+* **Penyebab**: Perizinan eksekusi file driver pada OS lokal atau file cache driver korup.
+* **Solusi**: Selenium 4 mengelola driver secara otomatis via *Selenium Manager*. Hapus direktori cache sementara di `~/.cache/selenium` lalu jalankan kembali `mvn test`.
 
-Prioritas:
-1. System property `automation.password`.
-2. Environment variable `AUTOMATION_PASSWORD`.
-3. Fallback dari `data.json`.
+### 2. `DevMode Connection Refused (port 9222)`
+* **Penyebab**: Browser Chrome belum dijalankan dengan parameter `--remote-debugging-port=9222`.
+* **Solusi**: Tutup seluruh instance Chrome, lalu buka melalui command prompt:
+  ```bash
+  chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\chrome-dev-profile"
+  ```
 
-## Parallel Execution
+### 3. `ElementClickInterceptedException`
+* **Solusi**: Metode `click()` di `BasePage` sudah memiliki fallback JavaScript otomatis. Jika elemen tertutup modal atau animasi memudar, framework akan mencoba klik reguler lalu mengeksekusi klik JS tanpa membuat pengujian gagal secara prematur.
 
-Suite default berjalan paralel:
+---
 
-```xml
-<suite name="Test End To End" parallel="methods" thread-count="3">
-```
+## 📚 Dokumentasi Lengkap
 
-Komponen yang sudah memakai `ThreadLocal`:
-- `DriverManager`
-- Main pages factory di base test
-- `AccountAllocator.currentAccount`
-- `AccountAllocator` alias akun per test thread
-- Report storage
-- Network monitor
+Pelajari panduan spesifik lainnya di dalam direktori [`docs/framework/`](docs/framework/):
 
-Jika account untuk role tertentu habis saat parallel run, test akan menunggu sampai account dilepas. Timeout default 30 detik dan bisa dioverride:
+| Dokumen | Topik Pembahasan |
+|---------|------------------|
+| [📖 Getting Started](docs/framework/getting-started.md) | Panduan langkah awal untuk developer baru. |
+| [🧩 Component Reference](docs/framework/component-reference.md) | Rincian lengkap seluruh kelas dan interface dalam framework-core. |
+| [📄 Page Object Guide](docs/framework/page-object-pattern.md) | Pola desain Page Object Model, BasePage, dan WebTable. |
+| [📊 Test Data Management](docs/framework/test-data-management.md) | Teknik data-driven testing dengan JSON dan Excel. |
+| [⚡ Developer Mode Guide](docs/framework/developer-mode.md) | Cara kerja remote debugging port 9222 dan efisiensi waktu. |
+| [📈 Reporting & CDP Guide](docs/framework/reporting-and-network-monitoring.md) | Arsitektur pelaporan 3-tab dan penangkapan network log. |
+| [👥 Multi-Account & Parallel](docs/framework/multi-account-and-parallel-testing.md) | Alokasi akun multi-thread dan eksekusi paralel. |
+| [🔄 CI/CD Pipeline Guide](docs/framework/ci-cd-pipeline.md) | Konfigurasi pipeline GitHub Actions dan Jenkins. |
 
-```bash
-mvn test -Daccount.wait.timeout.seconds=120
-```
+---
 
-Catatan: generator nama SLA masih menulis state ke `used_names.txt`. Jika parallel execution dinaikkan atau sering jalan di CI, bagian ini perlu dibuat run-scoped dan thread-safe.
+## 📄 Lisensi
 
-## Reporting
-
-Output utama:
-
-```text
-reports/index.html
-reports/capture/
-logs/automation-test.log
-```
-
-Flow:
-
-```text
-ReportAPI
-  -> ReportEventBus
-  -> ExtentImplementation
-  -> ExtentTabRenderer
-  -> reports/index.html
-```
-
-Tab report:
-- `DETAILS`
-- `ELEMENT LOGS`
-- `NETWORK LOGS`
-
-Network log hanya mengirim error yang terjadi sampai batas waktu failure saat `capturedBefore` tersedia.
-
-## Architecture Rules
-
-```bash
-mvn test -Dtest=ArchitectureTest
-```
-
-Rules saat ini:
-- Front Office test tidak boleh instantiate Page Object langsung.
-- Back Office test tidak boleh instantiate Page Object langsung.
-- Utility class tidak boleh instantiate Page Object langsung, kecuali component tertentu.
-
-## Batas Aman Refactor Berikutnya
-
-Aman untuk dilakukan bertahap:
-- Tambah env/system property untuk config.
-- Tambah resource reader untuk data baru.
-- Perbaiki report/network diagnostic.
-- Tambah ArchUnit rule.
-
-Perlu regression lebih luas jika mengubah:
-- `BaseTest`
-- `BasePage`
-- `DriverManager`
-- `AccountAllocator`
-- generator test data yang mempengaruhi parallel run
-
-## Verifikasi Minimal
-
-Setelah refactor ringan-sedang:
-
-```bash
-mvn test -Dtest=ArchitectureTest
-```
-
-Setelah perubahan account, browser, atau data:
-
-```bash
-mvn test -Dtest=AddSlaSettingTest
-```
-
-Untuk Front Office Manage Organization:
-
-```bash
-mvn test -DsuiteXmlFile=src/test/resources/testng/testng_fo_od_smoke.xml
-```
+Proyek ini dilisensikan di bawah lisensi terbuka **Apache License 2.0**.
+Lihat berkas [LICENSE](LICENSE) untuk informasi hak cipta dan ketentuan penggunaan secara lengkap.

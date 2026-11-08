@@ -37,17 +37,6 @@ logs/
 reports/
 .selenium/
 .kilo/
-
-### Documentation & Agents ###
-/.agents/
-/docs/images/
-/Guide_for_AI.md
-
-### Local Notes & Scratch ###
-/notes/
-/notesByAI/
-
-### Generated Test Data ###
-**/massiveChanges/**/excelGenerated/
-**/massiveChanges/**/*generated*.xlsx
-**/massiveChanges/**/*multiaction*.xlsx
+test-output/
+allure-results/
+allure-report/
