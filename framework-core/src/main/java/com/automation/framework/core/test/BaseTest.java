@@ -122,6 +122,12 @@ public abstract class BaseTest {
         }
     }
 
+    /**
+     * Retrieves the current TestNG method name being executed.
+     *
+     * @return current test name
+     * @throws IllegalStateException if called before setUp()
+     */
     protected String currentTestName() {
         String testName = currentTestName.get();
         if (testName == null || testName.isEmpty()) {
@@ -130,10 +136,22 @@ public abstract class BaseTest {
         return testName;
     }
 
+    /**
+     * Aliases the currently allocated account under a custom alias name for multi-role workflows.
+     *
+     * @param alias alias name (e.g., "maker", "approver")
+     */
     protected void useCurrentUserAs(String alias) {
         AccountAllocator.aliasCurrentAccount(alias);
     }
 
+    /**
+     * Retrieves the currently active UserAccount allocated to this test thread.
+     *
+     * @param <T> concrete UserAccount type
+     * @return active UserAccount
+     * @throws IllegalStateException if no account is currently allocated
+     */
     protected <T extends UserAccount> T currentAccount() {
         T account = AccountAllocator.getCurrentAccount();
         if (account == null) {
@@ -142,6 +160,14 @@ public abstract class BaseTest {
         return account;
     }
 
+    /**
+     * Retrieves a previously aliased UserAccount by its alias name.
+     *
+     * @param alias alias name registered via useCurrentUserAs or AccountAllocator
+     * @param <T> concrete UserAccount type
+     * @return UserAccount associated with the alias
+     * @throws IllegalArgumentException if alias is not found
+     */
     protected <T extends UserAccount> T account(String alias) {
         T account = AccountAllocator.getAccount(alias);
         if (account == null) {
@@ -150,10 +176,19 @@ public abstract class BaseTest {
         return account;
     }
 
+    /**
+     * Returns the alias name of the currently active account.
+     *
+     * @return active alias name
+     */
     protected String currentAccountAlias() {
         return AccountAllocator.getCurrentAlias();
     }
 
+    /**
+     * Resets the current browser session by deleting cookies and clearing local/session storage.
+     * Automatically bypassed when DevMode is active.
+     */
     protected void resetBrowserSession() {
         if (DevModeUtils.isDevMode()) {
             logger.info("[DEV-MODE] Skipping resetBrowserSession to preserve active developer session.");

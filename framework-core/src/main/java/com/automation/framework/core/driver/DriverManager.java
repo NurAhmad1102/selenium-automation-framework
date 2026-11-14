@@ -6,6 +6,8 @@ import org.openqa.selenium.WebDriver;
 
 /**
  * Thread-safe WebDriver storage via ThreadLocal.
+ * Manages the lifecycle of WebDriver instances for each test thread, ensuring
+ * parallel test executions do not interfere with each other.
  */
 public final class DriverManager {
 
@@ -15,14 +17,28 @@ public final class DriverManager {
     private DriverManager() {
     }
 
+    /**
+     * Binds a WebDriver instance to the current execution thread.
+     *
+     * @param webDriver active WebDriver instance
+     */
     public static void setDriver(WebDriver webDriver) {
         driver.set(webDriver);
     }
 
+    /**
+     * Retrieves the WebDriver instance associated with the current execution thread.
+     *
+     * @return current thread's WebDriver, or null if none is bound
+     */
     public static WebDriver getDriver() {
         return driver.get();
     }
 
+    /**
+     * Quits and cleans up the WebDriver instance for the current execution thread.
+     * In DevMode (devMode=true), the browser session is kept open for rapid inspection.
+     */
     public static void quitDriver() {
         WebDriver currentDriver = driver.get();
         if (currentDriver == null) {

@@ -15,6 +15,15 @@ public final class ResourcePathResolver {
     private ResourcePathResolver() {
     }
 
+    /**
+     * Resolves a resource path first from the classpath, then checks provided fallback file-system paths.
+     *
+     * @param resourcePath relative path to the resource (e.g., "data/users.json")
+     * @param fallbackPaths optional alternative file system paths to check if classpath lookup fails
+     * @return resolved java.nio.file.Path
+     * @throws IllegalArgumentException if the resource cannot be found or is blank
+     * @throws IllegalStateException if the resource exists but cannot be accessed as a file-system path
+     */
     public static Path resolve(String resourcePath, String... fallbackPaths) {
         String normalizedResourcePath = normalizeResourcePath(resourcePath);
         URL resourceUrl = getClassLoader().getResource(normalizedResourcePath);

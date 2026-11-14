@@ -21,6 +21,12 @@ public final class ReportAPI {
     private ReportAPI() {
     }
 
+    /**
+     * Initializes and begins a test entry in the reporting system.
+     *
+     * @param testName name of the test method or scenario
+     * @param description brief description of the test
+     */
     public static void startTest(String testName, String description) {
         ReportData data = ThreadLocalStore.get();
         data.clear();
@@ -28,26 +34,58 @@ public final class ReportAPI {
         ReportEventBus.startTest(testName, description);
     }
 
+    /**
+     * Records an informational lifecycle execution step under the DETAILS tab.
+     *
+     * @param message step description or action taken
+     */
     public static void step(String message) {
         log(LogCategory.DETAILS, Status.INFO, message, OutcomeStatus.INFO, OutcomeCategory.LIFECYCLE, false);
     }
 
+    /**
+     * Records a successful assertion or milestone under the DETAILS tab.
+     *
+     * @param message pass message
+     */
     public static void pass(String message) {
         log(LogCategory.DETAILS, Status.PASS, message, OutcomeStatus.PASS, OutcomeCategory.LIFECYCLE, true);
     }
 
+    /**
+     * Records a test failure under the DETAILS tab.
+     *
+     * @param message failure description
+     */
     public static void fail(String message) {
         fail(message, OutcomeCategory.MANUAL);
     }
 
+    /**
+     * Records a test failure categorized by specific outcome classification.
+     *
+     * @param message failure description
+     * @param category failure category (e.g., ASSERTION, ELEMENT, INFRASTRUCTURE)
+     */
     public static void fail(String message, OutcomeCategory category) {
         log(LogCategory.DETAILS, Status.FAIL, message, OutcomeStatus.FAIL, category, true);
     }
 
+    /**
+     * Records an unhandled exception failure.
+     *
+     * @param error Throwable exception encountered
+     */
     public static void fail(Throwable error) {
         fail("Test Execution Failed", error);
     }
 
+    /**
+     * Records a failure with both a descriptive message and an exception.
+     *
+     * @param message failure message
+     * @param error Throwable exception
+     */
     public static void fail(String message, Throwable error) {
         logElementErrorIfApplicable(error);
         LogEntry entry = new LogEntry(LogCategory.DETAILS, Status.FAIL, message);

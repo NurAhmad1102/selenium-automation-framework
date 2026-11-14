@@ -417,6 +417,7 @@ Pelajari panduan spesifik lainnya di dalam direktori [`docs/framework/`](docs/fr
 | [📈 Reporting & CDP Guide](docs/framework/reporting-and-network-monitoring.md) | Arsitektur pelaporan 3-tab dan penangkapan network log. |
 | [👥 Multi-Account & Parallel](docs/framework/multi-account-and-parallel-testing.md) | Alokasi akun multi-thread dan eksekusi paralel. |
 | [🔄 CI/CD Pipeline Guide](docs/framework/ci-cd-pipeline.md) | Konfigurasi pipeline GitHub Actions dan Jenkins. |
+| [🔀 Migration Guide](docs/framework/migration-guide.md) | Panduan langkah migrasi dari proyek Selenium monolitik lama. |
 
 ---
 

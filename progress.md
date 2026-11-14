@@ -70,7 +70,8 @@ Project ini telah berhasil direfaktor dari project otomasi monolitik legacy menj
     ├── reporting-and-network-monitoring.md
     ├── multi-account-and-parallel-testing.md
     ├── ci-cd-pipeline.md
-    └── component-reference.md
+    ├── component-reference.md
+    └── migration-guide.md
 ```
 
 ---
@@ -85,8 +86,8 @@ Project ini telah berhasil direfaktor dari project otomasi monolitik legacy menj
 | **Phase 4** | Abstract Authentication & Pluggable `LoginHandler` | ✅ Done | P1 | Interface `LoginHandler`, `UserAccount`, dan `NoOpLoginHandler` selesai |
 | **Phase 5** | Environment Profiles & Data Provider Abstraction | ✅ Done | P1 | `DataReader<T>`, `JsonDataReader`, `ExcelDataReader`, `ResourcePathResolver` |
 | **Phase 6** | Framework Sample Demo & Template Archetype | ✅ Done | P2 | Modul `framework-sample` siap pakai sebagai acuan project baru |
-| **Phase 7** | Dokumentasi & Panduan Penggunaan Lengkap | ✅ Done | P1 | `README.md` dan 8 panduan komprehensif di `docs/framework/` |
-| **Phase 8** | Quality Assurance, ArchUnit Guard & Final Verification | ✅ Done | P2 | ArchUnit boundary test, unit test suite, dan E2E sample test passing 100% |
+| **Phase 7** | Dokumentasi & Panduan Penggunaan Lengkap | ✅ Done | P1 | `README.md`, 9 panduan teknis, dan Javadoc komprehensif pada core APIs |
+| **Phase 8** | Quality Assurance, ArchUnit Guard & Coverage Gate | ✅ Done | P2 | ArchUnit boundary test, JaCoCo coverage plugin, dan E2E sample test passing 100% |
 | **Phase 9** | CI/CD Pipeline & Open-Source Preparation | ✅ Done | P1 | `.github/workflows/ci.yml` dan Apache 2.0 `LICENSE` siap untuk GitHub |
 | **Phase 10**| Legacy Cleanup & Public Repository Isolation (Opsi A) | ✅ Done | P0 | Seluruh file lama non-agnostic di-remove dari branch `framework-automation` |
 
@@ -131,9 +132,10 @@ Project ini telah berhasil direfaktor dari project otomasi monolitik legacy menj
 - [x] Buat `application.properties`, `log4j2.xml`, dan `sample-suite.xml`.
 - [x] Eksekusi end-to-end browser test `SampleSearchTest` berjalan sukses (`BUILD SUCCESS`).
 
-### Phase 7: Comprehensive Documentation
-- [x] `README.md` profesional untuk publikasi open source dengan tabel tools lengkap, arsitektur, contoh 1 test end-to-end, panduan DevMode, dan troubleshooting.
-- [x] 8 Panduan Teknis di `docs/framework/`:
+### Phase 7: Comprehensive Documentation & Javadoc
+- [x] `README.md` profesional untuk publikasi open source dengan tabel tools lengkap, arsitektur, contoh 1 test end-to-end, panduan DevMode, troubleshooting, dan FAQ.
+- [x] Javadoc komprehensif pada seluruh public API classes & methods di `framework-core`.
+- [x] 9 Panduan Teknis di `docs/framework/`:
   - `getting-started.md`
   - `page-object-pattern.md`
   - `test-data-management.md`
@@ -142,9 +144,11 @@ Project ini telah berhasil direfaktor dari project otomasi monolitik legacy menj
   - `multi-account-and-parallel-testing.md`
   - `ci-cd-pipeline.md`
   - `component-reference.md`
+  - `migration-guide.md`
 
-### Phase 8 & 9: Quality Gate & GitHub Public Readiness
+### Phase 8 & 9: Quality Gate, Code Coverage & GitHub Public Readiness
 - [x] ArchUnit boundary rules (`CoreArchitectureTest`) memastikan `framework-core` tidak memiliki dependensi ke aplikasi spesifik manapun.
+- [x] JaCoCo test coverage plugin (`jacoco-maven-plugin:0.8.12`) terkonfigurasi dan report aktif di target/site/jacoco.
 - [x] Seluruh unit tests passing (9 of 9 di core).
 - [x] End-to-end integration sample test passing (1 of 1 di sample).
 - [x] Apache 2.0 `LICENSE` file ditambahkan.

@@ -22,6 +22,15 @@ public class ExcelDataReader {
 
     private static final DataFormatter FORMATTER = new DataFormatter();
 
+    /**
+     * Reads all rows from a specified sheet in an Excel file.
+     *
+     * @param filePath path to the .xlsx or .xls file
+     * @param sheetName sheet name to read (if null, defaults to first sheet)
+     * @return List of maps, each representing a row with column-header as key and cell-value as string
+     * @throws IllegalArgumentException if the specified sheet is not found
+     * @throws RuntimeException if an I/O or parsing error occurs
+     */
     public static List<Map<String, String>> readSheet(Path filePath, String sheetName) {
         try (InputStream is = Files.newInputStream(filePath);
              Workbook workbook = WorkbookFactory.create(is)) {
@@ -66,6 +75,14 @@ public class ExcelDataReader {
         }
     }
 
+    /**
+     * Resolves an Excel resource path and reads all rows from the specified sheet.
+     *
+     * @param resourcePath classpath or relative file path to the Excel file
+     * @param sheetName sheet name to read (if null, defaults to first sheet)
+     * @param fallbacks optional fallback file paths
+     * @return List of row maps (column-header -> cell-value)
+     */
     public static List<Map<String, String>> readSheet(String resourcePath, String sheetName, String... fallbacks) {
         Path resolved = ResourcePathResolver.resolve(resourcePath, fallbacks);
         return readSheet(resolved, sheetName);

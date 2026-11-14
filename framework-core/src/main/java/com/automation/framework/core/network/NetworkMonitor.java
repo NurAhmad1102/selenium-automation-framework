@@ -37,24 +37,46 @@ public class NetworkMonitor {
     private final Map<String, PendingBodyCapture> pendingBodyCaptureById = new ConcurrentHashMap<>();
     private final Map<String, ApiError> apiErrorsByKey = new ConcurrentHashMap<>();
 
+    /**
+     * Constructs a NetworkMonitor wrapping a WebDriver that supports Chrome DevTools Protocol.
+     *
+     * @param driver WebDriver instance implementing HasDevTools
+     */
     public NetworkMonitor(HasDevTools driver) {
         this.devTools = driver.getDevTools();
         this.webDriver = (WebDriver) driver;
         this.cdpHelper = new CdpVersionHelper(this.webDriver);
     }
 
+    /**
+     * Returns the NetworkMonitor instance bound to the current thread.
+     *
+     * @return current thread's NetworkMonitor, or null
+     */
     public static NetworkMonitor getCurrentMonitor() {
         return currentMonitor.get();
     }
 
+    /**
+     * Binds a NetworkMonitor instance to the current execution thread.
+     *
+     * @param monitor NetworkMonitor instance
+     */
     public static void setCurrentMonitor(NetworkMonitor monitor) {
         currentMonitor.set(monitor);
     }
 
+    /**
+     * Removes the NetworkMonitor binding from the current thread.
+     */
     public static void removeCurrentMonitor() {
         currentMonitor.remove();
     }
 
+    /**
+     * Starts listening to DevTools network events (requestWillBeSent and responseReceived).
+     * Automatically registers listeners to capture HTTP 4xx and 5xx API errors.
+     */
     @SuppressWarnings("unchecked")
     public void startMonitoring() {
         if (!monitoringStarted.compareAndSet(false, true)) {

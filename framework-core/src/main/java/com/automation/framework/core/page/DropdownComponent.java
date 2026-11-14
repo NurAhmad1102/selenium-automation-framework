@@ -25,15 +25,31 @@ public class DropdownComponent {
     private final WebDriver driver;
     private final WebDriverWait wait;
 
+    /**
+     * Constructs a DropdownComponent with default 15-second wait.
+     *
+     * @param driver active WebDriver instance
+     */
     public DropdownComponent(WebDriver driver) {
         this(driver, new WebDriverWait(driver, Duration.ofSeconds(15)));
     }
 
+    /**
+     * Constructs a DropdownComponent with custom WebDriverWait.
+     *
+     * @param driver active WebDriver instance
+     * @param wait custom WebDriverWait instance
+     */
     public DropdownComponent(WebDriver driver, WebDriverWait wait) {
         this.driver = driver;
         this.wait = wait;
     }
 
+    /**
+     * Checks if the currently open listbox contains a text search/filter input.
+     *
+     * @return true if search input is present
+     */
     public boolean isSearchableDropdown() {
         By searchInputLocator = By.xpath("//div[@role='listbox']//input[@type='text']");
         try {
@@ -45,6 +61,11 @@ public class DropdownComponent {
         }
     }
 
+    /**
+     * Filters the searchable dropdown by typing the value into the input field and selecting the matching option.
+     *
+     * @param value option text to filter and select
+     */
     public void selectSearchableDropdown(String value) {
         By searchInputLocator = By.xpath("//div[@role='listbox']//input[@type='text']");
         WebElement searchInput = wait.until(ExpectedConditions.visibilityOfElementLocated(searchInputLocator));
@@ -66,10 +87,21 @@ public class DropdownComponent {
         }
     }
 
+    /**
+     * Selects an option from a scrollable dropdown container.
+     *
+     * @param value option label to select
+     */
     public void selectScrollableDropdown(String value) {
         selectOption(value);
     }
 
+    /**
+     * Generic option selector from an open listbox container (div[role='listbox']).
+     * Handles visibility checks, fuzzy text matching, virtual scrolling fallback, and JavaScript click.
+     *
+     * @param value option text to find and click
+     */
     public void selectOption(String value) {
         By optionLocator = By.xpath(String.format("//div[@role='option'][contains(normalize-space(.), '%s')]", value));
 

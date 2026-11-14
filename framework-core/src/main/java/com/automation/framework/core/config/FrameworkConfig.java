@@ -161,11 +161,25 @@ public final class FrameworkConfig {
         return null;
     }
 
+    /**
+     * Retrieves the string configuration value for a key, or defaultValue if not found.
+     *
+     * @param key configuration property key
+     * @param defaultValue default value if key is not configured
+     * @return configured string value or defaultValue
+     */
     public static String get(String key, String defaultValue) {
         String val = get(key);
         return (val != null && !val.isBlank()) ? val : defaultValue;
     }
 
+    /**
+     * Retrieves a boolean configuration value.
+     *
+     * @param key configuration property key
+     * @param defaultValue default boolean value if key is not configured
+     * @return boolean value
+     */
     public static boolean getBoolean(String key, boolean defaultValue) {
         String val = get(key);
         if (val == null) {
@@ -174,6 +188,13 @@ public final class FrameworkConfig {
         return Boolean.parseBoolean(val.trim());
     }
 
+    /**
+     * Retrieves an integer configuration value.
+     *
+     * @param key configuration property key
+     * @param defaultValue default integer value if key is not configured or invalid
+     * @return integer value
+     */
     public static int getInt(String key, int defaultValue) {
         String val = get(key);
         if (val == null) {
@@ -187,6 +208,13 @@ public final class FrameworkConfig {
         }
     }
 
+    /**
+     * Retrieves a long integer configuration value.
+     *
+     * @param key configuration property key
+     * @param defaultValue default long value if key is not configured or invalid
+     * @return long value
+     */
     public static long getLong(String key, long defaultValue) {
         String val = get(key);
         if (val == null) {
@@ -200,43 +228,100 @@ public final class FrameworkConfig {
         }
     }
 
-    // Helper shortcuts
+    /**
+     * Returns the target browser name (e.g., "chrome", "firefox", "edge").
+     * Default: "chrome".
+     *
+     * @return lowercase browser name
+     */
     public static String getBrowser() {
         return get("browser", "chrome").toLowerCase();
     }
 
+    /**
+     * Indicates whether headless browser mode is enabled.
+     * Default: false.
+     *
+     * @return true if headless execution is requested
+     */
     public static boolean isHeadless() {
         return getBoolean("headless", false);
     }
 
+    /**
+     * Returns the default explicit wait timeout in seconds.
+     * Default: 15 seconds.
+     *
+     * @return default timeout in seconds
+     */
     public static int getDefaultTimeout() {
         return getInt("timeout.default", 15);
     }
 
+    /**
+     * Returns the page load timeout in seconds.
+     * Default: 300 seconds.
+     *
+     * @return page load timeout in seconds
+     */
     public static int getPageLoadTimeout() {
         return getInt("timeout.pageload", 300);
     }
 
+    /**
+     * Returns the maximum time to wait for a shared user account to be released, in milliseconds.
+     * Default: 30,000 ms (30 seconds).
+     *
+     * @return wait timeout in milliseconds
+     */
     public static long getAccountWaitTimeoutMs() {
         return getLong("account.wait.timeout.seconds", 30) * 1000;
     }
 
+    /**
+     * Returns the configured base URL for the web application under test.
+     *
+     * @return base URL string
+     */
     public static String getBaseUrl() {
         return get("base.url", "");
     }
 
+    /**
+     * Checks if developer mode (attaching to an existing browser) is enabled.
+     *
+     * @return true if devMode is enabled
+     */
     public static boolean isDevMode() {
         return getBoolean("devMode", getBoolean("dev.mode", false));
     }
 
+    /**
+     * Returns the developer mode remote debugging port.
+     * Default: "9222".
+     *
+     * @return remote debugging port string
+     */
     public static String getDevPort() {
         return get("devPort", get("dev.port", "9222"));
     }
 
+    /**
+     * Returns the target directory for generated HTML reports.
+     * Default: "reports".
+     *
+     * @return report directory path string
+     */
     public static String getReportDirectory() {
         return get("report.dir", "reports");
     }
 
+    /**
+     * Returns the target directory for captured test failure screenshots.
+     * Default: "reports/capture".
+     *
+     * @return screenshot directory path string
+     */
     public static String getScreenshotDirectory() {
         return get("screenshot.dir", "reports/capture");
     }
