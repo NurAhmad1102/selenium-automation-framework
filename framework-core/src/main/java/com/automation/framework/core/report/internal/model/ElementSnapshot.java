@@ -6,10 +6,10 @@ import java.util.Map;
 
 /**
  * Encapsulates the 6 diagnostic pillars of an element at the time of failure:
- * 1. Locator Identity (Strategy & Resolved Value)
+ * 1. Locator Identity (Strategy and Resolved Value)
  * 2. State Snapshot (Flags, Bounding Box, Computed CSS)
  * 3. DOM Snippet (outerHTML, parent/context snippet)
- * 4. Execution Context & Wait Metadata (Action, Timeout, Elapsed, Retry)
+ * 4. Execution Context and Wait Metadata (Action, Timeout, Elapsed, Retry)
  * 5. Intercept / Obstruction Details (Overlay element)
  * 6. Error Signature (Exception name, concise message)
  */

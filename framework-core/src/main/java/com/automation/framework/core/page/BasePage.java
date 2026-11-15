@@ -137,6 +137,34 @@ public abstract class BasePage {
         }
     }
 
+    protected void typeText(By locator, String text) {
+        setLastInteractedLocator(locator);
+        try {
+            logger.info("Typing '{}' into locator: {}", text, locator);
+            WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            String description = getElementDescription(element);
+            element.clear();
+            element.sendKeys(text);
+            ReportAPI.step("Action: Type text '" + text + "' into element [" + description + "]");
+        } catch (Exception e) {
+            handleActionFailure("type text", locator, e);
+        }
+    }
+
+    /**
+     * Convenience alias for {@link #typeText(By, String)}.
+     */
+    protected void type(By locator, String text) {
+        typeText(locator, text);
+    }
+
+    /**
+     * Convenience alias for {@link #typeText(WebElement, String)}.
+     */
+    protected void type(WebElement element, String text) {
+        typeText(element, text);
+    }
+
     protected String getAttributeValue(WebElement element, String attribute) {
         setLastInteractedLocator(element);
         try {
@@ -201,11 +229,25 @@ public abstract class BasePage {
             logger.debug("Check visibility: Locator [{}] ({}) is visible", locator, description);
             ReportAPI.step("Check: Element [" + description + "] is visible");
             return visible;
-        } catch (TimeoutException e) {
+        } catch (TimeoutException | NoSuchElementException | StaleElementReferenceException e) {
             logger.debug("Check visibility: Locator [{}] is not visible", locator);
             ReportAPI.step("Check: Locator [" + locator + "] is not visible");
             return false;
         }
+    }
+
+    /**
+     * Convenience alias for {@link #isVisible(By)}.
+     */
+    protected boolean isDisplayed(By locator) {
+        return isVisible(locator);
+    }
+
+    /**
+     * Convenience alias for {@link #isVisible(WebElement)}.
+     */
+    protected boolean isDisplayed(WebElement element) {
+        return isVisible(element);
     }
 
     protected boolean isNotVisible(WebElement element) {

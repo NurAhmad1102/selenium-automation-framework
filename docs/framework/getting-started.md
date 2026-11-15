@@ -14,6 +14,25 @@ The framework is structured as a Maven multi-module project:
 └── pom.xml                 # Parent POM managing dependencies and plugins
 ```
 
+### Adding Dependency to Your Own Project
+
+To use `framework-core` in an external Maven project, install it to your local Maven repository or add it as a dependency:
+
+```bash
+# Clone & install framework-core to local ~/.m2 repository
+mvn clean install -DskipTests
+```
+
+Then in your project's `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>com.automation.framework</groupId>
+    <artifactId>framework-core</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
 ---
 
 ## 🛠️ 2. Core Concepts
@@ -51,8 +70,8 @@ public class LoginPage extends BasePage {
     }
 
     public void login(String username, String password) {
-        typeText(driver.findElement(usernameInput), username);
-        typeText(driver.findElement(passwordInput), password);
+        typeText(usernameInput, username);
+        typeText(passwordInput, password);
         click(submitButton);
     }
 }

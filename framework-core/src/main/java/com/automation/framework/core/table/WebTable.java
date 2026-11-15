@@ -18,6 +18,16 @@ public class WebTable {
     private final WebElement tableElement;
 
     /**
+     * Constructs a WebTable instance wrapping the table located by the provided By locator.
+     *
+     * @param driver active WebDriver instance
+     * @param tableLocator locator for the HTML table element
+     */
+    public WebTable(WebDriver driver, By tableLocator) {
+        this(driver.findElement(tableLocator));
+    }
+
+    /**
      * Constructs a WebTable instance wrapping the provided table WebElement.
      *
      * @param tableElement the HTML table element, must not be null
@@ -118,6 +128,67 @@ public class WebTable {
             }
         }
         return -1;
+    }
+
+    /**
+     * Finds the first row index where the cell under the specified column header matches the expected text.
+     *
+     * @param headerName column header label to look for (case-insensitive)
+     * @param text expected cell text (case-insensitive)
+     * @return zero-based row index, or -1 if not found
+     */
+    public int findRowIndexByCellValue(String headerName, String text) {
+        List<String> headers = getHeaderTexts();
+        int colIndex = -1;
+        for (int i = 0; i < headers.size(); i++) {
+            if (headers.get(i).equalsIgnoreCase(headerName.trim())) {
+                colIndex = i;
+                break;
+            }
+        }
+        if (colIndex == -1) {
+            return -1;
+        }
+        return findRowIndexByText(text, colIndex);
+    }
+
+    /**
+     * Retrieves the cell WebElement by zero-based row and column index.
+     *
+     * @param rowIndex zero-based row index
+     * @param colIndex zero-based column index
+     * @return cell WebElement
+     * @throws IndexOutOfBoundsException if row or column index is out of bounds
+     */
+    public WebElement getCellElement(int rowIndex, int colIndex) {
+        List<WebElement> cells = getCellsInRow(rowIndex);
+        if (colIndex < 0 || colIndex >= cells.size()) {
+            throw new IndexOutOfBoundsException("Column index out of bounds: " + colIndex + " (Total columns: " + cells.size() + ")");
+        }
+        return cells.get(colIndex);
+    }
+
+    /**
+     * Retrieves the cell WebElement by zero-based row index and column header name.
+     *
+     * @param rowIndex zero-based row index
+     * @param headerName column header label
+     * @return cell WebElement
+     * @throws IllegalArgumentException if header is not found
+     */
+    public WebElement getCellElement(int rowIndex, String headerName) {
+        List<String> headers = getHeaderTexts();
+        int colIndex = -1;
+        for (int i = 0; i < headers.size(); i++) {
+            if (headers.get(i).equalsIgnoreCase(headerName.trim())) {
+                colIndex = i;
+                break;
+            }
+        }
+        if (colIndex == -1) {
+            throw new IllegalArgumentException("Table header '" + headerName + "' not found. Available headers: " + headers);
+        }
+        return getCellElement(rowIndex, colIndex);
     }
 
     /**

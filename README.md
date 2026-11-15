@@ -1,10 +1,12 @@
 # 🚀 Enterprise Selenium 4 Automation Framework
 
-[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=flat-square&logo=githubactions)](.github/workflows/ci.yml)
+[![CI Build](https://github.com/OWNER/REPOSITORY/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPOSITORY/actions/workflows/ci.yml)
 [![Java](https://img.shields.io/badge/Java-17%2B-blue?style=flat-square&logo=openjdk)](https://openjdk.org/)
 [![Selenium](https://img.shields.io/badge/Selenium-4.44.0-43B02A?style=flat-square&logo=selenium)](https://www.selenium.dev/)
 [![TestNG](https://img.shields.io/badge/TestNG-7.10.2-red?style=flat-square)](https://testng.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
+
+<!-- Catatan: Ganti OWNER/REPOSITORY pada badge di atas dengan path repositori GitHub Anda setelah di-push -->
 
 Framework otomatisasi pengujian web berbasis **Java 17** dan **Selenium 4** yang dirancang dengan standar arsitektur kelas enterprise, **100% project-agnostic**, dan modular. Siap digunakan sebagai fondasi reusable untuk berbagai macam aplikasi web tanpa perlu membangun infrastruktur otomasi dari awal.
 
@@ -13,6 +15,7 @@ Framework otomatisasi pengujian web berbasis **Java 17** dan **Selenium 4** yang
 ## 📑 Daftar Isi
 - [Daftar Tools & Teknologi](#-daftar-tools--teknologi)
 - [Arsitektur & Struktur Proyek](#-arsitektur--struktur-proyek)
+- [Instalasi & Penggunaan di Proyek Anda](#-instalasi--penggunaan-di-proyek-anda)
 - [Fungsi Komponen Utama](#-fungsi-komponen-utama)
 - [Prasyarat Sistem](#-prasyarat-sistem)
 - [Panduan Penggunaan (Contoh 1 Test Lengkap)](#-panduan-penggunaan-contoh-1-test-lengkap)
@@ -100,13 +103,66 @@ automations-framework/
 │   ├── reporting-and-network-monitoring.md # Panduan ExtentReports 3-Tab & CDP
 │   ├── multi-account-and-parallel-testing.md # Panduan Account Pooling & Thread-safety
 │   ├── ci-cd-pipeline.md               # Panduan CI/CD GitHub Actions & Jenkins
+│   ├── migration-guide.md              # Panduan migrasi dari framework monolitik lama
 │   └── component-reference.md          # Dokumentasi teknis referensi semua kelas
 │
 ├── pom.xml                             # 🛠️ Root Parent POM (framework-parent)
-├── progress.md                         # 📋 Dokumen pelacak progress pengembangan
 ├── LICENSE                             # 📄 Lisensi Open Source (Apache 2.0)
 └── README.md                           # 📖 Dokumentasi utama proyek
 ```
+
+---
+
+## 📦 Instalasi & Penggunaan di Proyek Anda
+
+Anda dapat mengintegrasikan `framework-core` ke dalam proyek pengujian otomasi Anda dengan beberapa cara mudah:
+
+### Opsi 1: Instalasi Lokal Maven (Direkomendasikan untuk Tim Internal)
+Clone repositori ini dan jalankan perintah install ke Maven repository lokal Anda (`~/.m2/repository`):
+
+```bash
+git clone https://github.com/OWNER/REPOSITORY.git
+cd REPOSITORY
+mvn clean install -DskipTests
+```
+
+Kemudian pada file `pom.xml` di proyek pengujian Anda, tambahkan dependensi `framework-core`:
+
+```xml
+<dependency>
+    <groupId>com.automation.framework</groupId>
+    <artifactId>framework-core</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+### Opsi 2: Menggunakan JitPack (Tanpa Setup Server Artefak)
+Jika repositori ini di-host secara publik di GitHub, pengguna dapat langsung mengonsumsi pustaka ini via [JitPack](https://jitpack.io):
+
+1. Tambahkan repository JitPack di `pom.xml` proyek Anda:
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+2. Tambahkan dependensi:
+```xml
+<dependency>
+    <groupId>com.github.OWNER</groupId>
+    <artifactId>framework-core</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+### Opsi 3: Gunakan `framework-sample` Sebagai Starter Template (Fork / Clone)
+Bagi yang ingin langsung mulai membuat test suite baru tanpa konfigurasi pom dari nol:
+1. Clone repositori ini.
+2. Gunakan modul `framework-sample` sebagai boiler-plate.
+3. Ubah konfigurasi `base.url` di `src/test/resources/application.properties` dan buat Page Object serta Test Anda sendiri.
 
 ---
 
@@ -125,7 +181,7 @@ Nilai timeout, peramban target, URL basis, dan flag headless dapat diubah secara
 * **DevMode**: Kemampuan unik untuk menyambungkan Selenium ke browser yang sudah terbuka via remote debugging port 9222.
 
 ### 3. Page Object & Component Engine (`BasePage`, `DropdownComponent`, `WebTable`)
-* **Resilient Actions**: Metode `click()`, `type()`, `getText()` dilengkapi explicit wait bawaan dan auto-scroll JavaScript.
+* **Resilient Actions**: Metode `click()`, `typeText()`, `getText()` dilengkapi explicit wait bawaan dan auto-scroll JavaScript (juga tersedia alias `type()` dan `isDisplayed()`).
 * **Auto JavaScript Fallback**: Bila klik native Selenium terhalang oleh overlay UI (misalnya loading spinner atau modal), `BasePage` otomatis mengeksekusi fallback click via JavaScript tanpa membuat test gagal.
 * **Komponen Khusus**: Dukungan langsung untuk dropdown modern (Radix UI / Headless UI virtual list) dan pembacaan tabel HTML dinamis berdasarkan nama kolom header.
 
@@ -193,7 +249,7 @@ public class SearchPage extends BasePage {
 
     // 3. Buat metode aksi yang jelas dan mudah dibaca
     public SearchPage enterKeyword(String keyword) {
-        type(searchInputBox, keyword);
+        typeText(searchInputBox, keyword);
         return this;
     }
 
@@ -203,7 +259,7 @@ public class SearchPage extends BasePage {
     }
 
     public boolean isResultDisplayed() {
-        return isDisplayed(searchResultsContainer);
+        return isVisible(searchResultsContainer);
     }
 }
 ```
@@ -221,16 +277,16 @@ browser=chrome
 headless=false
 
 # Base URL Aplikasi
-app.base.url=https://www.google.com
+base.url=https://example.com
 
-# Timeout Pengujian (Detik)
-timeout.explicit.seconds=15
+# Timeout Pengujian Default (Detik)
+timeout.default=15
 ```
 
 ---
 
 ### Langkah 3: Buat Kelas Test Base (Opsional untuk Abstraksi URL)
-Wariskan `com.automation.framework.core.test.BaseTest` untuk menentukan URL awal pengujian:
+Wariskan `com.automation.framework.core.test.BaseTest` untuk menentukan URL awal pengujian atau konfigurasi autentikasi:
 
 ```java
 package com.mycompany.base;
@@ -242,9 +298,13 @@ public abstract class ApplicationBaseTest extends BaseTest {
 
     @Override
     protected String getUrl() {
-        return FrameworkConfig.get("app.base.url", "https://example.com");
+        return FrameworkConfig.get("base.url", "https://example.com");
     }
 }
+```
+
+> [!TIP]
+> `BaseTest` secara default langsung membaca `base.url` dari `FrameworkConfig.getBaseUrl()`. Override metode `getUrl()` bersifat opsional, hanya jika Anda memerlukan penyesuaian URL dinamis.
 ```
 
 ---
@@ -344,16 +404,29 @@ Laporan pengujian menyediakan transparansi penuh untuk developer dan QA:
 ---
 
 ### 3. Multi-User Account Pooling (Thread-Safe)
-Kelola ratusan akun pengguna untuk pengujian multi-thread:
-```java
-// Pinjam akun dengan role "ADMIN"
-UserAccount admin = AccountAllocator.allocate("ADMIN");
+Kelola ratusan akun pengguna untuk pengujian multi-thread tanpa race-condition:
 
+```java
+// Opsi A: Alokasi manual programatik
+UserAccount admin = AccountAllocator.allocate("ADMIN");
 try {
     // Jalankan transaksi admin
 } finally {
-    // Kembalikan akun ke dalam pool
     AccountAllocator.release(admin);
+}
+
+// Opsi B: Alokasi otomatis berbasis lifecycle BaseTest (Direkomendasikan)
+public class AdminWorkflowTest extends ApplicationBaseTest {
+    @Override
+    protected String getRole() {
+        return "ADMIN"; // Dialokasikan otomatis saat setUp & dirilis saat tearDown
+    }
+
+    @Test
+    public void testAdminFeature() {
+        UserAccount admin = AccountAllocator.getCurrentAccount();
+        // Lakukan pengujian...
+    }
 }
 ```
 
@@ -363,7 +436,10 @@ try {
 Untuk aplikasi yang dibangun menggunakan React, Vue, Angular, atau komponen modern (Shadcn, Radix UI, Headless UI):
 
 ```java
-// Mengisi Dropdown Virtual List Radix UI
+import com.automation.framework.core.page.DropdownComponent;
+import com.automation.framework.core.table.WebTable;
+
+// Mengisi Dropdown Virtual List Radix UI / Shadcn
 DropdownComponent dropdown = new DropdownComponent(driver, By.id("organization-select-trigger"));
 dropdown.searchAndSelect("Finance", "Finance Division Jakarta");
 

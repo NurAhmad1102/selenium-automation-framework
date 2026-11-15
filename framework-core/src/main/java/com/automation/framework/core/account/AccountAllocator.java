@@ -53,6 +53,35 @@ public final class AccountAllocator {
         allocatedAccounts.clear();
     }
 
+    /**
+     * Allocates an available account for the specified role for the current test thread.
+     * Uses the default account alias.
+     *
+     * @param role role name of the account to allocate
+     * @return allocated UserAccount
+     */
+    public static UserAccount allocate(String role) {
+        String testName = Thread.currentThread().getName();
+        return useAccount(DEFAULT_ACCOUNT_ALIAS, testName, role);
+    }
+
+    /**
+     * Releases a specific allocated account back to the pool.
+     *
+     * @param account account to release
+     */
+    public static void release(UserAccount account) {
+        if (account != null) {
+            allocatedAccounts.remove(account);
+            accountAliases.get().values().remove(account);
+            if (currentAccount.get() == account) {
+                currentAccount.remove();
+                currentAlias.remove();
+            }
+            logger.info("Released account: [Role: {}, Identifier: {}]", account.getRole(), account.getIdentifier());
+        }
+    }
+
     public static void allocateAccount(String testName, String role) {
         useAccount(DEFAULT_ACCOUNT_ALIAS, testName, role);
     }

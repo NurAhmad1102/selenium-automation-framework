@@ -41,7 +41,7 @@ Pada `pom.xml` modul aplikasi pengujian Anda, jadikan `framework-core` sebagai d
     <dependency>
         <groupId>com.automation.framework</groupId>
         <artifactId>framework-core</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </dependency>
 </dependencies>
 ```
@@ -54,8 +54,8 @@ Pindahkan seluruh URL, timeout, dan kredensial yang sebelumnya di-hardcode ke `s
 
 ```properties
 # Target Web Application
-app.base.url=https://staging.example.com
-app.timeout.seconds=15
+base.url=https://staging.example.com
+timeout.default=15
 
 # Browser Configuration (Bisa di-override via CLI)
 browser=chrome
@@ -141,21 +141,24 @@ Buat satu abstract base test di modul Anda yang meng-extend `com.automation.fram
 ```java
 package com.mycompany.app.base;
 
+import com.automation.framework.core.auth.LoginHandler;
 import com.automation.framework.core.config.FrameworkConfig;
 import com.automation.framework.core.test.BaseTest;
 import com.mycompany.app.auth.AppLoginHandler;
 
 public abstract class AppBaseTest extends BaseTest {
 
+    private final AppLoginHandler loginHandler = new AppLoginHandler();
+
     @Override
     protected String getUrl() {
-        return FrameworkConfig.get("app.base.url");
+        return FrameworkConfig.get("base.url", "https://staging.example.com");
     }
 
     @Override
-    protected void configureLoginHandler() {
+    protected LoginHandler getLoginHandler() {
         // Registrasikan handler login aplikasi Anda
-        setLoginHandler(new AppLoginHandler());
+        return loginHandler;
     }
 }
 ```
@@ -203,7 +206,7 @@ public class LoginPage extends BasePage {
 
     public void enterUsername(String username) {
         // Menggunakan explicit wait bawaan BasePage
-        type(usernameInput, username);
+        typeText(usernameInput, username);
     }
 
     public void clickLogin() {

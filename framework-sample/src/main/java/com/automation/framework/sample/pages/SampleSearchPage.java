@@ -18,7 +18,7 @@ public class SampleSearchPage extends BasePage {
     }
 
     public void enterSearchQuery(String query) {
-        typeText(driver.findElement(searchInput), query);
+        typeText(searchInput, query);
     }
 
     public boolean isSearchInputDisplayed() {

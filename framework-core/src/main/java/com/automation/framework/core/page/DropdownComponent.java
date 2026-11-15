@@ -24,6 +24,8 @@ public class DropdownComponent {
     private final Logger logger = LogManager.getLogger(getClass());
     private final WebDriver driver;
     private final WebDriverWait wait;
+    private final By triggerLocator;
+    private final WebElement triggerElement;
 
     /**
      * Constructs a DropdownComponent with default 15-second wait.
@@ -31,7 +33,7 @@ public class DropdownComponent {
      * @param driver active WebDriver instance
      */
     public DropdownComponent(WebDriver driver) {
-        this(driver, new WebDriverWait(driver, Duration.ofSeconds(15)));
+        this(driver, new WebDriverWait(driver, Duration.ofSeconds(15)), null, null);
     }
 
     /**
@@ -41,8 +43,68 @@ public class DropdownComponent {
      * @param wait custom WebDriverWait instance
      */
     public DropdownComponent(WebDriver driver, WebDriverWait wait) {
+        this(driver, wait, null, null);
+    }
+
+    /**
+     * Constructs a DropdownComponent with a trigger locator.
+     *
+     * @param driver active WebDriver instance
+     * @param triggerLocator locator for the element that opens the dropdown menu
+     */
+    public DropdownComponent(WebDriver driver, By triggerLocator) {
+        this(driver, new WebDriverWait(driver, Duration.ofSeconds(15)), triggerLocator, null);
+    }
+
+    /**
+     * Constructs a DropdownComponent with a trigger WebElement.
+     *
+     * @param driver active WebDriver instance
+     * @param triggerElement WebElement that opens the dropdown menu
+     */
+    public DropdownComponent(WebDriver driver, WebElement triggerElement) {
+        this(driver, new WebDriverWait(driver, Duration.ofSeconds(15)), null, triggerElement);
+    }
+
+    private DropdownComponent(WebDriver driver, WebDriverWait wait, By triggerLocator, WebElement triggerElement) {
         this.driver = driver;
         this.wait = wait;
+        this.triggerLocator = triggerLocator;
+        this.triggerElement = triggerElement;
+    }
+
+    /**
+     * Opens the dropdown menu by clicking the trigger element if configured.
+     */
+    public void open() {
+        if (triggerLocator != null) {
+            logger.info("Opening dropdown via trigger locator: {}", triggerLocator);
+            wait.until(ExpectedConditions.elementToBeClickable(triggerLocator)).click();
+        } else if (triggerElement != null) {
+            logger.info("Opening dropdown via trigger element: {}", triggerElement);
+            wait.until(ExpectedConditions.elementToBeClickable(triggerElement)).click();
+        }
+    }
+
+    /**
+     * Opens the dropdown (if trigger is configured) and selects the option matching the provided text.
+     *
+     * @param text option label to select
+     */
+    public void selectByText(String text) {
+        open();
+        selectOption(text);
+    }
+
+    /**
+     * Opens the dropdown (if trigger is configured), filters by typing searchQuery, and selects the matching option.
+     *
+     * @param searchQuery search query to filter options
+     * @param optionText option text to select
+     */
+    public void searchAndSelect(String searchQuery, String optionText) {
+        open();
+        selectSearchableDropdown(searchQuery);
     }
 
     /**

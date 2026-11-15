@@ -64,12 +64,13 @@ com.automation.framework.core/
   * `BasePage`: Kelas dasar abstrak untuk semua Page Object. Menyediakan pembungkus (wrapper) aman untuk interaksi elemen dengan explicit wait bawaan (`Duration.ofSeconds(15)`), auto-scroll via JavaScript, penanganan intersep klik otomatis (JS click fallback), dan pelaporan diagnostik.
   * `DropdownComponent`: Mengelola dropdown non-standar (misalnya komponen Radix UI, Headless UI, Material, atau listbox virtual) yang menggunakan `role="combobox"` atau `role="option"`.
 * **Metode Penting di BasePage**:
-  * `click(By locator)`: Menunggu elemen clickable, mencoba klik native, dan beralih ke JS click jika terhalang overlay.
-  * `type(By locator, String text)`: Menunggu visibility, membersihkan input, dan mengetikkan teks.
-  * `getText(By locator)`: Menunggu visibility dan mengembalikan teks elemen.
-  * `isDisplayed(By locator)`: Mengembalikan boolean tanpa melempar TimeoutException.
-  * `waitForElementVisible(By locator)` / `waitForElementPresent(By locator)`.
-  * `getDiagnostics()`: Mengembalikan URL aktif, title halaman, dan status DOM `document.readyState`.
+  * `click(By locator)` / `click(WebElement element)`: Menunggu elemen clickable, mencoba klik native, dan beralih ke JS click jika terhalang overlay.
+  * `typeText(By locator, String text)` / `typeText(WebElement element, String text)`: Menunggu visibility, membersihkan input, dan mengetikkan teks. (Tersedia juga alias `type()`).
+  * `getText(By locator)` / `getText(WebElement element)`: Menunggu visibility dan mengembalikan teks elemen.
+  * `isVisible(By locator)` / `isVisible(WebElement element)`: Mengembalikan boolean tanpa melempar TimeoutException. (Tersedia juga alias `isDisplayed()`).
+  * `isNotVisible(By locator)` / `isNotVisible(WebElement element)`: Memvalidasi elemen tersembunyi atau hilang dari DOM.
+  * `isElementClickable(By locator)` / `isElementClickable(WebElement element)`: Mengecek status clickable elemen.
+  * `scrollMoveToElement(By locator)` / `scrollMoveToElement(WebElement element)`: Melakukan scroll halaman menuju elemen.
 
 ---
 

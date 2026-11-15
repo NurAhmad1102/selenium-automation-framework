@@ -41,13 +41,13 @@ public class InventoryPage extends BasePage {
     }
 
     public InventoryPage searchItem(String name) {
-        type(searchInput, name);
+        typeText(searchInput, name);
         click(applyFilterBtn);
         return this;
     }
 
     public int getItemCount() {
-        return findElements(itemList).size();
+        return driver.findElements(itemList).size();
     }
 }
 ```
@@ -61,12 +61,12 @@ public class InventoryPage extends BasePage {
 | Method | Behavior |
 |--------|----------|
 | `click(By locator)` | Waits until clickable, attempts standard click, automatically falls back to JavaScript `arguments[0].click()` if intercepted |
-| `type(By locator, String text)` | Waits for visibility, clears input, types text |
+| `typeText(By locator, String text)` | Waits for visibility, clears input, types text (alias: `type`) |
 | `getText(By locator)` | Waits for visibility, retrieves visible text |
-| `isDisplayed(By locator)` | Safely returns `false` on `TimeoutException` or `NoSuchElementException` |
-| `waitForElementVisible(By locator)` | Returns `WebElement` after explicit wait |
-| `scrollIntoView(WebElement element)` | Smoothly scrolls element into viewport via JavaScript |
-| `getDiagnostics()` | Returns current URL, page title, and readyState on failures |
+| `isVisible(By locator)` | Safely returns `false` on `TimeoutException`, `NoSuchElementException`, or DOM detach (alias: `isDisplayed`) |
+| `isNotVisible(By locator)` | Safely verifies element absence or hidden state without throwing exceptions |
+| `scrollMoveToElement(By locator)` | Smoothly scrolls element into viewport via JavaScript |
+| `isElementClickable(By locator)` | Checks if element is present, visible, and enabled for interaction |
 
 ---
 
