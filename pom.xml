@@ -170,6 +170,8 @@
                     <configuration>
                         <doclint>none</doclint>
                         <quiet>true</quiet>
+                        <failOnError>false</failOnError>
+                        <outputDirectory>${project.build.directory}/apidocs</outputDirectory>
                     </configuration>
                     <executions>
                         <execution>

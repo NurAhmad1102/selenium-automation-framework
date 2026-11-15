@@ -125,30 +125,63 @@ public abstract class BasePage {
     }
 
     protected void typeText(WebElement element, String text) {
+        typeText(element, text, isSensitiveField(element, null));
+    }
+
+    protected void typeText(WebElement element, String text, boolean isSensitive) {
         setLastInteractedLocator(element);
         String description = getElementDescription(element);
+        String displayText = (isSensitive || isSensitiveField(element, null)) ? "********" : text;
         try {
-            logger.info("Typing '{}' into element: {}", text, description);
+            logger.info("Typing '{}' into element: {}", displayText, description);
             wait.until(ExpectedConditions.visibilityOf(element)).clear();
             element.sendKeys(text);
-            ReportAPI.step("Action: Type text '" + text + "' into element [" + description + "]");
+            ReportAPI.step("Action: Type text '" + displayText + "' into element [" + description + "]");
         } catch (Exception e) {
             handleActionFailure("type text", element, e);
         }
     }
 
     protected void typeText(By locator, String text) {
+        typeText(locator, text, false);
+    }
+
+    protected void typeText(By locator, String text, boolean isSensitive) {
         setLastInteractedLocator(locator);
         try {
-            logger.info("Typing '{}' into locator: {}", text, locator);
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            boolean sensitive = isSensitive || isSensitiveField(element, locator);
             String description = getElementDescription(element);
+            String displayText = sensitive ? "********" : text;
+
+            logger.info("Typing '{}' into locator: {}", displayText, locator);
             element.clear();
             element.sendKeys(text);
-            ReportAPI.step("Action: Type text '" + text + "' into element [" + description + "]");
+            ReportAPI.step("Action: Type text '" + displayText + "' into element [" + description + "]");
         } catch (Exception e) {
             handleActionFailure("type text", locator, e);
         }
+    }
+
+    private boolean isSensitiveField(WebElement element, By locator) {
+        try {
+            if (element != null) {
+                String type = element.getAttribute("type");
+                if ("password".equalsIgnoreCase(type)) {
+                    return true;
+                }
+                String name = element.getAttribute("name");
+                if (name != null && name.toLowerCase().contains("password")) {
+                    return true;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        if (locator != null) {
+            String locStr = locator.toString().toLowerCase();
+            return locStr.contains("password") || locStr.contains("secret") || locStr.contains("token") || locStr.contains("pin");
+        }
+        return false;
     }
 
     /**
@@ -163,6 +196,20 @@ public abstract class BasePage {
      */
     protected void type(WebElement element, String text) {
         typeText(element, text);
+    }
+
+    /**
+     * Convenience alias for {@link #typeText(By, String, boolean)}.
+     */
+    protected void type(By locator, String text, boolean isSensitive) {
+        typeText(locator, text, isSensitive);
+    }
+
+    /**
+     * Convenience alias for {@link #typeText(WebElement, String, boolean)}.
+     */
+    protected void type(WebElement element, String text, boolean isSensitive) {
+        typeText(element, text, isSensitive);
     }
 
     protected String getAttributeValue(WebElement element, String attribute) {

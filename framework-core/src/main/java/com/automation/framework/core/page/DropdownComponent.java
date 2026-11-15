@@ -104,7 +104,7 @@ public class DropdownComponent {
      */
     public void searchAndSelect(String searchQuery, String optionText) {
         open();
-        selectSearchableDropdown(searchQuery);
+        selectSearchableDropdown(searchQuery, optionText);
     }
 
     /**
@@ -129,21 +129,31 @@ public class DropdownComponent {
      * @param value option text to filter and select
      */
     public void selectSearchableDropdown(String value) {
+        selectSearchableDropdown(value, value);
+    }
+
+    /**
+     * Filters the searchable dropdown by typing searchQuery into the filter input, then selecting optionText.
+     *
+     * @param searchQuery search query to filter options
+     * @param optionText option text to find and click
+     */
+    public void selectSearchableDropdown(String searchQuery, String optionText) {
         By searchInputLocator = By.xpath("//div[@role='listbox']//input[@type='text']");
         WebElement searchInput = wait.until(ExpectedConditions.visibilityOfElementLocated(searchInputLocator));
 
         searchInput.clear();
-        searchInput.sendKeys(value);
+        searchInput.sendKeys(searchQuery);
 
         try {
-            selectOption(value);
+            selectOption(optionText);
         } catch (Exception e) {
-            logger.warn("Option [{}] not found immediately after filtering. Clearing search box to inspect all available options...", value);
+            logger.warn("Option [{}] not found immediately after filtering with '{}'. Clearing search box to inspect all available options...", optionText, searchQuery);
             try {
                 searchInput.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
-                selectOption(value);
+                selectOption(optionText);
             } catch (Exception ex) {
-                logger.error("Failed to select option [{}] from dropdown. Error: {}", value, ex.getMessage());
+                logger.error("Failed to select option [{}] from dropdown. Error: {}", optionText, ex.getMessage());
                 throw ex;
             }
         }

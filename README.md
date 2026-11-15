@@ -1,12 +1,10 @@
 # 🚀 Enterprise Selenium 4 Automation Framework
 
-[![CI Build](https://github.com/OWNER/REPOSITORY/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPOSITORY/actions/workflows/ci.yml)
+[![CI Build](https://github.com/NurAhmad1102/automations-arjuna/actions/workflows/ci.yml/badge.svg)](https://github.com/NurAhmad1102/automations-arjuna/actions/workflows/ci.yml)
 [![Java](https://img.shields.io/badge/Java-17%2B-blue?style=flat-square&logo=openjdk)](https://openjdk.org/)
 [![Selenium](https://img.shields.io/badge/Selenium-4.44.0-43B02A?style=flat-square&logo=selenium)](https://www.selenium.dev/)
 [![TestNG](https://img.shields.io/badge/TestNG-7.10.2-red?style=flat-square)](https://testng.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
-
-<!-- Catatan: Ganti OWNER/REPOSITORY pada badge di atas dengan path repositori GitHub Anda setelah di-push -->
 
 Framework otomatisasi pengujian web berbasis **Java 17** dan **Selenium 4** yang dirancang dengan standar arsitektur kelas enterprise, **100% project-agnostic**, dan modular. Siap digunakan sebagai fondasi reusable untuk berbagai macam aplikasi web tanpa perlu membangun infrastruktur otomasi dari awal.
 
@@ -121,8 +119,8 @@ Anda dapat mengintegrasikan `framework-core` ke dalam proyek pengujian otomasi A
 Clone repositori ini dan jalankan perintah install ke Maven repository lokal Anda (`~/.m2/repository`):
 
 ```bash
-git clone https://github.com/OWNER/REPOSITORY.git
-cd REPOSITORY
+git clone https://github.com/NurAhmad1102/automations-arjuna.git
+cd automations-arjuna
 mvn clean install -DskipTests
 ```
 
@@ -149,10 +147,10 @@ Jika repositori ini di-host secara publik di GitHub, pengguna dapat langsung men
 </repositories>
 ```
 
-2. Tambahkan dependensi:
+2. Tambahkan dependensi modul (format multi-module JitPack: `com.github.User.Repo:module:version`):
 ```xml
 <dependency>
-    <groupId>com.github.OWNER</groupId>
+    <groupId>com.github.NurAhmad1102.automations-arjuna</groupId>
     <artifactId>framework-core</artifactId>
     <version>1.0.0</version>
 </dependency>
@@ -305,7 +303,6 @@ public abstract class ApplicationBaseTest extends BaseTest {
 
 > [!TIP]
 > `BaseTest` secara default langsung membaca `base.url` dari `FrameworkConfig.getBaseUrl()`. Override metode `getUrl()` bersifat opsional, hanya jika Anda memerlukan penyesuaian URL dinamis.
-```
 
 ---
 
