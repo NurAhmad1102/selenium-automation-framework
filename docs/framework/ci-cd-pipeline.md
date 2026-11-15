@@ -8,12 +8,12 @@ This guide describes how to integrate the test automation framework into continu
 
 The framework natively supports headless Chrome, Edge, and Firefox. Configure headless mode via:
 
-1. **System Property**: `-Dbrowser.headless=true`
-2. **Environment Variable**: `BROWSER_HEADLESS=true`
-3. **Configuration File**: `browser.headless=true` in `application.properties`
+1. **System Property**: `-Dheadless=true`
+2. **Environment Variable**: `HEADLESS=true`
+3. **Configuration File**: `headless=true` in `application.properties`
 
 ```bash
-mvn test -Dbrowser.headless=true -Dbrowser=chrome
+mvn test -Dheadless=true -Dbrowser=chrome
 ```
 
 ---
@@ -27,7 +27,7 @@ name: Automation Framework CI
 
 on:
   push:
-    branches: [ main, master, framework-automation ]
+    branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
 
@@ -59,7 +59,7 @@ jobs:
         run: mvn clean test -pl framework-core
 
       - name: Run Sample E2E Suite
-        run: mvn test -pl framework-sample -Dbrowser.headless=true
+        run: mvn test -pl framework-sample -Dheadless=true
 
       - name: Archive Test Reports
         if: always()
@@ -112,7 +112,7 @@ pipeline {
 
         stage('Sample E2E Execution') {
             steps {
-                sh 'mvn test -pl framework-sample -Dbrowser.headless=true'
+                sh 'mvn test -pl framework-sample -Dheadless=true'
             }
         }
     }

@@ -2,7 +2,7 @@ name: Automation Framework CI
 
 on:
   push:
-    branches: [ main, master, framework-automation ]
+    branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
 
@@ -38,7 +38,7 @@ jobs:
         run: mvn test -pl framework-core
 
       - name: Run Sample E2E Tests (Headless)
-        run: mvn test -pl framework-sample -Dbrowser.headless=true
+        run: mvn test -pl framework-sample -Dheadless=true
 
       - name: Upload Test Reports
         if: always()

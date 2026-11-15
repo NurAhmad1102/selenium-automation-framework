@@ -218,7 +218,7 @@ Tempatkan file konfigurasi di `src/test/resources/application.properties`:
 browser=chrome
 
 # Mode Headless (true untuk CI/CD, false untuk inspeksi visual)
-browser.headless=false
+headless=false
 
 # Base URL Aplikasi
 app.base.url=https://www.google.com
@@ -294,7 +294,7 @@ public class SearchWorkflowTest extends ApplicationBaseTest {
 mvn test
 
 # Jalankan dalam mode headless
-mvn test -Dbrowser.headless=true
+mvn test -Dheadless=true
 
 # Jalankan hanya pada browser Firefox
 mvn test -Dbrowser=firefox
