@@ -1,19 +1,19 @@
-# ⚡ Developer Mode (DevMode) Guide
+# Developer Mode (DevMode) Guide
 
-Developer Mode allows automated tests to attach directly to an **already running, authenticated Chrome or Edge browser window** without:
+Developer Mode allows automated tests to attach directly to an already running, authenticated Chrome or Edge browser window without:
 - Opening a new browser window.
 - Re-executing tedious login steps.
 - Closing the browser when the test finishes (`driver.quit()` is skipped).
 
-This drastically reduces debugging iteration time from minutes to seconds!
+This drastically reduces debugging iteration time from minutes to seconds.
 
 ---
 
-## 🚀 How to Use Developer Mode
+## How to Use Developer Mode
 
 ### 1. Launch Browser with Remote Debugging Port
 
-Open terminal or Command Prompt and run Chrome or Edge with `--remote-debugging-port=9222`:
+Open a terminal or command prompt and run Chrome or Edge with `--remote-debugging-port=9222`:
 
 ```bash
 # Google Chrome (Windows)
@@ -29,7 +29,7 @@ msedge.exe --remote-debugging-port=9222 --user-data-dir="C:\edge-dev-profile"
 
 ### 2. Activate DevMode in Tests
 
-You can activate DevMode through any of the following 3 methods:
+You can activate DevMode through any of the following three methods:
 
 #### Method A: Maven Command Line Flag
 ```bash
@@ -51,7 +51,7 @@ $env:DEV_PORT="9222"
 
 ---
 
-## 🛠️ Behavior in DevMode
+## Behavior in DevMode
 
 When `devMode=true`:
 1. `DriverFactory` connects to `127.0.0.1:9222` instead of launching a new browser process.

@@ -1,10 +1,10 @@
-# 🚀 Getting Started with the Automation Framework
+# Getting Started with the Automation Framework
 
-Welcome to the **Agnostic Selenium Automation Framework**. This guide explains how to set up, configure, and create tests for any web application in minutes.
+Welcome to the Agnostic Selenium Automation Framework. This guide explains how to set up, configure, and create tests for any web application in minutes.
 
 ---
 
-## 📦 1. Project Architecture
+## 1. Project Architecture
 
 The framework is structured as a Maven multi-module project:
 
@@ -19,11 +19,11 @@ The framework is structured as a Maven multi-module project:
 To use `framework-core` in an external Maven project, install it to your local Maven repository or add it as a dependency:
 
 ```bash
-# Clone & install framework-core to local ~/.m2 repository
+# Install framework-core to your local ~/.m2 repository
 mvn clean install -DskipTests
 ```
 
-Then in your project's `pom.xml`:
+Then add the dependency in your project's `pom.xml`:
 
 ```xml
 <dependency>
@@ -35,9 +35,9 @@ Then in your project's `pom.xml`:
 
 ---
 
-## 🛠️ 2. Core Concepts
+## 2. Core Concepts
 
-### A. Foundational Base Classes
+### Foundational Base Classes
 - **`BasePage`** (`com.automation.framework.core.page.BasePage`):
   Base class for all Page Objects. Provides auto-waiting, JavaScript click fallbacks, element inspection, and custom dropdown handling.
 - **`BaseTest`** (`com.automation.framework.core.test.BaseTest`):
@@ -47,7 +47,7 @@ Then in your project's `pom.xml`:
 
 ---
 
-## 💡 3. Quick Start: Create Your First Test
+## 3. Quick Start: Create Your First Test
 
 ### Step 1: Create a Page Object
 Extend `BasePage` and encapsulate locators and user interactions:
@@ -157,7 +157,7 @@ public class LoginVerificationTest extends AppBaseTest {
 
 ---
 
-## ⚙️ 4. Configuration
+## 4. Configuration
 
 Configurations are loaded automatically from `application.properties`, `.env`, environment variables, or System properties (`-Dproperty=value`).
 
@@ -169,7 +169,7 @@ headless=false
 timeout.default=15
 ```
 
-Override at runtime:
+Override configuration at runtime:
 ```bash
 mvn test -Dbrowser=firefox -Dheadless=true
 ```

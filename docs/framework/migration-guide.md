@@ -1,39 +1,39 @@
-# 🔄 Migration Guide: Migrating Legacy Projects to Framework-Core
+# Migration Guide: Migrating Legacy Projects to Framework-Core
 
-Panduan komprehensif ini menjelaskan langkah-langkah praktis untuk memigrasikan suite pengujian Selenium monolitik (legacy) ke arsitektur modular berbasis **Framework-Core**.
+This comprehensive guide explains the practical steps to migrate legacy monolithic Selenium test suites to a modular architecture powered by `framework-core`.
 
 ---
 
-## 📌 Mengapa Migrasi?
+## Why Migrate?
 
-| Aspek | Proyek Otomasi Monolitik (Legacy) | Dengan Framework-Core |
+| Aspect | Monolithic Legacy Automation Project | With Framework-Core |
 |---|---|---|
-| **Struktur Proyek** | Seluruh test, page object, driver, dan config tercampur dalam 1 modul `src/`. | Multi-module bersih: `framework-core` (reusable library) dan project module aplikasi. |
-| **Driver & Thread Safety** | Driver diinisiasi manual atau static, rawan tabrakan saat parallel execution. | `DriverManager` berbasis `ThreadLocal`, 100% thread-safe out-of-the-box. |
-| **Otentikasi / Login** | Hardcoded di base test atau helper global. | Pluggable via interface `LoginHandler` dan `UserAccount`. |
-| **Manajemen Konfigurasi** | Tersebar di `System.getProperty` tanpa fallback yang terstandarisasi. | Cascading config: SysProp &rarr; Env &rarr; `.env` &rarr; `application-{env}.properties` &rarr; `framework.properties`. |
-| **Pelaporan & Diagnosa** | Laporan statis sederhana tanpa network capture. | Interaktif 3-Tab ExtentReports + auto screenshot + CDP network error capture (4xx/5xx). |
-| **Aksesibilitas & UI Modern** | Sulit menangani Shadow DOM, Radix UI, atau Web Table kompleks. | Komponen bawaan `DropdownComponent`, `WebTable`, dan automatic JS click fallback. |
+| **Project Structure** | All tests, page objects, drivers, and configuration are mixed in a single `src/` directory. | Clean multi-module architecture: `framework-core` (reusable library) and application test modules. |
+| **Driver & Thread Safety** | Drivers are initialized manually or statically, causing race conditions in parallel execution. | `DriverManager` uses `ThreadLocal`, providing full thread safety out of the box. |
+| **Authentication & Login** | Login steps are hardcoded in base tests or global helpers. | Pluggable authentication using `LoginHandler` and `UserAccount` interfaces. |
+| **Configuration Management** | Scattered across `System.getProperty` calls without standardized fallbacks. | Cascading configuration: System Properties -> Environment Variables -> `.env` -> `application-{env}.properties` -> `framework.properties`. |
+| **Reporting & Diagnostics** | Basic static reports without network request capture. | Interactive 3-Tab ExtentReports with auto-screenshots and CDP network error capture (4xx/5xx). |
+| **Modern UI Components** | Difficult handling of Shadow DOM, Radix UI dropdowns, or complex tables. | Built-in `DropdownComponent`, `WebTable`, and automatic JavaScript click fallbacks. |
 
 ---
 
-## 🚀 Langkah-Langkah Migrasi
+## Migration Steps
 
 ```mermaid
 flowchart TD
-    S1["1. Konfigurasi Maven & Dependensi"] --> S2["2. Migrasi Konfigurasi (Properties)"]
-    S2 --> S3["3. Implementasi UserAccount & LoginHandler"]
-    S3 --> S4["4. Migrasi BaseTest Aplikasi"]
-    S4 --> S5["5. Refactor Page Objects (BasePage)"]
-    S5 --> S6["6. Migrasi Test Data & Assertions"]
-    S6 --> S7["7. Validasi & Eksekusi Suite"]
+    S1["1. Configure Maven Dependencies"] --> S2["2. Migrate Configuration Properties"]
+    S2 --> S3["3. Implement UserAccount and LoginHandler"]
+    S3 --> S4["4. Create Application BaseTest"]
+    S4 --> S5["5. Refactor Page Objects to BasePage"]
+    S5 --> S6["6. Migrate Test Data and Assertions"]
+    S6 --> S7["7. Validate and Execute Suite"]
 ```
 
 ---
 
-### Langkah 1: Tambahkan Dependensi `framework-core`
+### Step 1: Add the `framework-core` Dependency
 
-Pada `pom.xml` modul aplikasi pengujian Anda, jadikan `framework-core` sebagai dependensi:
+In your test application's `pom.xml`, add `framework-core` as a dependency:
 
 ```xml
 <dependencies>
@@ -48,36 +48,36 @@ Pada `pom.xml` modul aplikasi pengujian Anda, jadikan `framework-core` sebagai d
 
 ---
 
-### Langkah 2: Migrasi Konfigurasi ke `application.properties`
+### Step 2: Migrate Configuration to `application.properties`
 
-Pindahkan seluruh URL, timeout, dan kredensial yang sebelumnya di-hardcode ke `src/test/resources/application.properties`:
+Move hardcoded URLs, timeouts, and execution settings into `src/test/resources/application.properties`:
 
 ```properties
 # Target Web Application
 base.url=https://staging.example.com
 timeout.default=15
 
-# Browser Configuration (Bisa di-override via CLI)
+# Browser Configuration (Overridable via CLI)
 browser=chrome
 headless=true
 
-# Developer Mode (Opsional)
+# Developer Mode (Optional)
 devMode=false
 devPort=9222
 ```
 
-Untuk multi-environment (misalnya staging vs production), buat:
+For multi-environment configurations (such as staging vs. production), create environment-specific files:
 * `application-staging.properties`
 * `application-production.properties`
 
-Aktifkan profil dengan parameter JVM `-Denv=staging` atau environment variable `AUTOMATION_ENV=staging`.
+Activate an environment profile using the JVM parameter `-Denv=staging` or the environment variable `AUTOMATION_ENV=staging`.
 
 ---
 
-### Langkah 3: Abstraksi Akun & Otentikasi
+### Step 3: Abstract Accounts and Authentication
 
-#### 3.1. Buat Model Akun (`UserAccount`)
-Implementasikan interface `UserAccount` untuk entitas pengguna aplikasi Anda:
+#### 3.1. Create a User Model (`UserAccount`)
+Implement the `UserAccount` interface for your application users:
 
 ```java
 package com.mycompany.app.model;
@@ -95,8 +95,8 @@ public class AppUser implements UserAccount {
 }
 ```
 
-#### 3.2. Buat `LoginHandler` Spesifik Aplikasi
-Implementasikan interface `LoginHandler` agar proses login terisolasi dari base class test:
+#### 3.2. Implement an Application-Specific `LoginHandler`
+Implement the `LoginHandler` interface to isolate login steps from test classes:
 
 ```java
 package com.mycompany.app.auth;
@@ -127,16 +127,16 @@ public class AppLoginHandler implements LoginHandler {
 
     @Override
     public void logout(WebDriver driver) {
-        // Logika logout aplikasi Anda
+        // Application logout logic
     }
 }
 ```
 
 ---
 
-### Langkah 4: Migrasi `BaseTest` Aplikasi
+### Step 4: Create Your Application `BaseTest`
 
-Buat satu abstract base test di modul Anda yang meng-extend `com.automation.framework.core.test.BaseTest`:
+Create an abstract base test in your module that extends `com.automation.framework.core.test.BaseTest`:
 
 ```java
 package com.mycompany.app.base;
@@ -157,38 +157,37 @@ public abstract class AppBaseTest extends BaseTest {
 
     @Override
     protected LoginHandler getLoginHandler() {
-        // Registrasikan handler login aplikasi Anda
         return loginHandler;
     }
 }
 ```
 
 > [!NOTE]
-> `BaseTest` dari framework secara otomatis menangani inisialisasi driver, pelaporan ExtentReports, listener TestNG, penangkapan screenshot saat fail, dan pembersihan sesi `ThreadLocal`.
+> `BaseTest` automatically manages driver initialization, ExtentReports creation, TestNG listener lifecycle, failure screenshot capture, and `ThreadLocal` session cleanup.
 
 ---
 
-### Langkah 5: Refactor Page Objects ke `BasePage`
+### Step 5: Refactor Page Objects to `BasePage`
 
-Ubah kelas Page Object lama agar mewarisi `com.automation.framework.core.page.BasePage`:
+Update existing Page Object classes to inherit from `com.automation.framework.core.page.BasePage`.
 
-#### Sebelum (Legacy):
+#### Before (Legacy Monolithic Pattern):
 ```java
-// KODE LAMA
+// LEGACY CODE
 public class LoginPage {
     private WebDriver driver;
     public LoginPage(WebDriver driver) { this.driver = driver; }
 
     public void enterUsername(String user) {
-        Thread.sleep(2000); // Rawan flaky
+        Thread.sleep(2000); // Flaky and hardcoded
         driver.findElement(By.id("username")).sendKeys(user);
     }
 }
 ```
 
-#### Sesudah (Framework-Core):
+#### After (Framework-Core Pattern):
 ```java
-// KODE BARU
+// MODERN CODE
 package com.mycompany.app.pages;
 
 import com.automation.framework.core.page.BasePage;
@@ -205,12 +204,12 @@ public class LoginPage extends BasePage {
     }
 
     public void enterUsername(String username) {
-        // Menggunakan explicit wait bawaan BasePage
+        // Built-in explicit wait from BasePage
         typeText(usernameInput, username);
     }
 
     public void clickLogin() {
-        // Menggunakan smart click dengan automatic JavaScript fallback
+        // Smart click with automatic JavaScript fallback
         click(loginBtn);
     }
 }
@@ -218,26 +217,26 @@ public class LoginPage extends BasePage {
 
 ---
 
-### Langkah 6: Migrasi Assertions & Test Data
+### Step 6: Migrate Assertions and Test Data
 
-#### 6.1. Gunakan `CustomAssert` / `CustomSoftAssert`
-Ganti assertion bawaan TestNG dengan `CustomAssert` agar setiap kegagalan langsung memicu auto-screenshot ke dalam report:
+#### 6.1. Use `CustomAssert` and `CustomSoftAssert`
+Replace standard TestNG assertions with `CustomAssert` to automatically log failures and attach screenshots to reports:
 
 ```java
 import com.automation.framework.core.assertion.CustomAssert;
 
-// Otomatis mengambil screenshot saat gagal dan menginjeksi ke ExtentReports
-CustomAssert.assertEquals(actualTitle, "Dashboard", "Judul dashboard tidak sesuai!");
+// Automatically captures screenshot on failure and attaches it to ExtentReports
+CustomAssert.assertEquals(actualTitle, "Dashboard", "Dashboard title did not match expectation");
 ```
 
-#### 6.2. Gunakan `JsonDataReader` / `ExcelDataReader`
-Manfaatkan utilitas pembaca data yang sudah terabstraksi:
+#### 6.2. Use `JsonDataReader` or `ExcelDataReader`
+Use built-in data readers to decouple test logic from static test values:
 
 ```java
 import com.automation.framework.core.data.JsonDataReader;
 import com.automation.framework.core.data.ResourcePathResolver;
 
-// Membaca file data/users.json ke dalam model AppUser
+// Read data/users.json into AppUser model objects
 List<AppUser> users = JsonDataReader.readList(
     ResourcePathResolver.resolve("data/users.json"), 
     AppUser.class
@@ -246,32 +245,32 @@ List<AppUser> users = JsonDataReader.readList(
 
 ---
 
-### Langkah 7: Eksekusi & Validasi
+### Step 7: Execution and Validation
 
-Jalankan test suite menggunakan Maven Surefire:
+Run your test suite with Maven Surefire:
 
 ```bash
-# Eksekusi secara headless di pipeline CI
+# Run headless in CI pipeline
 mvn clean test -Dheadless=true
 
-# Eksekusi dengan environment tertentu
+# Run for a specific environment
 mvn clean test -Denv=staging
 
-# Eksekusi dengan browser tertentu
+# Run with a specific browser
 mvn clean test -Dbrowser=firefox
 ```
 
-Setelah eksekusi selesai, buka laporan pengujian interaktif di:
+After execution finishes, open the interactive report at:
 ```text
 reports/index.html
 ```
 
 ---
 
-## 📋 Checklist Pasca Migrasi
+## Post-Migration Checklist
 
-- [ ] Seluruh dependensi legacy pihak ketiga yang redundan telah dihapus dari `pom.xml`.
-- [ ] Tidak ada lagi penggunaan `Thread.sleep()` di Page Object (sudah diganti dengan explicit wait `BasePage`).
-- [ ] Penggunaan `WebDriver` di semua test class diakses via `getDriver()` tanpa static variable.
-- [ ] Laporan `reports/index.html` dapat dibuka dan menampilkan rincian test serta tab Network Logs.
-- [ ] Pipeline CI/CD (`.github/workflows/ci.yml` atau Jenkins) berhasil menjalankan build secara headless.
+- [ ] Redundant third-party dependencies have been removed from `pom.xml`.
+- [ ] Direct `Thread.sleep()` calls have been replaced with explicit wait methods from `BasePage`.
+- [ ] `WebDriver` access in all test classes uses `DriverManager.getDriver()` without static driver fields.
+- [ ] The generated `reports/index.html` report displays test execution steps and the Network Logs tab.
+- [ ] The CI/CD pipeline (`.github/workflows/ci.yml` or Jenkins) successfully completes a headless test run.

@@ -1,4 +1,4 @@
-# 🚀 Enterprise Selenium 4 Automation Framework
+# Enterprise Selenium 4 Automation Framework
 
 [![CI Build](https://github.com/NurAhmad1102/automations-arjuna/actions/workflows/ci.yml/badge.svg)](https://github.com/NurAhmad1102/automations-arjuna/actions/workflows/ci.yml)
 [![Java](https://img.shields.io/badge/Java-17%2B-blue?style=flat-square&logo=openjdk)](https://openjdk.org/)
@@ -6,60 +6,60 @@
 [![TestNG](https://img.shields.io/badge/TestNG-7.10.2-red?style=flat-square)](https://testng.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 
-Framework otomatisasi pengujian web berbasis **Java 17** dan **Selenium 4** yang dirancang dengan standar arsitektur kelas enterprise, **100% project-agnostic**, dan modular. Siap digunakan sebagai fondasi reusable untuk berbagai macam aplikasi web tanpa perlu membangun infrastruktur otomasi dari awal.
+An enterprise-grade, 100% project-agnostic, and modular web automation framework built on **Java 17** and **Selenium 4**. It serves as a reliable, reusable foundation for web applications without requiring you to build testing infrastructure from scratch.
 
 ---
 
-## 📑 Daftar Isi
-- [Daftar Tools & Teknologi](#-daftar-tools--teknologi)
-- [Arsitektur & Struktur Proyek](#-arsitektur--struktur-proyek)
-- [Instalasi & Penggunaan di Proyek Anda](#-instalasi--penggunaan-di-proyek-anda)
-- [Fungsi Komponen Utama](#-fungsi-komponen-utama)
-- [Prasyarat Sistem](#-prasyarat-sistem)
-- [Panduan Penggunaan (Contoh 1 Test Lengkap)](#-panduan-penggunaan-contoh-1-test-lengkap)
-- [Fitur Unggulan](#-fitur-unggulan)
-  - [Developer Mode (DevMode)](#1-developer-mode-devmode---hemat-waktu-debugging)
-  - [Pelaporan Interaktif 3-Tab & CDP Error Capture](#2-pelaporan-interaktif-3-tab--cdp-error-capture)
+## Table of Contents
+- [Tools and Technologies](#tools-and-technologies)
+- [Architecture and Project Structure](#architecture-and-project-structure)
+- [Installation and Usage in Your Project](#installation-and-usage-in-your-project)
+- [Core Component Functions](#core-component-functions)
+- [System Requirements](#system-requirements)
+- [Step-by-Step Quick Start](#step-by-step-quick-start)
+- [Key Features](#key-features)
+  - [Developer Mode (DevMode)](#1-developer-mode-devmode---save-debugging-time)
+  - [3-Tab Interactive Reporting & CDP Error Capture](#2-3-tab-interactive-reporting-and-cdp-error-capture)
   - [Multi-User Account Pooling](#3-multi-user-account-pooling-thread-safe)
-  - [Komponen UI Modern (Dropdown Radix UI & WebTable)](#4-penanganan-komponen-ui-modern)
-- [Integrasi CI/CD](#-integrasi-cicd)
-- [Troubleshooting & FAQ](#-troubleshooting--faq)
-- [Dokumentasi Lengkap](#-dokumentasi-lengkap)
-- [Lisensi](#-lisensi)
+  - [Modern UI Components](#4-modern-ui-component-support)
+- [CI/CD Integration](#cicd-integration)
+- [Troubleshooting & FAQ](#troubleshooting--faq)
+- [Documentation Index](#documentation-index)
+- [License](#license)
 
 ---
 
-## 🛠️ Daftar Tools & Teknologi
+## Tools and Technologies
 
-Framework ini mengintegrasikan pustaka-pustaka terbaik di ekosistem Java & QA Automation:
+This framework integrates proven libraries from the Java and QA automation ecosystem:
 
-| Alat / Library | Versi | Peran & Fungsi dalam Framework |
-|----------------|-------|--------------------------------|
-| **Java SDK** | `17 (LTS)` | Bahasa pemrograman utama dengan performa modern, Records, dan Pattern Matching. |
-| **Selenium WebDriver** | `4.44.0` | Mesin penggerak browser web (Chrome, Firefox, Edge) berbasis W3C WebDriver standard. |
-| **TestNG** | `7.10.2` | Test runner, lifecycle management (`@Test`, `@BeforeMethod`, `@DataProvider`), dan eksekusi paralel. |
-| **ExtentReports** | `5.0.9` | Mesin pelaporan HTML interaktif yang telah dikustomisasi menjadi antarmuka 3-Tab. |
-| **Chrome DevTools Protocol (CDP)** | `v148+` | Monitoring lalu lintas jaringan secara real-time untuk mendeteksi error HTTP (4xx / 5xx) backend. |
-| **Apache POI** | `5.3.0` | Utilitas pembaca data pengujian dari file Microsoft Excel (`.xlsx`). |
-| **Google Gson** | `2.12.1` | Serialisasi dan deserialisasi data pengujian berformat JSON ke dalam Java POJO / model. |
-| **Log4j2** | `2.24.3` | Logging terstruktur asynchronous berkecepatan tinggi dengan level granular (INFO, DEBUG, ERROR). |
-| **ArchUnit** | `1.4.1` | Penjaga arsitektur kode (Architecture Guard) untuk memastikan modul core tetap 100% agnostic. |
-| **Lombok** | `1.18.30` | Reduksi boilerplate kode (`@Data`, `@Getter`, `@Builder`). |
-| **Apache Maven** | `3.8+` | Manajemen build, dependensi, dan siklus hidup multi-module reactor. |
-| **GitHub Actions** | `v4` | Otomasi pipeline CI/CD untuk pengujian headless di lingkungan cloud Linux. |
+| Tool / Library | Version | Role and Purpose |
+|----------------|---------|------------------|
+| **Java SDK** | `17 (LTS)` | Core programming language offering modern performance, Records, and Pattern Matching. |
+| **Selenium WebDriver** | `4.44.0` | Browser automation engine (Chrome, Firefox, Edge) following W3C WebDriver standards. |
+| **TestNG** | `7.10.2` | Test runner, lifecycle management (`@Test`, `@BeforeMethod`, `@DataProvider`), and parallel execution. |
+| **ExtentReports** | `5.0.9` | Interactive HTML reporting engine customized into a 3-tab diagnostic interface. |
+| **Chrome DevTools Protocol (CDP)** | `v148+` | Real-time network traffic monitoring for automatic backend HTTP 4xx/5xx error detection. |
+| **Apache POI** | `5.3.0` | Utility for reading test data from Microsoft Excel (`.xlsx`) files. |
+| **Google Gson** | `2.12.1` | JSON serialization and deserialization into Java models and POJOs. |
+| **Log4j2** | `2.24.3` | High-performance asynchronous structured logging with granular levels (INFO, DEBUG, ERROR). |
+| **ArchUnit** | `1.4.1` | Architecture testing tool to guarantee that core modules remain strictly decoupled and agnostic. |
+| **Lombok** | `1.18.30` | Boilerplate reduction for data classes (`@Data`, `@Getter`, `@Builder`). |
+| **Apache Maven** | `3.8+` | Build tool, dependency management, and multi-module lifecycle orchestration. |
+| **GitHub Actions** | `v4` | Automated CI/CD pipeline for headless test execution on cloud Linux runners. |
 
 ---
 
-## 🏛️ Arsitektur & Struktur Proyek
+## Architecture and Project Structure
 
-Proyek ini menggunakan struktur **Maven Multi-Module**:
+The project uses a standard **Maven Multi-Module** structure:
 
 ```text
 automations-framework/
 ├── .github/workflows/
-│   └── ci.yml                          # ⚙️ GitHub Actions CI Pipeline
+│   └── ci.yml                          # GitHub Actions CI Pipeline
 │
-├── framework-core/                     # 📦 CORE LIBRARY (100% Agnostik, Reusable)
+├── framework-core/                     # CORE LIBRARY (100% Agnostic, Reusable)
 │   ├── pom.xml
 │   └── src/
 │       ├── main/java/com/automation/framework/core/
@@ -82,7 +82,7 @@ automations-framework/
 │           ├── config/                 # FrameworkConfigTest
 │           └── report/                 # OutcomeResolverTest
 │
-├── framework-sample/                   # 💡 STARTER TEMPLATE & DEMO APPLICATION
+├── framework-sample/                   # STARTER TEMPLATE & DEMO APPLICATION
 │   ├── pom.xml
 │   └── src/
 │       ├── main/java/com/automation/framework/sample/
@@ -93,30 +93,30 @@ automations-framework/
 │           ├── resources/              # application.properties, log4j2.xml, sample-suite.xml
 │           └── tests/                  # SampleSearchTest (End-to-End Test Case)
 │
-├── docs/framework/                     # 📚 BUKU PANDUAN & DOKUMENTASI TEKNIS
-│   ├── getting-started.md              # Panduan setup awal
-│   ├── page-object-pattern.md          # Panduan penulisan Page Object & komponen
-│   ├── test-data-management.md         # Panduan JSON & Excel DataReader
-│   ├── developer-mode.md               # Panduan Developer Mode (port 9222)
-│   ├── reporting-and-network-monitoring.md # Panduan ExtentReports 3-Tab & CDP
-│   ├── multi-account-and-parallel-testing.md # Panduan Account Pooling & Thread-safety
-│   ├── ci-cd-pipeline.md               # Panduan CI/CD GitHub Actions & Jenkins
-│   ├── migration-guide.md              # Panduan migrasi dari framework monolitik lama
-│   └── component-reference.md          # Dokumentasi teknis referensi semua kelas
+├── docs/framework/                     # DOCUMENTATION & TECHNICAL GUIDES
+│   ├── getting-started.md              # Initial onboarding guide
+│   ├── page-object-pattern.md          # Page Object and component pattern guide
+│   ├── test-data-management.md         # JSON and Excel DataReader guide
+│   ├── developer-mode.md               # Developer Mode guide (port 9222)
+│   ├── reporting-and-network-monitoring.md # 3-Tab ExtentReports and CDP network guide
+│   ├── multi-account-and-parallel-testing.md # Account pooling and thread-safety guide
+│   ├── ci-cd-pipeline.md               # CI/CD guide for GitHub Actions and Jenkins
+│   ├── migration-guide.md              # Migration guide from legacy monolithic frameworks
+│   └── component-reference.md          # Complete technical component reference manual
 │
-├── pom.xml                             # 🛠️ Root Parent POM (framework-parent)
-├── LICENSE                             # 📄 Lisensi Open Source (Apache 2.0)
-└── README.md                           # 📖 Dokumentasi utama proyek
+├── pom.xml                             # Root Parent POM (framework-parent)
+├── LICENSE                             # Open Source License (Apache 2.0)
+└── README.md                           # Main project documentation
 ```
 
 ---
 
-## 📦 Instalasi & Penggunaan di Proyek Anda
+## Installation and Usage in Your Project
 
-Anda dapat mengintegrasikan `framework-core` ke dalam proyek pengujian otomasi Anda dengan beberapa cara mudah:
+You can integrate `framework-core` into your automated test projects using one of the following approaches:
 
-### Opsi 1: Instalasi Lokal Maven (Direkomendasikan untuk Tim Internal)
-Clone repositori ini dan jalankan perintah install ke Maven repository lokal Anda (`~/.m2/repository`):
+### Option 1: Local Maven Installation (Recommended for Teams)
+Clone this repository and install `framework-core` into your local Maven cache (`~/.m2/repository`):
 
 ```bash
 git clone https://github.com/NurAhmad1102/automations-arjuna.git
@@ -124,7 +124,7 @@ cd automations-arjuna
 mvn clean install -DskipTests
 ```
 
-Kemudian pada file `pom.xml` di proyek pengujian Anda, tambahkan dependensi `framework-core`:
+Then in your test project's `pom.xml`, add the `framework-core` dependency:
 
 ```xml
 <dependency>
@@ -134,10 +134,10 @@ Kemudian pada file `pom.xml` di proyek pengujian Anda, tambahkan dependensi `fra
 </dependency>
 ```
 
-### Opsi 2: Menggunakan JitPack (Tanpa Setup Server Artefak)
-Jika repositori ini di-host secara publik di GitHub, pengguna dapat langsung mengonsumsi pustaka ini via [JitPack](https://jitpack.io):
+### Option 2: Using JitPack (Without Private Artifact Servers)
+If this repository is hosted on GitHub, projects can consume it directly via [JitPack](https://jitpack.io):
 
-1. Tambahkan repository JitPack di `pom.xml` proyek Anda:
+1. Add the JitPack repository to your `pom.xml`:
 ```xml
 <repositories>
     <repository>
@@ -147,7 +147,7 @@ Jika repositori ini di-host secara publik di GitHub, pengguna dapat langsung men
 </repositories>
 ```
 
-2. Tambahkan dependensi modul (format multi-module JitPack: `com.github.User.Repo:module:version`):
+2. Add the dependency using JitPack's multi-module format:
 ```xml
 <dependency>
     <groupId>com.github.NurAhmad1102.automations-arjuna</groupId>
@@ -156,62 +156,62 @@ Jika repositori ini di-host secara publik di GitHub, pengguna dapat langsung men
 </dependency>
 ```
 
-### Opsi 3: Gunakan `framework-sample` Sebagai Starter Template (Fork / Clone)
-Bagi yang ingin langsung mulai membuat test suite baru tanpa konfigurasi pom dari nol:
-1. Clone repositori ini.
-2. Gunakan modul `framework-sample` sebagai boiler-plate.
-3. Ubah konfigurasi `base.url` di `src/test/resources/application.properties` dan buat Page Object serta Test Anda sendiri.
+### Option 3: Use `framework-sample` as a Starter Template
+To start a new test suite quickly without setting up a POM file from scratch:
+1. Clone this repository.
+2. Use the `framework-sample` module as your starter template.
+3. Update `base.url` in `src/test/resources/application.properties`, and write your Page Objects and tests.
 
 ---
 
-## 🧩 Fungsi Komponen Utama
+## Core Component Functions
 
-Setiap komponen dirancang dengan prinsip **Single Responsibility**, **High Cohesion**, dan **Loose Coupling**:
+Every component is built around **Single Responsibility**, **High Cohesion**, and **Loose Coupling**:
 
 ### 1. Centralized Configuration Layer (`FrameworkConfig`)
-Menggunakan hierarki cascading dinamis tanpa hardcode:
+Uses a cascading priority hierarchy with standardized fallbacks:
 $$\text{CLI System Properties } (-D) \longrightarrow \text{Environment Variables} \longrightarrow \text{.env File} \longrightarrow \text{application.properties} \longrightarrow \text{framework.properties}$$
-Nilai timeout, peramban target, URL basis, dan flag headless dapat diubah secara instan saat runtime.
+Timeouts, target browsers, base URLs, and headless flags can all be changed at runtime.
 
 ### 2. Driver Management (`DriverManager`, `DriverFactory`, `DevModeUtils`)
-* **Thread Safety**: Menyimpan instance browser di dalam `ThreadLocal<WebDriver>`.
-* **Multi-Browser**: Mendukung Chrome, Firefox, dan Microsoft Edge dengan profil terisolasi.
-* **DevMode**: Kemampuan unik untuk menyambungkan Selenium ke browser yang sudah terbuka via remote debugging port 9222.
+* **Thread Safety**: Stores WebDriver instances inside `ThreadLocal<WebDriver>`.
+* **Multi-Browser**: Supports Chrome, Firefox, and Microsoft Edge with isolated browser profiles.
+* **DevMode**: Connects Selenium directly to an active browser session on port 9222.
 
-### 3. Page Object & Component Engine (`BasePage`, `DropdownComponent`, `WebTable`)
-* **Resilient Actions**: Metode `click()`, `typeText()`, `getText()` dilengkapi explicit wait bawaan dan auto-scroll JavaScript (juga tersedia alias `type()` dan `isDisplayed()`).
-* **Auto JavaScript Fallback**: Bila klik native Selenium terhalang oleh overlay UI (misalnya loading spinner atau modal), `BasePage` otomatis mengeksekusi fallback click via JavaScript tanpa membuat test gagal.
-* **Komponen Khusus**: Dukungan langsung untuk dropdown modern (Radix UI / Headless UI virtual list) dan pembacaan tabel HTML dinamis berdasarkan nama kolom header.
+### 3. Page Object and Component Engine (`BasePage`, `DropdownComponent`, `WebTable`)
+* **Resilient Actions**: Methods like `click()`, `typeText()`, and `getText()` include built-in explicit waits and auto-scroll (with `type()` and `isDisplayed()` aliases).
+* **Auto JavaScript Fallback**: If an overlay intercepts a native click, `BasePage` automatically triggers a JavaScript click fallback.
+* **Custom Components**: First-class support for virtualized dropdowns (Radix UI, Headless UI) and dynamic HTML tables.
 
-### 4. Pelaporan Interaktif 3-Tab & CDP Error Capture (`ReportAPI`, `ExtentTabRenderer`, `NetworkMonitor`)
-Setiap pengujian menghasilkan laporan HTML yang terbagi ke dalam 3 tab:
-* **Tab 1: DETAILS**: Langkah-langkah pengujian langkah demi langkah.
-* **Tab 2: ELEMENT LOGS**: Diagnostik kegagalan 6-pilar saat elemen tidak ditemukan (Computed CSS, Bounding Box, Element Blocker, OuterHTML, dan ringkasan Stacktrace).
-* **Tab 3: NETWORK LOGS**: Penangkapan otomatis respons backend yang gagal (HTTP status 4xx / 5xx) via Chrome DevTools Protocol tanpa proxy eksternal.
+### 4. 3-Tab Interactive Reporting and CDP Error Capture (`ReportAPI`, `ExtentTabRenderer`, `NetworkMonitor`)
+Generates an HTML report organized into three distinct tabs:
+* **Tab 1: DETAILS**: Chronological execution logs with timestamps and status badges.
+* **Tab 2: ELEMENT LOGS**: Six-pillar diagnostics on element failure (computed CSS, bounding box, blocker overlay, outerHTML, and simplified stack trace).
+* **Tab 3: NETWORK LOGS**: Captures HTTP 4xx and 5xx API errors directly via Chrome DevTools Protocol without external proxies.
 
 ### 5. Multi-User Account Allocator (`AccountAllocator`, `UserAccount`)
-Mekanisme antrean akun pengguna thread-safe berbasis peran (*role-based pooling*). Menghindari tabrakan sesi saat eksekusi paralel dan mendukung skenario workflow bertingkat (misalnya: Maker &rarr; Checker &rarr; Approver).
+Thread-safe, role-based account pool management. Prevents account collisions during parallel test runs and supports multi-stage workflows (such as Maker to Checker to Approver).
 
 ### 6. Pluggable Authentication (`LoginHandler`)
-Pemisahan logika autentikasi dari framework inti. Pengujian dapat menggunakan form login, bypass cookie SSO, atau token injeksi hanya dengan mengimplementasikan antarmuka `LoginHandler`.
+Decouples login procedures from the core framework. Tests can use form login, session cookies, or API token injection by implementing the `LoginHandler` interface.
 
 ### 7. Data Readers (`DataReader<T>`, `JsonDataReader`, `ExcelDataReader`)
-Membaca data pengujian dari file JSON (dipetakan langsung ke model Java/DTO) atau spreadsheet Excel (`.xlsx`) ke dalam format `List<Map<String, String>>`.
+Reads test data from JSON files directly into Java models or from Excel spreadsheets (`.xlsx`) into `List<Map<String, String>>`.
 
-### 8. Cleanup & Anti-Leak Sweeper (`BrowserProcessCleaner`)
-Secara otomatis membersihkan proses zombie (`chromedriver.exe`, `chrome.exe`) dan menghapus folder profil sementara di akhir siklus eksekusi.
+### 8. Cleanup and Anti-Leak Sweeper (`BrowserProcessCleaner`)
+Automatically terminates orphaned browser and driver processes (`chromedriver.exe`, `chrome.exe`) and cleans temporary profile folders after test runs.
 
 ---
 
-## 💻 Prasyarat Sistem
+## System Requirements
 
-Sebelum menjalankan proyek, pastikan perangkat Anda telah terpasang:
-* **Java Development Kit (JDK)**: Versi 17 atau yang lebih baru ([Unduh OpenJDK 17](https://adoptium.net/)).
-* **Apache Maven**: Versi 3.8.0 atau yang lebih baru ([Unduh Maven](https://maven.apache.org/download.cgi)).
-* **Web Browser**: Google Chrome versi terbaru (atau Firefox / Edge).
-* **Git**: Versi 2.30+.
+Before running the project, ensure your environment has:
+* **Java Development Kit (JDK)**: Version 17 or higher ([Download OpenJDK 17](https://adoptium.net/)).
+* **Apache Maven**: Version 3.8.0 or higher ([Download Maven](https://maven.apache.org/download.cgi)).
+* **Web Browser**: Latest Google Chrome (or Firefox / Edge).
+* **Git**: Version 2.30+.
 
-Verifikasi instalasi dengan perintah berikut:
+Verify your installation:
 ```bash
 java -version
 mvn -version
@@ -219,12 +219,12 @@ mvn -version
 
 ---
 
-## 🚀 Panduan Penggunaan (Contoh 1 Test Lengkap)
+## Step-by-Step Quick Start
 
-Berikut adalah panduan lengkap langkah demi langkah untuk membuat dan menjalankan satu skenario pengujian otomasi end-to-end dari awal.
+Here is a complete walkthrough for creating and running an end-to-end test.
 
-### Langkah 1: Buat Page Object Class
-Buat kelas Page Object yang mewakili halaman web dengan mewarisi `com.automation.framework.core.page.BasePage`. Semua locator dan interaksi elemen dibungkus di sini:
+### Step 1: Create a Page Object Class
+Extend `com.automation.framework.core.page.BasePage`. Encapsulate locators and element interactions here:
 
 ```java
 package com.mycompany.pages;
@@ -235,17 +235,17 @@ import org.openqa.selenium.WebDriver;
 
 public class SearchPage extends BasePage {
 
-    // 1. Definisikan locator elemen privat
+    // 1. Define private locators
     private final By searchInputBox = By.name("q");
     private final By searchSubmitBtn = By.name("btnK");
     private final By searchResultsContainer = By.id("search");
 
-    // 2. Konstruktor menerima WebDriver
+    // 2. Constructor passes WebDriver to super
     public SearchPage(WebDriver driver) {
         super(driver);
     }
 
-    // 3. Buat metode aksi yang jelas dan mudah dibaca
+    // 3. Define clear action methods
     public SearchPage enterKeyword(String keyword) {
         typeText(searchInputBox, keyword);
         return this;
@@ -264,27 +264,27 @@ public class SearchPage extends BasePage {
 
 ---
 
-### Langkah 2: Konfigurasi Parameter Uji (`application.properties`)
-Tempatkan file konfigurasi di `src/test/resources/application.properties`:
+### Step 2: Configure Test Parameters (`application.properties`)
+Create or edit `src/test/resources/application.properties`:
 
 ```properties
-# Target Browser: chrome, firefox, edge
+# Target browser: chrome, firefox, edge
 browser=chrome
 
-# Mode Headless (true untuk CI/CD, false untuk inspeksi visual)
+# Headless mode: true for CI/CD, false for local inspection
 headless=false
 
-# Base URL Aplikasi
+# Application base URL
 base.url=https://example.com
 
-# Timeout Pengujian Default (Detik)
+# Default test timeout in seconds
 timeout.default=15
 ```
 
 ---
 
-### Langkah 3: Buat Kelas Test Base (Opsional untuk Abstraksi URL)
-Wariskan `com.automation.framework.core.test.BaseTest` untuk menentukan URL awal pengujian atau konfigurasi autentikasi:
+### Step 3: Create an Application Base Test Class
+Extend `com.automation.framework.core.test.BaseTest` to define your target URL or login handler:
 
 ```java
 package com.mycompany.base;
@@ -301,13 +301,13 @@ public abstract class ApplicationBaseTest extends BaseTest {
 }
 ```
 
-> [!TIP]
-> `BaseTest` secara default langsung membaca `base.url` dari `FrameworkConfig.getBaseUrl()`. Override metode `getUrl()` bersifat opsional, hanya jika Anda memerlukan penyesuaian URL dinamis.
+> [!NOTE]
+> `BaseTest` automatically reads `base.url` from configuration. Overriding `getUrl()` is optional and only needed for custom dynamic logic.
 
 ---
 
-### Langkah 4: Tulis Test Case TestNG
-Wariskan kelas base dan tulis skenario uji dengan assertion kustom yang secara otomatis menangkap screenshot jika verifikasi gagal:
+### Step 4: Write Your TestNG Test Case
+Extend your base test and write tests using `CustomAssert` to automatically capture screenshots on failure:
 
 ```java
 package com.mycompany.tests;
@@ -321,21 +321,21 @@ import org.testng.annotations.Test;
 
 public class SearchWorkflowTest extends ApplicationBaseTest {
 
-    @Test(description = "Memverifikasi pencarian kata kunci dan tampilan hasil")
+    @Test(description = "Verify keyword search and results display")
     public void testSearchFunctionality() {
-        ReportAPI.step("Inisialisasi Search Page Object");
+        ReportAPI.step("Initialize SearchPage object");
         SearchPage searchPage = new SearchPage(DriverManager.getDriver());
 
-        ReportAPI.step("Memasukkan kata kunci pencarian");
+        ReportAPI.step("Enter search query");
         searchPage.enterKeyword("Selenium Automation Framework");
 
-        ReportAPI.step("Menekan tombol cari");
+        ReportAPI.step("Submit search");
         searchPage.submitSearch();
 
-        ReportAPI.step("Memvalidasi hasil pencarian muncul di layar");
+        ReportAPI.step("Validate that results are displayed");
         CustomAssert.assertTrue(
             searchPage.isResultDisplayed(),
-            "Hasil pencarian harus tampil di layar setelah submit"
+            "Search results should be displayed after submission"
         );
     }
 }
@@ -343,104 +343,104 @@ public class SearchWorkflowTest extends ApplicationBaseTest {
 
 ---
 
-### Langkah 5: Jalankan Pengujian
+### Step 5: Execute Tests
 
-#### Menjalankan via Maven CLI:
+#### Using Maven CLI:
 ```bash
-# Jalankan seluruh test suite dari terminal
+# Run all tests
 mvn test
 
-# Jalankan dalam mode headless
+# Run in headless mode
 mvn test -Dheadless=true
 
-# Jalankan hanya pada browser Firefox
+# Run with Firefox
 mvn test -Dbrowser=firefox
 ```
 
-#### Menjalankan via TestNG Suite XML:
+#### Using a TestNG Suite XML File:
 ```bash
 mvn test -DsuiteXmlFile=src/test/resources/testng/sample-suite.xml
 ```
 
 ---
 
-### Langkah 6: Buka Laporan Interaktif
-Setelah eksekusi selesai, laporan pengujian HTML akan dibuat secara otomatis di direktori `reports/`:
+### Step 6: Review the Interactive Report
+After test execution, HTML reports are generated automatically in the `reports/` directory:
 ```text
 reports/
 └── ExtentReport_20261108_161500.html
 ```
-Buka file tersebut di browser apa pun untuk melihat visualisasi langkah uji, diagnostik elemen, dan log request API yang gagal.
+Open this file in any web browser to inspect execution steps, element diagnostics, and captured API errors.
 
 ---
 
-## 🌟 Fitur Unggulan
+## Key Features
 
-### 1. Developer Mode (DevMode) - Hemat Waktu Debugging!
-Saat mengembangkan pengujian untuk halaman yang membutuhkan proses login rumit atau multi-step form, Anda tidak perlu mengulang proses login setiap kali test dijalankan.
+### 1. Developer Mode (DevMode) - Save Debugging Time
+When developing tests for pages that require complex multi-step login flows, you can avoid logging in repeatedly for every test run:
 
-1. Buka Google Chrome dengan remote debugging port aktif:
+1. Launch Chrome with remote debugging enabled:
    ```bash
    chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\chrome-dev-profile"
    ```
-2. Lakukan login secara manual di browser tersebut dan buka halaman yang ingin diuji.
-3. Jalankan pengujian Anda dengan flag `-DdevMode=true`:
+2. Manually log in to your application and navigate to the target test page.
+3. Run your test with the `-DdevMode=true` flag:
    ```bash
    mvn test -DdevMode=true -Dtest=SearchWorkflowTest
    ```
-> **Hasil**: Selenium akan langsung terhubung ke tab browser yang sedang aktif tersebut tanpa membuka browser baru, tanpa login ulang, dan tanpa menutup browser saat test selesai!
+> **Result**: Selenium attaches directly to the open browser tab without launching a new window, without repeating login, and without closing the browser when the test ends.
 
 ---
 
-### 2. Pelaporan Interaktif 3-Tab & CDP Error Capture
-Laporan pengujian menyediakan transparansi penuh untuk developer dan QA:
-* **DETAILS**: Log eksekusi terstruktur dengan snapshot waktu nyata.
-* **ELEMENT LOGS**: Menganalisa penyebab NoSuchElement atau ElementClickIntercepted hingga ke CSS computed style dan koordinat elemen penutup (*blocker overlay*).
-* **NETWORK LOGS**: Mengidentifikasi kegagalan HTTP 400, 401, 403, 500, atau 502 secara langsung dari DevTools Protocol browser tanpa perlu konfigurasi proxy manual.
+### 2. 3-Tab Interactive Reporting and CDP Error Capture
+The execution report provides comprehensive diagnostic insight:
+* **DETAILS**: Structured step-by-step execution log with timestamps.
+* **ELEMENT LOGS**: Diagnoses NoSuchElement or ElementClickIntercepted failures, including computed CSS styles and blocker element coordinates.
+* **NETWORK LOGS**: Captures HTTP 400, 401, 403, 500, and 502 responses directly via Chrome DevTools Protocol without proxy configuration.
 
 ---
 
 ### 3. Multi-User Account Pooling (Thread-Safe)
-Kelola ratusan akun pengguna untuk pengujian multi-thread tanpa race-condition:
+Manage user accounts safely in parallel multi-threaded executions:
 
 ```java
-// Opsi A: Alokasi manual programatik
+// Option A: Programmatic manual allocation
 UserAccount admin = AccountAllocator.allocate("ADMIN");
 try {
-    // Jalankan transaksi admin
+    // Perform admin actions
 } finally {
     AccountAllocator.release(admin);
 }
 
-// Opsi B: Alokasi otomatis berbasis lifecycle BaseTest (Direkomendasikan)
+// Option B: Lifecycle-managed allocation via BaseTest (Recommended)
 public class AdminWorkflowTest extends ApplicationBaseTest {
     @Override
     protected String getRole() {
-        return "ADMIN"; // Dialokasikan otomatis saat setUp & dirilis saat tearDown
+        return "ADMIN"; // Automatically allocated in setUp and released in tearDown
     }
 
     @Test
     public void testAdminFeature() {
         UserAccount admin = AccountAllocator.getCurrentAccount();
-        // Lakukan pengujian...
+        // Execute test steps
     }
 }
 ```
 
 ---
 
-### 4. Penanganan Komponen UI Modern
-Untuk aplikasi yang dibangun menggunakan React, Vue, Angular, atau komponen modern (Shadcn, Radix UI, Headless UI):
+### 4. Modern UI Component Support
+For applications built with modern frontend frameworks (React, Vue, Angular, Radix UI, Shadcn, Headless UI):
 
 ```java
 import com.automation.framework.core.page.DropdownComponent;
 import com.automation.framework.core.table.WebTable;
 
-// Mengisi Dropdown Virtual List Radix UI / Shadcn
+// Select from a Radix UI or Shadcn custom virtualized dropdown
 DropdownComponent dropdown = new DropdownComponent(driver, By.id("organization-select-trigger"));
 dropdown.searchAndSelect("Finance", "Finance Division Jakarta");
 
-// Membaca Data Tabel HTML Dinamis
+// Read and interact with dynamic HTML tables
 WebTable table = new WebTable(driver, By.id("users-table"));
 int rowIndex = table.findRowIndexByCellValue("Email", "john.doe@example.com");
 table.getCellElement(rowIndex, "Action").findElement(By.cssSelector(".btn-edit")).click();
@@ -448,53 +448,53 @@ table.getCellElement(rowIndex, "Action").findElement(By.cssSelector(".btn-edit")
 
 ---
 
-## 🔄 Integrasi CI/CD
+## CI/CD Integration
 
-Framework ini dilengkapi konfigurasi pipeline siap pakai untuk **GitHub Actions** dan **Jenkins**.
+Ready-to-use pipeline configurations are available for **GitHub Actions** and **Jenkins**.
 
 ### GitHub Actions
-File workflow otomatis telah tersedia di [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
-Pipeline otomatis menginstal Google Chrome, menjalankan kompilasi multi-module, memvalidasi ArchUnit architecture guard, dan menjalankan pengujian headless setiap kali terjadi `push` atau `pull_request`.
+The pre-configured workflow file is located at [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+It installs Google Chrome, runs multi-module builds, validates ArchUnit architecture rules, and executes headless tests on every `push` or `pull_request`.
 
 ---
 
-## ❓ Troubleshooting & FAQ
+## Troubleshooting & FAQ
 
 ### 1. `IllegalStateException: chromedriver must be executable`
-* **Penyebab**: Perizinan eksekusi file driver pada OS lokal atau file cache driver korup.
-* **Solusi**: Selenium 4 mengelola driver secara otomatis via *Selenium Manager*. Hapus direktori cache sementara di `~/.cache/selenium` lalu jalankan kembali `mvn test`.
+* **Cause**: File permissions or corrupted driver cache.
+* **Solution**: Selenium 4 manages drivers automatically through Selenium Manager. Clear the cache directory at `~/.cache/selenium` and run `mvn test` again.
 
 ### 2. `DevMode Connection Refused (port 9222)`
-* **Penyebab**: Browser Chrome belum dijalankan dengan parameter `--remote-debugging-port=9222`.
-* **Solusi**: Tutup seluruh instance Chrome, lalu buka melalui command prompt:
+* **Cause**: Chrome was not started with `--remote-debugging-port=9222`.
+* **Solution**: Close all existing Chrome windows, then run:
   ```bash
   chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\chrome-dev-profile"
   ```
 
 ### 3. `ElementClickInterceptedException`
-* **Solusi**: Metode `click()` di `BasePage` sudah memiliki fallback JavaScript otomatis. Jika elemen tertutup modal atau animasi memudar, framework akan mencoba klik reguler lalu mengeksekusi klik JS tanpa membuat pengujian gagal secara prematur.
+* **Solution**: Methods in `BasePage` automatically fall back to JavaScript clicks. If an element is blocked by a backdrop or spinner, the framework attempts a native click and then executes a fallback JavaScript click to avoid premature failure.
 
 ---
 
-## 📚 Dokumentasi Lengkap
+## Documentation Index
 
-Pelajari panduan spesifik lainnya di dalam direktori [`docs/framework/`](docs/framework/):
+Explore detailed documentation in [`docs/framework/`](docs/framework/):
 
-| Dokumen | Topik Pembahasan |
-|---------|------------------|
-| [📖 Getting Started](docs/framework/getting-started.md) | Panduan langkah awal untuk developer baru. |
-| [🧩 Component Reference](docs/framework/component-reference.md) | Rincian lengkap seluruh kelas dan interface dalam framework-core. |
-| [📄 Page Object Guide](docs/framework/page-object-pattern.md) | Pola desain Page Object Model, BasePage, dan WebTable. |
-| [📊 Test Data Management](docs/framework/test-data-management.md) | Teknik data-driven testing dengan JSON dan Excel. |
-| [⚡ Developer Mode Guide](docs/framework/developer-mode.md) | Cara kerja remote debugging port 9222 dan efisiensi waktu. |
-| [📈 Reporting & CDP Guide](docs/framework/reporting-and-network-monitoring.md) | Arsitektur pelaporan 3-tab dan penangkapan network log. |
-| [👥 Multi-Account & Parallel](docs/framework/multi-account-and-parallel-testing.md) | Alokasi akun multi-thread dan eksekusi paralel. |
-| [🔄 CI/CD Pipeline Guide](docs/framework/ci-cd-pipeline.md) | Konfigurasi pipeline GitHub Actions dan Jenkins. |
-| [🔀 Migration Guide](docs/framework/migration-guide.md) | Panduan langkah migrasi dari proyek Selenium monolitik lama. |
+| Document | Description |
+|----------|-------------|
+| [Getting Started](docs/framework/getting-started.md) | Onboarding guide for new team members. |
+| [Component Reference](docs/framework/component-reference.md) | Comprehensive reference for classes and interfaces in framework-core. |
+| [Page Object Guide](docs/framework/page-object-pattern.md) | Design patterns for Page Objects, BasePage, and WebTable. |
+| [Test Data Management](docs/framework/test-data-management.md) | Data-driven testing with JSON and Excel files. |
+| [Developer Mode Guide](docs/framework/developer-mode.md) | Remote debugging on port 9222 for rapid test authoring. |
+| [Reporting & CDP Guide](docs/framework/reporting-and-network-monitoring.md) | 3-tab report architecture and network log capture. |
+| [Multi-Account & Parallel](docs/framework/multi-account-and-parallel-testing.md) | Thread-safe account pooling and parallel test execution. |
+| [CI/CD Pipeline Guide](docs/framework/ci-cd-pipeline.md) | Pipeline setup for GitHub Actions and Jenkins. |
+| [Migration Guide](docs/framework/migration-guide.md) | Step-by-step guide for migrating legacy Selenium projects. |
 
 ---
 
-## 📄 Lisensi
+## License
 
-Proyek ini dilisensikan di bawah lisensi terbuka **Apache License 2.0**.
-Lihat berkas [LICENSE](LICENSE) untuk informasi hak cipta dan ketentuan penggunaan secara lengkap.
+This project is open-source software licensed under the **Apache License 2.0**.
+See [LICENSE](LICENSE) for full copyright and licensing details.

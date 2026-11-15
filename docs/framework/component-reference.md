@@ -1,145 +1,146 @@
 # Framework Component Reference Manual
 
-Dokumentasi teknis mendalam mengenai setiap modul, komponen, kelas, dan antarmuka di dalam `framework-core`.
+Comprehensive technical documentation for modules, components, classes, and interfaces in `framework-core`.
 
 ---
 
-## 1. Daftar Komponen & Paket
+## 1. Package and Component Overview
 
-```
+```text
 com.automation.framework.core/
-├── account/         # Manajemen Akun & Pooling Multi-User
-├── assertion/       # Assertion Kustom & Soft Assert dengan Tangkapan Layar Otomatis
-├── auth/            # Kontrak Otentikasi & Login Pluggable
-├── config/          # Resolusi Konfigurasi Berjenjang (Cascading Hierarchy)
-├── data/            # Abstraksi Pembaca Data Uji (JSON, Excel, Properties)
-├── driver/          # Siklus Hidup WebDriver & Developer Mode (DevMode)
-├── listener/        # Listener TestNG & Pembersih Proses Orphaned
-├── network/         # Monitor Jaringan CDP (DevTools Protocol) untuk Error HTTP 4xx/5xx
-├── page/            # BasePage, Komponen UI Kustom (Dropdown, Radix UI)
-├── report/          # Bus Pelaporan, ExtentReports Renderer 3-Tab
-├── table/           # Utilitas Parsing Tabel HTML Dinamis
-├── test/            # Kelas Dasar Pengujian (BaseTest) Agnostik
-└── utils/           # Helper Selenium & Pengambilan Screenshot
+├── account/         # Account management and thread-safe multi-user pooling
+├── assertion/       # Custom assertions and soft assertions with automated screenshots
+├── auth/            # Pluggable authentication interfaces and login handlers
+├── config/          # Cascading configuration hierarchy resolution
+├── data/            # Test data reader abstractions (JSON, Excel, properties)
+├── driver/          # WebDriver lifecycle management and Developer Mode (DevMode)
+├── listener/        # Global TestNG listeners and orphaned browser process cleanup
+├── network/         # Chrome DevTools Protocol (CDP) network monitor for HTTP 4xx/5xx errors
+├── page/            # BasePage and custom UI components (dropdowns, Radix UI)
+├── report/          # Event bus and 3-tab ExtentReports renderer
+├── table/           # Dynamic HTML table parsing utilities
+├── test/            # Agnostic base test class (BaseTest)
+└── utils/           # Selenium helper utilities and screenshot capturing
 ```
 
 ---
 
-## 2. Rincian Komponen & Fungsinya
+## 2. Component Details and Capabilities
 
-### 2.1. Config Layer (`com.automation.framework.core.config`)
+### 2.1. Configuration Layer (`com.automation.framework.core.config`)
 
-* **Kelas Utama**: `FrameworkConfig`
-* **Fungsi**:
-  Menyediakan resolusi nilai konfigurasi terpusat dengan sistem cascading priority:
-  $$\text{System Properties } (-D) \longrightarrow \text{Environment Variables} \longrightarrow \text{.env} \longrightarrow \text{application-\{env\}.properties} \longrightarrow \text{framework.properties}$$
-* **Metode Penting**:
+* **Primary Class**: `FrameworkConfig`
+* **Purpose**:
+  Provides centralized configuration resolution using a cascading priority hierarchy:
+  System Properties (-D) -> Environment Variables -> .env -> application-{env}.properties -> framework.properties
+* **Key Methods**:
   * `FrameworkConfig.get(String key, String defaultValue)`
   * `FrameworkConfig.getBoolean(String key, boolean defaultValue)`
   * `FrameworkConfig.getInt(String key, int defaultValue)`
-  * `FrameworkConfig.getBrowser()` — Mengambil target browser (default: `chrome`).
-  * `FrameworkConfig.isHeadless()` — Flag eksekusi headless (default: `false`).
-  * `FrameworkConfig.isDevMode()` — Flag developer mode (default: `false`).
-  * `FrameworkConfig.getDevPort()` — Port remote debugging (default: `9222`).
+  * `FrameworkConfig.getBrowser()`: Retrieves the target browser (default: `chrome`).
+  * `FrameworkConfig.isHeadless()`: Indicates whether headless mode is enabled (default: `false`).
+  * `FrameworkConfig.isDevMode()`: Indicates whether Developer Mode is enabled (default: `false`).
+  * `FrameworkConfig.getDevPort()`: Retrieves the remote debugging port (default: `9222`).
 
 ---
 
 ### 2.2. Driver Management (`com.automation.framework.core.driver`)
 
-* **Kelas Utama**:
-  * `DriverManager`: Menyimpan instance `WebDriver` dalam konteks `ThreadLocal<WebDriver>` untuk memastikan thread safety saat eksekusi paralel.
-  * `DriverFactory`: Membuat instance `WebDriver` baru (mendukung Chrome, Firefox, Edge) dengan opsi profil terisolasi, flag anti-automation bypass, dan penanganan timeout.
-  * `DevModeUtils`: Menghubungkan Selenium ke browser Chrome yang sudah aktif (`--remote-debugging-port=9222`), memungkinkan pengujian instan tanpa harus mengulang login.
-* **Metode Penting**:
-  * `DriverManager.getDriver()`: Mengambil driver milik thread saat ini.
-  * `DriverManager.setDriver(WebDriver driver)`: Mendaftarkan driver ke thread.
-  * `DriverManager.quitDriver()`: Menutup browser dan membersihkan ThreadLocal.
-  * `DevModeUtils.isPortAvailable(int port)`: Memvalidasi ketersediaan port debugging.
+* **Primary Classes**:
+  * `DriverManager`: Stores `WebDriver` instances inside `ThreadLocal<WebDriver>` to guarantee thread safety during parallel test runs.
+  * `DriverFactory`: Instantiates new `WebDriver` objects (supporting Chrome, Firefox, and Edge) with isolated browser profiles, anti-detection flags, and timeout management.
+  * `DevModeUtils`: Connects Selenium directly to an active browser session on port `9222`, allowing instant test execution without restarting browsers or repeating logins.
+* **Key Methods**:
+  * `DriverManager.getDriver()`: Returns the WebDriver instance for the current execution thread.
+  * `DriverManager.setDriver(WebDriver driver)`: Binds a WebDriver instance to the current thread.
+  * `DriverManager.quitDriver()`: Closes the browser session and removes the ThreadLocal reference.
+  * `DevModeUtils.isPortAvailable(int port)`: Checks whether the debugging port is available.
 
 ---
 
-### 2.3. Page Object & UI Component Engine (`com.automation.framework.core.page`)
+### 2.3. Page Object and UI Component Engine (`com.automation.framework.core.page`)
 
-* **Kelas Utama**:
-  * `BasePage`: Kelas dasar abstrak untuk semua Page Object. Menyediakan pembungkus (wrapper) aman untuk interaksi elemen dengan explicit wait bawaan (`Duration.ofSeconds(15)`), auto-scroll via JavaScript, penanganan intersep klik otomatis (JS click fallback), dan pelaporan diagnostik.
-  * `DropdownComponent`: Mengelola dropdown non-standar (misalnya komponen Radix UI, Headless UI, Material, atau listbox virtual) yang menggunakan `role="combobox"` atau `role="option"`.
-* **Metode Penting di BasePage**:
-  * `click(By locator)` / `click(WebElement element)`: Menunggu elemen clickable, mencoba klik native, dan beralih ke JS click jika terhalang overlay.
-  * `typeText(By locator, String text)` / `typeText(WebElement element, String text)`: Menunggu visibility, membersihkan input, dan mengetikkan teks. (Tersedia juga alias `type()`).
-  * `getText(By locator)` / `getText(WebElement element)`: Menunggu visibility dan mengembalikan teks elemen.
-  * `isVisible(By locator)` / `isVisible(WebElement element)`: Mengembalikan boolean tanpa melempar TimeoutException. (Tersedia juga alias `isDisplayed()`).
-  * `isNotVisible(By locator)` / `isNotVisible(WebElement element)`: Memvalidasi elemen tersembunyi atau hilang dari DOM.
-  * `isElementClickable(By locator)` / `isElementClickable(WebElement element)`: Mengecek status clickable elemen.
-  * `scrollMoveToElement(By locator)` / `scrollMoveToElement(WebElement element)`: Melakukan scroll halaman menuju elemen.
+* **Primary Classes**:
+  * `BasePage`: Abstract base class for all Page Objects. Provides safe wrapper methods for UI actions with built-in explicit waits (default 15 seconds), automatic JavaScript scroll, click interception fallback (JavaScript click), and diagnostic error reporting.
+  * `DropdownComponent`: Handles non-standard dropdowns (such as Radix UI, Headless UI, Material UI, or custom listboxes) that use `role="combobox"` or `role="option"` instead of native HTML `<select>` tags.
+* **Key Methods in BasePage**:
+  * `click(By locator)` / `click(WebElement element)`: Waits until the element is clickable, attempts a standard click, and falls back to a JavaScript click if intercepted by an overlay.
+  * `typeText(By locator, String text)` / `typeText(WebElement element, String text)`: Waits for visibility, clears existing text, and enters input (alias: `type`).
+  * `getText(By locator)` / `getText(WebElement element)`: Waits for visibility and returns the visible text.
+  * `isVisible(By locator)` / `isVisible(WebElement element)`: Returns `true` if visible, and safely returns `false` without throwing `TimeoutException` (alias: `isDisplayed`).
+  * `isNotVisible(By locator)` / `isNotVisible(WebElement element)`: Verifies that an element is hidden or absent from the DOM.
+  * `isElementClickable(By locator)` / `isElementClickable(WebElement element)`: Checks whether an element is enabled and clickable.
+  * `scrollMoveToElement(By locator)` / `scrollMoveToElement(WebElement element)`: Scrolls the element into the viewport using JavaScript.
 
 ---
 
 ### 2.4. Pluggable Authentication (`com.automation.framework.core.auth`)
 
-* **Antarmuka**: `LoginHandler`
-* **Implementasi Bawaan**: `NoOpLoginHandler`
-* **Fungsi**:
-  Memisahkan logika autentikasi aplikasi dari siklus hidup framework. Setiap proyek dapat mengimplementasikan cara login yang unik (form login, SSO, token inject, API login) tanpa mengubah kode framework.
-* **Metode Kontrak**:
+* **Interface**: `LoginHandler`
+* **Default Implementation**: `NoOpLoginHandler`
+* **Purpose**:
+  Decouples application login logic from framework test lifecycle. Each test project can implement its own login procedure (form login, SSO, API token injection) without modifying core framework code.
+* **Contract Methods**:
   * `void login(WebDriver driver, UserAccount account)`
   * `boolean isLoggedIn(WebDriver driver)`
   * `void logout(WebDriver driver)`
 
 ---
 
-### 2.5. Account Pool & Multi-User Allocation (`com.automation.framework.core.account`)
+### 2.5. Account Pool and Multi-User Allocation (`com.automation.framework.core.account`)
 
-* **Antarmuka & Kelas**:
-  * `UserAccount`: Kontrak data akun pengguna (`getUsername()`, `getPassword()`, `getRole()`, `getIdentifier()`).
-  * `AccountAllocator`: Pengelola antrean akun thread-safe yang mendukung peminjaman akun berbasis peran (role), pencegahan tabrakan multi-thread saat uji paralel, dan timeout pengembalian.
-* **Metode Penting**:
-  * `AccountAllocator.init(List<UserAccount> accounts)`
+* **Interface and Class**:
+  * `UserAccount`: Data contract for user credentials (`getUsername()`, `getPassword()`, `getRole()`, `getIdentifier()`).
+  * `AccountAllocator`: Thread-safe account manager supporting role-based leasing, atomic reservation to prevent parallel collisions, and automatic account release during test teardown.
+* **Key Methods**:
+  * `AccountAllocator.registerAccounts(Collection<? extends UserAccount> accounts)`
   * `AccountAllocator.allocate(String role)`
+  * `AccountAllocator.useAccount(String alias, String testName, String role)`
   * `AccountAllocator.release(UserAccount account)`
-  * `AccountAllocator.resetPool()`
+  * `AccountAllocator.releaseAllAccounts()`
 
 ---
 
-### 2.6. Reporting Subsystem & CDP Network Monitor (`com.automation.framework.core.report` & `network`)
+### 2.6. Reporting Subsystem and CDP Network Monitor (`com.automation.framework.core.report` & `network`)
 
-* **Arsitektur**:
-  * `ReportAPI`: API fasad publik untuk pencatatan log langkah pengujian.
-  * `ReportEventBus`: Event bus thread-safe yang mendistribusikan log ke engine pelaporan.
-  * `ExtentImplementation` & `ExtentTabRenderer`: Membangun laporan interaktif HTML 3-Tab:
-    1. **Tab 1: DETAILS**: Kronologi langkah pengujian terperinci dengan timestamp.
-    2. **Tab 2: ELEMENT LOGS**: Diagnostik kegagalan 6-pilar (Computed CSS, Rect Box, Blocker Elements, OuterHTML, Stacktrace ringkas).
-    3. **Tab 3: NETWORK LOGS**: Daftar kegagalan API/HTTP (4xx, 5xx) yang ditangkap langsung via Chrome DevTools Protocol (CDP).
-  * `NetworkMonitor`: Menggunakan CDP (`Network.enable`, `Network.responseReceived`) via reflection (`CdpVersionHelper`) untuk menangkap kegagalan backend secara otomatis tanpa konfigurasi proxy eksternal.
+* **Architecture**:
+  * `ReportAPI`: Public facade API for recording test steps and status events.
+  * `ReportEventBus`: Thread-safe event bus that distributes log events to report engines.
+  * `ExtentImplementation` and `ExtentTabRenderer`: Generate a custom 3-Tab interactive HTML report:
+    1. **Tab 1: DETAILS**: Chronological step-by-step test execution log with timestamps.
+    2. **Tab 2: ELEMENT LOGS**: Six diagnostic failure pillars (computed CSS, bounding box, blocker overlay elements, outerHTML, and filtered stack trace).
+    3. **Tab 3: NETWORK LOGS**: Backend HTTP errors (4xx, 5xx) captured in real time via Chrome DevTools Protocol (CDP).
+  * `NetworkMonitor`: Uses CDP (`Network.enable`, `Network.responseReceived`) to track API requests without requiring an external proxy server.
 
 ---
 
 ### 2.7. Custom Assertions (`com.automation.framework.core.assertion`)
 
-* **Kelas**: `CustomAssert` & `CustomSoftAssert`
-* **Fungsi**:
-  Memperluas fungsi assertion TestNG standar dengan integrasi otomatis ke `ReportAPI` dan penangkapan tangkapan layar (screenshot) saat terjadi kegagalan verifikasi.
+* **Classes**: `CustomAssert` and `CustomSoftAssert`
+* **Purpose**:
+  Extends standard TestNG assertions by automatically logging results to `ReportAPI` and attaching full-page screenshots whenever a verification fails.
 
 ---
 
 ### 2.8. Data Readers (`com.automation.framework.core.data`)
 
-* **Antarmuka**: `DataReader<T>`
-* **Implementasi**:
-  * `JsonDataReader`: Membaca array atau objek JSON menjadi POJO / Java model menggunakan Gson.
-  * `ExcelDataReader`: Membaca file `.xlsx` menjadi `List<Map<String, String>>` menggunakan Apache POI.
-  * `ResourcePathResolver`: Menyelesaikan path file secara fleksibel (classpath, direktori proyek, atau filesystem mutlak).
+* **Interface**: `DataReader<T>`
+* **Implementations**:
+  * `JsonDataReader`: Maps JSON objects or arrays into Java POJO models using Gson.
+  * `ExcelDataReader`: Reads `.xlsx` spreadsheets into `List<Map<String, String>>` using Apache POI.
+  * `ResourcePathResolver`: Resolves file paths across classpath resources, working directories, and absolute file system locations.
 
 ---
 
-### 2.9. Lifecycle Listeners & Process Cleanup (`com.automation.framework.core.listener`)
+### 2.9. Lifecycle Listeners and Process Cleanup (`com.automation.framework.core.listener`)
 
-* **Kelas**:
-  * `FrameworkListener`: Listener global TestNG yang menangani inisialisasi report, injeksi CSS/JS tab ExtentReports, dan pengumpulan ringkasan eksekusi.
-  * `BrowserProcessCleaner`: Pembersih otomatis proses peramban (`chromedriver.exe`, `chrome.exe`) yang tertinggal (orphaned) dan pembersihan direktori profil sementara saat eksekusi selesai.
+* **Classes**:
+  * `FrameworkListener`: Global TestNG listener handling report initialization, custom tab assets, and suite summary generation.
+  * `BrowserProcessCleaner`: Sweeper utility that registers a JVM shutdown hook to terminate orphaned browser processes (`chromedriver.exe`, `chrome.exe`) and cleans up temporary browser profiles.
 
 ---
 
 ### 2.10. Generic Test Base (`com.automation.framework.core.test.BaseTest`)
 
-* **Fungsi**:
-  Kelas dasar pengujian TestNG abstrak yang mengatur siklus hidup driver, inisialisasi monitor CDP, alokasi akun otomatis (opsional), penangkapan screenshot saat test gagal, dan penutupan browser secara bersih di `@BeforeMethod` dan `@AfterMethod`.
+* **Purpose**:
+  Abstract base class for test execution. Manages the WebDriver lifecycle, initializes CDP monitoring, performs automatic login (optional), captures failure diagnostics and screenshots, and ensures clean resource teardown in `@BeforeMethod` and `@AfterMethod`.

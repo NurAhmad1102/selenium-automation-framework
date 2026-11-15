@@ -1,24 +1,24 @@
-# 👥 Multi-Account & Parallel Test Execution
+# Multi-Account and Parallel Test Execution
 
 The framework is architected from the ground up for multi-threaded parallel test execution and multi-user workflow testing.
 
 ---
 
-## 🔒 1. Thread-Safe Account Pooling
+## 1. Thread-Safe Account Pooling
 
 In enterprise end-to-end tests, multiple tests running in parallel often need user accounts with specific roles without causing concurrency collisions or session race conditions.
 
-### `AccountAllocator` Features
-- Accounts are grouped by role (e.g. `Admin`, `Approver`, `Operator`).
-- When a test requests an account with role `R`, `AccountAllocator` assigns an available account and marks it busy.
-- If all accounts of that role are currently in use by other parallel threads, `AccountAllocator` safely waits (default: 30s timeout, configurable via `account.wait.timeout.seconds`) until an account is released.
+### AccountAllocator Capabilities
+- Accounts are grouped by role (for example, `Admin`, `Approver`, `Operator`).
+- When a test requests an account with role `R`, `AccountAllocator` assigns an available account and marks it as busy.
+- If all accounts of that role are currently in use by other parallel threads, `AccountAllocator` safely waits (default: 30-second timeout, configurable via `account.wait.timeout.seconds`) until an account is released.
 - During test teardown (`BaseTest.tearDown()`), all allocated accounts for that thread are automatically released back to the shared pool.
 
 ---
 
-## 🎭 2. Multi-Actor Workflow Testing
+## 2. Multi-Actor Workflow Testing
 
-For tests that verify handoffs between multiple users (e.g., Maker-Checker approval flow):
+For tests that verify handoffs between multiple users (such as Maker-Checker approval flows):
 
 ```java
 @Test
@@ -41,7 +41,7 @@ public void makerCheckerApprovalFlow() {
 
 ---
 
-## ⚡ 3. Parallel Test Execution via TestNG
+## 3. Parallel Test Execution via TestNG
 
 Configure parallel execution in your TestNG XML suite:
 
