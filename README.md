@@ -1,4 +1,4 @@
-# Enterprise Selenium 4 Automation Framework
+# Selenium 4 Automation Framework
 
 [![CI Build](https://github.com/NurAhmad1102/automations-arjuna/actions/workflows/ci.yml/badge.svg)](https://github.com/NurAhmad1102/automations-arjuna/actions/workflows/ci.yml)
 [![Java](https://img.shields.io/badge/Java-17%2B-blue?style=flat-square&logo=openjdk)](https://openjdk.org/)
@@ -6,7 +6,7 @@
 [![TestNG](https://img.shields.io/badge/TestNG-7.10.2-red?style=flat-square)](https://testng.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 
-An enterprise-grade, 100% project-agnostic, and modular web automation framework built on **Java 17** and **Selenium 4**. It serves as a reliable, reusable foundation for web applications without requiring you to build testing infrastructure from scratch.
+Modular web automation framework built on **Java 17** and **Selenium 4**. It serves as a reliable, reusable foundation for web applications without requiring you to build testing infrastructure from scratch.
 
 ---
 
