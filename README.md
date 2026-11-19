@@ -119,8 +119,8 @@ You can integrate `framework-core` into your automated test projects using one o
 Clone this repository and install `framework-core` into your local Maven cache (`~/.m2/repository`):
 
 ```bash
-git clone https://github.com/NurAhmad1102/automations-arjuna.git
-cd automations-arjuna
+git clone https://github.com/NurAhmad1102/selenium-automation-framework.git
+cd selenium-automation-framework
 mvn clean install -DskipTests
 ```
 
@@ -128,7 +128,7 @@ Then in your test project's `pom.xml`, add the `framework-core` dependency:
 
 ```xml
 <dependency>
-    <groupId>com.automation.framework</groupId>
+    <groupId>com.selenium-automation-framework</groupId>
     <artifactId>framework-core</artifactId>
     <version>1.0.0</version>
 </dependency>
@@ -150,7 +150,7 @@ If this repository is hosted on GitHub, projects can consume it directly via [Ji
 2. Add the dependency using JitPack's multi-module format:
 ```xml
 <dependency>
-    <groupId>com.github.NurAhmad1102.automations-arjuna</groupId>
+    <groupId>com.github.your.selenium-automation-framework</groupId>
     <artifactId>framework-core</artifactId>
     <version>1.0.0</version>
 </dependency>
